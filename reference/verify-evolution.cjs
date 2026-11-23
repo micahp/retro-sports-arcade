@@ -129,6 +129,13 @@ const wait=(ms)=>new Promise(r=>setTimeout(r,ms));
  }
  await wait(4000);
  const iosImages=await ios.locator('section#nhl .game-card img, section#madden .game-card img').evaluateAll(xs=>xs.map(x=>({game:x.closest('.game-card')?.id,src:x.currentSrc,loaded:x.complete&&x.naturalWidth>0,width:x.naturalWidth,visible:x.getBoundingClientRect().width>0})));
+ const layout=await ios.evaluate(()=>{
+  const filters=document.querySelector('.controls'),rect=filters.getBoundingClientRect();
+  const card=document.querySelector('#game-nhl-99 .shot-frame');
+  return {position:getComputedStyle(filters).position,filterTop:rect.top,filterBottom:rect.bottom,cardHeight:card?.getBoundingClientRect().height||0};
+ });
+ assert.equal(layout.position,'static','mobile filters must NOT cover game screenshots while scrolling');
+ assert(layout.cardHeight>100,'mobile screenshots retain useful image height');
  await ios.locator('section#nhl').scrollIntoViewIfNeeded();
  await ios.screenshot({path:path.join(out,'nhl-webkit-mobile.png'),fullPage:false});
  await ios.locator('section#madden').scrollIntoViewIfNeeded();
@@ -142,7 +149,7 @@ const wait=(ms)=>new Promise(r=>setTimeout(r,ms));
  assert.equal(staticCardCount,33,'gameplay catalog renders without JavaScript');
  assert.equal(staticNhl,11,'all NHL screenshots are in HTML, not merely external links');
  assert.equal(staticMadden,11,'all Madden screenshots are in HTML, not merely external links');
- const safariReport={engine:'Playwright WebKit',viewport:'390x844',sourced_images:iosImages.length,loaded_images:iosImages.filter(x=>x.loaded).length,unloaded:iosImages.filter(x=>!x.loaded),js_errors:iosErrors,static_without_javascript:{cards:staticCardCount,nhl:staticNhl,madden:staticMadden}};
+ const safariReport={engine:'Playwright WebKit',viewport:'390x844',sourced_images:iosImages.length,loaded_images:iosImages.filter(x=>x.loaded).length,unloaded:iosImages.filter(x=>!x.loaded),js_errors:iosErrors,mobile_layout:layout,static_without_javascript:{cards:staticCardCount,nhl:staticNhl,madden:staticMadden}};
  fs.writeFileSync(path.join(out,'webkit-report.json'),JSON.stringify(safariReport,null,2)+'\n');
  console.log('WEBKIT '+JSON.stringify({loaded:safariReport.loaded_images,total:iosImages.length,static_cards:staticCardCount,errors:iosErrors}));
  await noJS.close();await iosContext.close();await webkitBrowser.close();

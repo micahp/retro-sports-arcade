@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sports Game Evolution | Retro Sports Arcade</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color-scheme:dark;background:#0b1019;color:#eef5fb}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% 0%,#1b3145 0,#0b1019 55%)}
+header,main,footer{max-width:1240px;margin:auto;padding:22px}
+header{padding-top:45px}small,.eyebrow{color:#91b3c8;letter-spacing:.12em;text-transform:uppercase;font-weight:700}
+h1{font-size:clamp(32px,5vw,58px);margin:10px 0;line-height:1.06}h1 span{color:#79e7bd}p{line-height:1.55;color:#b7c9d8;max-width:850px}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin:24px 0}nav a,.source{color:#b9f8df;text-decoration:none;border:1px solid #456b6a;border-radius:99px;padding:8px 14px;font-size:13px}nav a:hover,.source:hover{background:#203d43}
+section{margin:38px 0 55px;scroll-margin-top:25px}h2{font-size:30px;margin-bottom:4px}.subtitle{margin:0 0 22px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{background:#142132;border:1px solid #344a60;border-radius:14px;overflow:hidden}
+figure{margin:0;background:#080e17;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;position:relative}
+figure img{width:100%;height:100%;object-fit:contain;image-rendering:auto}
+figure img.pixel{image-rendering:pixelated}
+figcaption{position:absolute;top:12px;left:12px;background:#091827dc;border:1px solid #446176;padding:5px 10px;border-radius:5px;font-size:12px;font-weight:700}
+.cardbody{padding:20px}.card h3{margin:0 0 5px;font-size:24px}.meta{font-size:12px;color:#91b3c8;margin-bottom:10px}.card p{margin:8px 0 18px;font-size:14px}
+.source{display:inline-block;border-radius:7px;padding:7px 11px}
+.analysis{border-left:3px solid #79e7bd;padding:8px 18px;background:#132332;margin-top:16px;border-radius:0 8px 8px 0}.analysis strong{color:#b5f7dd}
+.note{font-size:13px;color:#a1b8c9;border-top:1px solid #344a60;padding-top:18px}
+@media(max-width:720px){.pair{grid-template-columns:1fr}header,main,footer{padding:17px}h1{font-size:36px}}
+</style></head><body>
+<header><div class="eyebrow">Retro Sports Arcade / Visual research / 2026</div><h1>From <span>pixels</span> to polygons</h1>
+<p>A side-by-side visual reference for hockey, basketball and football. Compare real-era screenshots and what changed between 1990s sprite sports and early-2000s 3D. These are third-party references, not Retro Sports Arcade assets.</p>
+<nav><a href="#hockey">🏒 Hockey</a><a href="#basketball">🏀 Basketball</a><a href="#football">🏈 Football</a><a href="../index.html">Play Rink '95</a></nav>
+</header>
+<main>
+<section id="hockey"><h2>🏒 Hockey</h2><p class="subtitle">Overhead sprite clarity → early 3D skating, arenas and camera depth.</p>
+<div class="pair">
+<article class="card"><figure><img class="pixel" src="https://openretro.org/image/3b3ee6a060c4a53867f0e4240727d169fcb6eea9?s=2x" alt="NHL 95 Super Nintendo gameplay: overhead rink and pixel skaters" loading="lazy"><figcaption>SPRITES · 1994</figcaption></figure><div class="cardbody"><h3>NHL 95</h3><div class="meta">SNES gameplay · 1994 release</div><p>Small directional sprites, overhead readability, a large visible ice surface. Good reference for our first playable hockey target.</p><a class="source" href="https://openretro.org/snes/nhl-95" target="_blank" rel="noopener noreferrer">Screenshot source</a></div></article>
+<article class="card"><figure><img src="https://rgdb.info/sites/default/files/scr/bandicam%202014-08-27%2011-36-48-146_mini.jpg" alt="NHL 2001 PlayStation 1 3D rink screenshot with broadcast overlay" loading="lazy"><figcaption>EARLY 3D · 2000</figcaption></figure><div class="cardbody"><h3>NHL 2001</h3><div class="meta">PlayStation 1 gameplay · 2000 release</div><p>Polygonal rink and athletes, camera depth and broadcast-style overlays. This particular frame has a large intermission graphic, so inspect more gameplay footage for movement comparison.</p><a class="source" href="https://rgdb.info/base/rus-01182" target="_blank" rel="noopener noreferrer">Screenshot source</a></div></article>
+</div><div class="analysis"><strong>Arcade implication:</strong> Prioritize NHL 95's readability and game feel first. Later, test low-poly models against sprite-stacked skating and shot/recovery timing.</div></section>
+<section id="basketball"><h2>🏀 Basketball</h2><p class="subtitle">Angled 2D courts and animation sprites → expressive 3D player bodies.</p>
+<div class="pair">
+<article class="card"><figure><img class="pixel" src="https://img.youtube.com/vi/nZjXLUl81Us/hqdefault.jpg" alt="Thumbnail from NBA Live 95 Sega Genesis gameplay video" loading="lazy"><figcaption>SPRITES · 1994</figcaption></figure><div class="cardbody"><h3>NBA Live 95</h3><div class="meta">Genesis gameplay video thumbnail · 1994 release</div><p>Isometric court, compact sprite players and recognizable passing, shooting and dunk sequences. The still is a video thumbnail, not an independently archived screenshot.</p><a class="source" href="https://www.youtube.com/watch?v=nZjXLUl81Us" target="_blank" rel="noopener noreferrer">Watch gameplay source</a></div></article>
+<article class="card"><figure><img src="https://gamefabrique.com/storage/screenshots/ps2/nba-live-2001-09.png" alt="NBA Live 2001 PlayStation 2 gameplay: 3D player holding ball near the arc" loading="lazy"><figcaption>EARLY 3D · 2000</figcaption></figure><div class="cardbody"><h3>NBA Live 2001</h3><div class="meta">PlayStation 2 gameplay · 2000 release</div><p>3D court and players, more detailed shooting poses and spatial camera depth. Compare the ball-to-hand contact with The U's animation problems.</p><a class="source" href="https://gamefabrique.com/games/nba-live-2001/" target="_blank" rel="noopener noreferrer">Screenshot source</a></div></article>
+</div><div class="analysis"><strong>Arcade implication:</strong> Test The U's pre-rendered sprites and Gridiron's sprite stacking before committing to a complex rig. Judge individual actions, not entire animation libraries.</div></section>
+<section id="football"><h2>🏈 Football</h2><p class="subtitle">Readable sprite formations → detailed 3D blocking, passing and tackling.</p>
+<div class="pair">
+<article class="card"><figure><img class="pixel" src="https://www.vizzed.com/vizzedboard/retro/user_screenshots/saves45/457478/GENESIS--Madden%20NFL%2096_Jan5%2018_19_04.png" alt="Madden NFL 96 Sega Genesis gameplay: sprite football players in the end zone" loading="lazy"><figcaption>SPRITES · 1995</figcaption></figure><div class="cardbody"><h3>Madden NFL 96</h3><div class="meta">Genesis gameplay · 1995 release</div><p>A 1995-era sprite reference for player scale, field readability and movement. This is Madden NFL 96, not Madden NFL 95, and is labeled accordingly.</p><a class="source" href="https://www.vizzed.com/play/madden-nfl-96-gen-sega-genesis-4539-game" target="_blank" rel="noopener noreferrer">Screenshot source</a></div></article>
+<article class="card"><figure><img src="https://img.youtube.com/vi/rVbz8V87jiE/hqdefault.jpg" alt="Thumbnail from Madden NFL 2001 PlayStation 2 gameplay video" loading="lazy"><figcaption>EARLY 3D · 2000</figcaption></figure><div class="cardbody"><h3>Madden NFL 2001</h3><div class="meta">PlayStation 2 gameplay video thumbnail · 2000 release</div><p>Low-poly 3D player bodies, richer stadium presentation and more complex catch/tackle animations. The thumbnail links to captured PS2 gameplay.</p><a class="source" href="https://www.youtube.com/watch?v=rVbz8V87jiE" target="_blank" rel="noopener noreferrer">Watch gameplay source</a></div></article>
+</div><div class="analysis"><strong>Arcade implication:</strong> Start from Legendary Picks' Pixel Red Zone and Gridiron's 2D/sprite stack. Require movement and tackle validation before treating 3D complexity as an improvement.</div></section>
+<p class="note">Research-use links only. Images remain hosted by their original publishers and may fail if those sites change hotlink permissions. No third-party screenshots or video frames are copied into the repository. EA Sports and game titles belong to their respective owners. This comparison does not grant reuse rights for commercial game assets.</p>
+</main><footer><small>Retro Sports Arcade · Visual reference board · Hockey / Basketball / Football</small></footer>
+</body></html>

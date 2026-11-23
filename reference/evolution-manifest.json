@@ -2,7 +2,7 @@
   "schema_version": 2,
   "generated": "2026-11-23",
   "project": "Retro Sports Arcade / EA visual evolution",
-  "methodology": "Image URLs are only those linked from source pages or image search results identifying the game and platform; visual/source matching is preliminary. Browser rendering, legal reuse rights, and identity of any unclear image require separate confirmation. No copies of remote images are stored in the repository. When hotlinking fails, the UI provides a visible gallery link.",
+  "methodology": "Direct screenshot URLs were traced to their corresponding source gallery by game title, platform, and explicitly labeled gameplay captures, then visually reviewed in image-viewing results where available. Older image references still require retrospective source review. This is source-level verification only; browser hotlink success and rights clearance are distinct and unverified. No screenshots were copied locally.",
   "rights_notes": "EA and contributors retain rights. Screenshots are used only as attributed critical visual references. Source-site terms vary; MobyGames FAQ permits up to 20 screenshots in a credited project. Some other hosts have no documented reuse license, so conduct rights review before public distribution. A broken remote image must fall back to the source gallery.",
   "games": [
     {
@@ -87,9 +87,20 @@
       "camera": "Angled overhead rink",
       "visual_notes": "More goalie and contact frames; a useful study in improving animation without abandoning the overhead play camera.",
       "design_takeaway": "Preserve strong silhouettes, instant directional changes, and a fixed readable play angle.",
-      "screenshots": [],
+      "screenshots": [
+        {
+          "platform": "Genesis",
+          "image_url": "https://images.launchbox-app.com/44b85f2d-40ef-44f0-b82c-bca1541f5824.png",
+          "source_page": "https://gamesdb.launchbox-app.com/games/images/640-nhl-96",
+          "attribution": "LaunchBox Games Database · NHL 96 · Genesis · Screenshot – Gameplay",
+          "rights": "Community-submitted LaunchBox screenshot. Rights to copy or hotlink have not been independently granted; original source link is provided.",
+          "visual_review": "source_page_and_gameplay_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        }
+      ],
       "source_gallery": "https://gamefabrique.com/games/nhl-96/",
-      "screenshot_verification_status": "no_screen_capture_verified"
+      "screenshot_verification_status": "source_checked_not_browser_verified"
     },
     {
       "id": "nhl-97",
@@ -134,9 +145,20 @@
       "camera": "Adjustable TV-style rink",
       "visual_notes": "The PlayStation/PC branch emphasizes more lifelike bodies and movable cameras; the Genesis/SNES versions remained sprite-based.",
       "design_takeaway": "Test depth selectively; keep the gameplay camera stable even if replays use full 3D.",
-      "screenshots": [],
+      "screenshots": [
+        {
+          "platform": "PlayStation",
+          "image_url": "https://images.launchbox-app.com/411ad7e4-8082-4b83-899b-6cd97a8ae00b.png",
+          "source_page": "https://gamesdb.launchbox-app.com/games/images/20354-nhl-98",
+          "attribution": "LaunchBox Games Database · NHL 98 · PlayStation · Screenshot – Gameplay",
+          "rights": "Community-submitted LaunchBox screenshot. Rights to copy or hotlink have not been independently granted; original source link is provided.",
+          "visual_review": "source_page_and_gameplay_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        }
+      ],
       "source_gallery": "https://gamefabrique.com/games/nhl-98/",
-      "screenshot_verification_status": "no_screen_capture_verified"
+      "screenshot_verification_status": "source_checked_not_browser_verified"
     },
     {
       "id": "nhl-99",
@@ -152,9 +174,20 @@
       "camera": "Broadcast rink",
       "visual_notes": "Camera freedom and polygonal skaters increase spectacle; a fixed broadcast option remains essential for puck tracking.",
       "design_takeaway": "Test depth selectively; keep the gameplay camera stable even if replays use full 3D.",
-      "screenshots": [],
+      "screenshots": [
+        {
+          "platform": "Nintendo 64",
+          "image_url": "https://images.launchbox-app.com/cb02804f-9574-40b6-8d38-21ba54f4a02d.png",
+          "source_page": "https://gamesdb.launchbox-app.com/games/images/1137-nhl-99",
+          "attribution": "LaunchBox Games Database · NHL 99 · Nintendo 64 · Screenshot – Gameplay",
+          "rights": "Community-submitted LaunchBox screenshot. Rights to copy or hotlink have not been independently granted; original source link is provided.",
+          "visual_review": "source_page_and_gameplay_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        }
+      ],
       "source_gallery": "https://gamefabrique.com/games/nhl-99/",
-      "screenshot_verification_status": "no_screen_capture_verified"
+      "screenshot_verification_status": "source_checked_not_browser_verified"
     },
     {
       "id": "nhl-2000",
@@ -170,9 +203,20 @@
       "camera": "Broadcast rink",
       "visual_notes": "The rink gains arena surfaces and fuller 3D movement, but distant dark player silhouettes can lose contrast.",
       "design_takeaway": "Borrow lighting, surface cues, and broadcasts without requiring complex character rigs.",
-      "screenshots": [],
+      "screenshots": [
+        {
+          "platform": "PlayStation",
+          "image_url": "https://images.launchbox-app.com/9c5a0614-e910-4f93-9994-0a7ed56754ac.png",
+          "source_page": "https://gamesdb.launchbox-app.com/games/images/30626-nhl-2000",
+          "attribution": "LaunchBox Games Database · NHL 2000 · PlayStation · Screenshot – Gameplay",
+          "rights": "Community-submitted LaunchBox screenshot. Rights to copy or hotlink have not been independently granted; original source link is provided.",
+          "visual_review": "source_page_and_gameplay_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        }
+      ],
       "source_gallery": "https://gamefabrique.com/games/nhl-2000/",
-      "screenshot_verification_status": "no_screen_capture_verified"
+      "screenshot_verification_status": "source_checked_not_browser_verified"
     },
     {
       "id": "nhl-2001",
@@ -304,9 +348,20 @@
       "camera": "Isometric half-court",
       "visual_notes": "The oblique court and tall, distinct sprites communicate 10 players without complicated rigs.",
       "design_takeaway": "Preserve strong silhouettes, instant directional changes, and a fixed readable play angle.",
-      "screenshots": [],
+      "screenshots": [
+        {
+          "platform": "Genesis",
+          "image_url": "https://images.launchbox-app.com/6fe3d758-3ecb-419c-8ad4-67f4b04fbba8.png",
+          "source_page": "https://gamesdb.launchbox-app.com/games/images/4280-nba-live-95",
+          "attribution": "LaunchBox Games Database · NBA Live 95 · Genesis · Screenshot – Gameplay",
+          "rights": "Community-submitted LaunchBox screenshot. Rights to copy or hotlink have not been independently granted; original source link is provided.",
+          "visual_review": "source_page_and_gameplay_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        }
+      ],
       "source_gallery": "https://gamefabrique.com/games/nba-live-95/",
-      "screenshot_verification_status": "no_screen_capture_verified"
+      "screenshot_verification_status": "source_checked_not_browser_verified"
     },
     {
       "id": "nba-96",
@@ -351,9 +406,20 @@
       "camera": "Isometric court",
       "visual_notes": "The 16-bit edition stays isometric and sprite-led even as other platforms experiment with 3D.",
       "design_takeaway": "Test depth selectively; keep the gameplay camera stable even if replays use full 3D.",
-      "screenshots": [],
+      "screenshots": [
+        {
+          "platform": "SNES",
+          "image_url": "https://images.launchbox-app.com/24bf1a85-df21-438d-88a2-94707101fb2a.png",
+          "source_page": "https://gamesdb.launchbox-app.com/games/images/5360-nba-live-97",
+          "attribution": "LaunchBox Games Database · NBA Live 97 · SNES · Screenshot – Gameplay",
+          "rights": "Community-submitted LaunchBox screenshot. Rights to copy or hotlink have not been independently granted; original source link is provided.",
+          "visual_review": "source_page_and_gameplay_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        }
+      ],
       "source_gallery": "https://gamefabrique.com/games/nba-live-97/",
-      "screenshot_verification_status": "no_screen_capture_verified"
+      "screenshot_verification_status": "source_checked_not_browser_verified"
     },
     {
       "id": "nba-98",
@@ -398,9 +464,20 @@
       "camera": "Broadcast/angled court",
       "visual_notes": "Full 3D courts and more articulated bodies add depth but can obscure spacing at lower resolutions.",
       "design_takeaway": "Test depth selectively; keep the gameplay camera stable even if replays use full 3D.",
-      "screenshots": [],
+      "screenshots": [
+        {
+          "platform": "PlayStation",
+          "image_url": "https://images.launchbox-app.com/357aeb89-3b5c-4d67-a74e-6a04ceadd0fd.png",
+          "source_page": "https://gamesdb.launchbox-app.com/games/images/554-nba-live-99",
+          "attribution": "LaunchBox Games Database · NBA Live 99 · PlayStation · Screenshot – Gameplay",
+          "rights": "Community-submitted LaunchBox screenshot. Rights to copy or hotlink have not been independently granted; original source link is provided.",
+          "visual_review": "source_page_and_gameplay_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        }
+      ],
       "source_gallery": "https://gamefabrique.com/games/nba-live-99/",
-      "screenshot_verification_status": "no_screen_capture_verified"
+      "screenshot_verification_status": "source_checked_not_browser_verified"
     },
     {
       "id": "nba-2000",
@@ -474,9 +551,20 @@
       "camera": "Broadcast with camera cuts",
       "visual_notes": "More detailed court lighting and bodies; believable rebounds and foot planting matter more than facial fidelity.",
       "design_takeaway": "Borrow lighting, surface cues, and broadcasts without requiring complex character rigs.",
-      "screenshots": [],
+      "screenshots": [
+        {
+          "platform": "Xbox",
+          "image_url": "https://images.launchbox-app.com/138a027d-fa9b-4baf-a288-0dd4764394c3.png",
+          "source_page": "https://gamesdb.launchbox-app.com/games/images/28602-nba-live-2002",
+          "attribution": "LaunchBox Games Database · NBA Live 2002 · Xbox · Screenshot – Gameplay",
+          "rights": "Community-submitted LaunchBox screenshot. Rights to copy or hotlink have not been independently granted; original source link is provided.",
+          "visual_review": "source_page_and_gameplay_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        }
+      ],
       "source_gallery": "https://gamefabrique.com/games/nba-live-2002/",
-      "screenshot_verification_status": "no_screen_capture_verified"
+      "screenshot_verification_status": "source_checked_not_browser_verified"
     },
     {
       "id": "nba-2003",
@@ -608,9 +696,20 @@
       "camera": "Behind-offense angled field",
       "visual_notes": "Small sprites and uncluttered yard markers communicate formation much faster than photoreal faces could.",
       "design_takeaway": "Preserve strong silhouettes, instant directional changes, and a fixed readable play angle.",
-      "screenshots": [],
+      "screenshots": [
+        {
+          "platform": "Genesis",
+          "image_url": "https://images.launchbox-app.com/507ed59b-ac83-4c77-b5f8-48c85986e4c1.png",
+          "source_page": "https://gamesdb.launchbox-app.com/games/images/609-madden-nfl-95",
+          "attribution": "LaunchBox Games Database · Madden NFL 95 · Genesis · Screenshot – Gameplay",
+          "rights": "Community-submitted LaunchBox screenshot. Rights to copy or hotlink have not been independently granted; original source link is provided.",
+          "visual_review": "source_page_and_gameplay_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        }
+      ],
       "source_gallery": "https://gamefabrique.com/games/madden-nfl-95/",
-      "screenshot_verification_status": "no_screen_capture_verified"
+      "screenshot_verification_status": "source_checked_not_browser_verified"
     },
     {
       "id": "madden-96",
@@ -713,9 +812,20 @@
       "camera": "Adjustable 3D broadcast",
       "visual_notes": "Madden NFL 99 marks an important shift to fully polygonal PlayStation players; the freedom brings frame-rate and readability costs.",
       "design_takeaway": "Test depth selectively; keep the gameplay camera stable even if replays use full 3D.",
-      "screenshots": [],
+      "screenshots": [
+        {
+          "platform": "PlayStation",
+          "image_url": "https://images.launchbox-app.com/r2_0f0f3073-46d8-4493-9da0-83571bd3ead1.png",
+          "source_page": "https://gamesdb.launchbox-app.com/games/images/23732-madden-nfl-99",
+          "attribution": "LaunchBox Games Database · Madden NFL 99 · PlayStation · Screenshot – Gameplay",
+          "rights": "Community-submitted LaunchBox screenshot. Rights to copy or hotlink have not been independently granted; original source link is provided.",
+          "visual_review": "source_page_and_gameplay_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        }
+      ],
       "source_gallery": "https://gamefabrique.com/games/madden-nfl-99/",
-      "screenshot_verification_status": "no_screen_capture_verified"
+      "screenshot_verification_status": "source_checked_not_browser_verified"
     },
     {
       "id": "madden-2000",
@@ -731,9 +841,20 @@
       "camera": "Adjustable 3D field",
       "visual_notes": "Richer stadium geometry and more body rotation; low-resolution polygons can make tackles hard to parse.",
       "design_takeaway": "Borrow lighting, surface cues, and broadcasts without requiring complex character rigs.",
-      "screenshots": [],
+      "screenshots": [
+        {
+          "platform": "PlayStation",
+          "image_url": "https://images.launchbox-app.com/r2_a0f36ea1-a461-4e44-8bab-6329246814a0.png",
+          "source_page": "https://gamesdb.launchbox-app.com/games/images/13758-madden-nfl-2000",
+          "attribution": "LaunchBox Games Database · Madden NFL 2000 · PlayStation · Screenshot – Gameplay",
+          "rights": "Community-submitted LaunchBox screenshot. Rights to copy or hotlink have not been independently granted; original source link is provided.",
+          "visual_review": "source_page_and_gameplay_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        }
+      ],
       "source_gallery": "https://gamefabrique.com/games/madden-nfl-2000/",
-      "screenshot_verification_status": "no_screen_capture_verified"
+      "screenshot_verification_status": "source_checked_not_browser_verified"
     },
     {
       "id": "madden-2001",
@@ -749,9 +870,20 @@
       "camera": "Broadcast/behind offense",
       "visual_notes": "PS2-era camera placement keeps receivers and yard lines in view while polygons and uniforms become more distinct.",
       "design_takeaway": "Borrow lighting, surface cues, and broadcasts without requiring complex character rigs.",
-      "screenshots": [],
+      "screenshots": [
+        {
+          "platform": "PlayStation",
+          "image_url": "https://images.launchbox-app.com/r2_27064649-d91d-4e84-80bf-be3179ef1bf4.png",
+          "source_page": "https://gamesdb.launchbox-app.com/games/images/44991-madden-nfl-2001",
+          "attribution": "LaunchBox Games Database · Madden NFL 2001 · PlayStation · Screenshot – Gameplay",
+          "rights": "Community-submitted LaunchBox screenshot. Rights to copy or hotlink have not been independently granted; original source link is provided.",
+          "visual_review": "source_page_and_gameplay_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        }
+      ],
       "source_gallery": "https://gamefabrique.com/games/madden-nfl-2001/",
-      "screenshot_verification_status": "no_screen_capture_verified"
+      "screenshot_verification_status": "source_checked_not_browser_verified"
     },
     {
       "id": "madden-2002",
@@ -840,5 +972,6 @@
       "source_gallery": "https://gamefabrique.com/games/madden-nfl-2004/",
       "screenshot_verification_status": "source_checked_not_browser_verified"
     }
-  ]
+  ],
+  "verified_source_reviews": "12 LaunchBox additions checked by opening platform-specific image gallery and direct gameplay image; earlier source records remain pending retrospective audit."
 }

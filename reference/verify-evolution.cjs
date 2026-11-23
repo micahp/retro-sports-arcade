@@ -139,6 +139,22 @@ const wait=(ms)=>new Promise(r=>setTimeout(r,ms));
    }));
    homeImages.push(await element.evaluate(el=>({id:el.closest('.archive-card')?.id,loaded:el.complete&&el.naturalWidth>0,src:el.currentSrc})));
  }
+ // Clicking a gameplay screenshot opens a detail viewer; arrows traverse all 33 titles.
+ await home.locator('#home-nhl-94 .archive-shot').click();
+ assert.equal(await home.locator('#archive-detail').evaluate(el=>el.open),true,'detail modal opens');
+ assert.equal(await home.locator('#archive-detail-title').textContent(),"NHL '94",'modal shows selected game');
+ await home.locator('#archive-detail-next').click();
+ assert.equal(await home.locator('#archive-detail-title').textContent(),'NHL 95','next arrow moves one game');
+ await home.keyboard.press('ArrowLeft');
+ assert.equal(await home.locator('#archive-detail-title').textContent(),"NHL '94",'keyboard left goes back');
+ await home.keyboard.press('ArrowLeft');
+ assert.equal(await home.locator('#archive-detail-title').textContent(),'Madden NFL 2004','left wraps across sports');
+ await home.keyboard.press('Escape');
+ assert.equal(await home.locator('#archive-detail').evaluate(el=>el.open),false,'Escape closes detail');
+ await home.locator('#home-madden-94 .archive-shot').click();
+ assert.equal(await home.locator('#archive-detail-title').textContent(),"Madden NFL '94",'Madden detail opens');
+ await home.locator('#archive-detail-close').click();
+ assert.equal(await home.locator('#archive-detail').evaluate(el=>el.open),false,'close button works');
  await home.locator('#evolution').scrollIntoViewIfNeeded();
  await home.screenshot({path:path.join(out,'home-desktop-top.png'),fullPage:false});
  await home.locator('#home-nhl').scrollIntoViewIfNeeded();
@@ -148,6 +164,12 @@ const wait=(ms)=>new Promise(r=>setTimeout(r,ms));
  assert.equal(await home.locator('.archive-card').count(),33,'all 33 homepage games also on mobile');
  const homeOverflow=await home.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);
  assert.equal(homeOverflow,false,'homepage has no mobile horizontal overflow');
+ await home.locator('#home-nba-98 .archive-shot').click();
+ assert.equal(await home.locator('#archive-detail-title').textContent(),'NBA Live 98','mobile image click opens correct detail');
+ await home.screenshot({path:path.join(out,'home-mobile-detail.png'),fullPage:false});
+ await home.locator('#archive-detail-next').click();
+ assert.equal(await home.locator('#archive-detail-title').textContent(),'NBA Live 99','mobile next button works');
+ await home.locator('#archive-detail-close').click();
  await home.screenshot({path:path.join(out,'home-mobile-top.png'),fullPage:false});
  await home.locator('#home-nhl').scrollIntoViewIfNeeded();
  await home.screenshot({path:path.join(out,'home-mobile-nhl.png'),fullPage:false});
@@ -157,6 +179,33 @@ const wait=(ms)=>new Promise(r=>setTimeout(r,ms));
  assert.equal(homeImages.filter(x=>x.loaded).length,33,'every gameplay screenshot on main page loads');
  assert.equal(homeErrors.length,0,'no errors on main page');
  await home.close();
+
+ // Images sometimes load locally but fail in the public preview due to hotlink policies.
+ // Audit the public page with its actual browser origin, including the eight previous failures.
+ const publicUrl='https://raw.githack.com/micahp/retro-sports-arcade/feat/hockey-arcade-vertical-slice/index.html?gallery-audit=20261123b';
+ const live=await browser.newPage({viewport:{width:1440,height:900}});
+ const publicErrors=[];live.on('pageerror',e=>publicErrors.push(e.message));
+ await live.goto(publicUrl,{waitUntil:'domcontentloaded',timeout:45000});
+ assert.equal(await live.locator('.archive-card').count(),33,'public preview contains all 33 cards');
+ const publicStatuses=[];
+ for (const shot of await live.locator('.archive-shot img').all()){
+   await shot.scrollIntoViewIfNeeded();
+   await shot.evaluate(el=>new Promise(resolve=>{
+     if(el.complete)return resolve();
+     const done=()=>{clearTimeout(timer);resolve()};
+     const timer=setTimeout(done,8000);
+     el.addEventListener('load',done,{once:true});el.addEventListener('error',done,{once:true});
+   }));
+   publicStatuses.push(await shot.evaluate(el=>({game:el.closest('.archive-card')?.id,loaded:el.complete&&el.naturalWidth>0,image:el.currentSrc})));
+ }
+ const publicReport={url:publicUrl,loaded:publicStatuses.filter(x=>x.loaded).length,total:publicStatuses.length,failed:publicStatuses.filter(x=>!x.loaded),js_errors:publicErrors};
+ fs.writeFileSync(path.join(out,'public-preview-report.json'),JSON.stringify(publicReport,null,2)+'\\n');
+ console.log('PUBLIC PREVIEW '+JSON.stringify({loaded:publicReport.loaded,total:publicReport.total,failed:publicReport.failed.map(x=>x.game),errors:publicErrors}));
+ await live.locator('#evolution').scrollIntoViewIfNeeded();
+ await live.screenshot({path:path.join(out,'public-preview-desktop.png'),fullPage:false});
+ await live.close();
+ assert.equal(publicReport.loaded,33,'all images must render from the real public preview, not just localhost');
+ assert.equal(publicErrors.length,0,'real public preview has no errors');
 
  // Simulate iOS Safari's rendering engine. Verify that neither scripts nor
  // third-party dynamic markup is required to see NHL/Madden screenshots.

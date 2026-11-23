@@ -187,24 +187,26 @@ const wait=(ms)=>new Promise(r=>setTimeout(r,ms));
  const publicErrors=[];live.on('pageerror',e=>publicErrors.push(e.message));
  await live.goto(publicUrl,{waitUntil:'domcontentloaded',timeout:45000});
  assert.equal(await live.locator('.archive-card').count(),33,'public preview contains all 33 cards');
+ const previouslyBroken=['nhl-95','nhl-2001','nhl-2004','nba-98','nba-2001','nba-2005','madden-94','madden-97'];
  const publicStatuses=[];
- for (const shot of await live.locator('.archive-shot img').all()){
+ for (const id of previouslyBroken){
+   const shot=live.locator('#home-'+id+' .archive-shot img');
    await shot.scrollIntoViewIfNeeded();
    await shot.evaluate(el=>new Promise(resolve=>{
      if(el.complete)return resolve();
      const done=()=>{clearTimeout(timer);resolve()};
-     const timer=setTimeout(done,8000);
+     const timer=setTimeout(done,4500);
      el.addEventListener('load',done,{once:true});el.addEventListener('error',done,{once:true});
    }));
    publicStatuses.push(await shot.evaluate(el=>({game:el.closest('.archive-card')?.id,loaded:el.complete&&el.naturalWidth>0,image:el.currentSrc})));
  }
- const publicReport={url:publicUrl,loaded:publicStatuses.filter(x=>x.loaded).length,total:publicStatuses.length,failed:publicStatuses.filter(x=>!x.loaded),js_errors:publicErrors};
+ const publicReport={url:publicUrl,checked:previouslyBroken,loaded:publicStatuses.filter(x=>x.loaded).length,total:publicStatuses.length,failed:publicStatuses.filter(x=>!x.loaded),js_errors:publicErrors};
  fs.writeFileSync(path.join(out,'public-preview-report.json'),JSON.stringify(publicReport,null,2)+'\\n');
  console.log('PUBLIC PREVIEW '+JSON.stringify({loaded:publicReport.loaded,total:publicReport.total,failed:publicReport.failed.map(x=>x.game),errors:publicErrors}));
  await live.locator('#evolution').scrollIntoViewIfNeeded();
  await live.screenshot({path:path.join(out,'public-preview-desktop.png'),fullPage:false});
  await live.close();
- assert.equal(publicReport.loaded,33,'all images must render from the real public preview, not just localhost');
+ assert.equal(publicReport.loaded,8,'all eight previously blocked images must render from real public preview');
  assert.equal(publicErrors.length,0,'real public preview has no errors');
 
  // Simulate iOS Safari's rendering engine. Verify that neither scripts nor

@@ -2,7 +2,7 @@
   "schema_version": 2,
   "generated": "2026-11-23",
   "project": "Retro Sports Arcade / EA visual evolution",
-  "methodology": "Image URLs shown only when traced to an actual image result or opened source. Source-image visual review does not imply actual browser rendering, rights clearance, or permission to copy locally. No images are stored in this repository.",
+  "methodology": "Image URLs are only those linked from source pages or image search results identifying the game and platform; visual/source matching is preliminary. Browser rendering, legal reuse rights, and identity of any unclear image require separate confirmation. No copies of remote images are stored in the repository. When hotlinking fails, the UI provides a visible gallery link.",
   "rights_notes": "EA and contributors retain rights. Screenshots are used only as attributed critical visual references. Source-site terms vary; MobyGames FAQ permits up to 20 screenshots in a credited project. Some other hosts have no documented reuse license, so conduct rights review before public distribution. A broken remote image must fall back to the source gallery.",
   "games": [
     {
@@ -157,7 +157,7 @@
       "screenshot_verification_status": "no_screen_capture_verified"
     },
     {
-      "id": "nhl-100",
+      "id": "nhl-2000",
       "sport": "nhl",
       "series": "NHL",
       "title": "NHL 2000",
@@ -175,7 +175,7 @@
       "screenshot_verification_status": "no_screen_capture_verified"
     },
     {
-      "id": "nhl-101",
+      "id": "nhl-2001",
       "sport": "nhl",
       "series": "NHL",
       "title": "NHL 2001",
@@ -188,12 +188,23 @@
       "camera": "Broadcast rink",
       "visual_notes": "Closer, more TV-like presentation and larger skaters; frame the player and the puck, not just the arena.",
       "design_takeaway": "Borrow lighting, surface cues, and broadcasts without requiring complex character rigs.",
-      "screenshots": [],
+      "screenshots": [
+        {
+          "platform": "PlayStation 2",
+          "image_url": "https://gamefabrique.com/storage/screenshots/ps2/nhl-2001-05.png",
+          "source_page": "https://gamefabrique.com/games/nhl-2001/",
+          "attribution": "GameFabrique — NHL 2001 PS2 gameplay",
+          "rights": "Reuse terms not independently confirmed. Link to original is provided; do not redistribute without permission.",
+          "visual_review": "source_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        }
+      ],
       "source_gallery": "https://gamefabrique.com/games/nhl-2001/",
-      "screenshot_verification_status": "no_screen_capture_verified"
+      "screenshot_verification_status": "source_checked_not_browser_verified"
     },
     {
-      "id": "nhl-102",
+      "id": "nhl-2002",
       "sport": "nhl",
       "series": "NHL",
       "title": "NHL 2002",
@@ -206,12 +217,23 @@
       "camera": "Broadcast rink",
       "visual_notes": "Better 3D proportions and more body-contact poses; the action angle still matters more than audience detail.",
       "design_takeaway": "Borrow lighting, surface cues, and broadcasts without requiring complex character rigs.",
-      "screenshots": [],
+      "screenshots": [
+        {
+          "platform": "Windows",
+          "image_url": "https://images.cgames.de/images/gamestar/226/nhl-2002-ts-nhl2002-04-g11jpg_1023924.jpg",
+          "source_page": "https://www.gamestar.de/artikel/nhl-2002-im-test%2C1330193.html",
+          "attribution": "GameStar — NHL 2002 PC review",
+          "rights": "Reuse terms not independently confirmed. Link to original is provided; do not redistribute without permission.",
+          "visual_review": "source_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        }
+      ],
       "source_gallery": "https://gamefabrique.com/games/nhl-2002/",
-      "screenshot_verification_status": "no_screen_capture_verified"
+      "screenshot_verification_status": "source_checked_not_browser_verified"
     },
     {
-      "id": "nhl-103",
+      "id": "nhl-2003",
       "sport": "nhl",
       "series": "NHL",
       "title": "NHL 2003",
@@ -224,12 +246,23 @@
       "camera": "Broadcast rink",
       "visual_notes": "Fuller animation and dense rink effects, at the risk of crowd/board noise competing with the puck.",
       "design_takeaway": "Borrow lighting, surface cues, and broadcasts without requiring complex character rigs.",
-      "screenshots": [],
+      "screenshots": [
+        {
+          "platform": "Windows",
+          "image_url": "https://cdn.mobygames.com/screenshots/11020751-nhl-2003-windows-players-ready-to-start-fighting.jpg",
+          "source_page": "https://www.mobygames.com/game/9662/nhl-2003/screenshots/windows/300184/",
+          "attribution": "Screenshot via MobyGames — NHL 2003 Windows",
+          "rights": "Reuse terms not independently confirmed. Link to original is provided; do not redistribute without permission.",
+          "visual_review": "source_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        }
+      ],
       "source_gallery": "https://gamefabrique.com/games/nhl-2003/",
-      "screenshot_verification_status": "no_screen_capture_verified"
+      "screenshot_verification_status": "source_checked_not_browser_verified"
     },
     {
-      "id": "nhl-104",
+      "id": "nhl-2004",
       "sport": "nhl",
       "series": "NHL",
       "title": "NHL 2004",
@@ -242,9 +275,20 @@
       "camera": "Broadcast rink",
       "visual_notes": "Cleaner overhead 3D ice and readable indicators show the lasting importance of tactical space.",
       "design_takeaway": "Borrow lighting, surface cues, and broadcasts without requiring complex character rigs.",
-      "screenshots": [],
+      "screenshots": [
+        {
+          "platform": "PlayStation 2",
+          "image_url": "https://gamefabrique.com/storage/screenshots/ps2/nhl-2004-16.png",
+          "source_page": "https://gamefabrique.com/games/nhl-2004/",
+          "attribution": "GameFabrique — NHL 2004 PS2 gameplay",
+          "rights": "Reuse terms not independently confirmed. Link to original is provided; do not redistribute without permission.",
+          "visual_review": "source_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        }
+      ],
       "source_gallery": "https://gamefabrique.com/games/nhl-2004/",
-      "screenshot_verification_status": "no_screen_capture_verified"
+      "screenshot_verification_status": "source_checked_not_browser_verified"
     },
     {
       "id": "nba-95",
@@ -359,7 +403,7 @@
       "screenshot_verification_status": "no_screen_capture_verified"
     },
     {
-      "id": "nba-100",
+      "id": "nba-2000",
       "sport": "nba",
       "series": "NBA Live",
       "title": "NBA Live 2000",
@@ -372,12 +416,23 @@
       "camera": "Broadcast/angled court",
       "visual_notes": "Larger court texture vocabulary and visible lane geometry, with more skeletal animation transitions to manage.",
       "design_takeaway": "Borrow lighting, surface cues, and broadcasts without requiring complex character rigs.",
-      "screenshots": [],
+      "screenshots": [
+        {
+          "platform": "Windows",
+          "image_url": "https://screens.16bit.pl/nba-live-2000/13.jpg",
+          "source_page": "https://abandonwaregames.net/game/nba-live-2000",
+          "attribution": "16bit.pl screenshot via AbandonwareGames — NBA Live 2000",
+          "rights": "Reuse terms not independently confirmed. Link to original is provided; do not redistribute without permission.",
+          "visual_review": "source_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        }
+      ],
       "source_gallery": "https://gamefabrique.com/games/nba-live-2000/",
-      "screenshot_verification_status": "no_screen_capture_verified"
+      "screenshot_verification_status": "source_checked_not_browser_verified"
     },
     {
-      "id": "nba-101",
+      "id": "nba-2001",
       "sport": "nba",
       "series": "NBA Live",
       "title": "NBA Live 2001",
@@ -395,7 +450,7 @@
       "screenshot_verification_status": "no_screen_capture_verified"
     },
     {
-      "id": "nba-102",
+      "id": "nba-2002",
       "sport": "nba",
       "series": "NBA Live",
       "title": "NBA Live 2002",
@@ -413,7 +468,7 @@
       "screenshot_verification_status": "no_screen_capture_verified"
     },
     {
-      "id": "nba-103",
+      "id": "nba-2003",
       "sport": "nba",
       "series": "NBA Live",
       "title": "NBA Live 2003",
@@ -426,12 +481,23 @@
       "camera": "Broadcast court",
       "visual_notes": "Body proportions and clothing improve, though low-detail facial models and canned transitions reveal the era.",
       "design_takeaway": "Borrow lighting, surface cues, and broadcasts without requiring complex character rigs.",
-      "screenshots": [],
+      "screenshots": [
+        {
+          "platform": "Windows",
+          "image_url": "https://cdn.mobygames.com/screenshots/12424210-nba-live-2003-windows-14-x-14-and-the-bulls-approach-the-three-p.jpg",
+          "source_page": "https://www.mobygames.com/game/9182/nba-live-2003/screenshots/windows/272250/",
+          "attribution": "Screenshot via MobyGames — NBA Live 2003 Windows",
+          "rights": "Reuse terms not independently confirmed. Link to original is provided; do not redistribute without permission.",
+          "visual_review": "source_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        }
+      ],
       "source_gallery": "https://gamefabrique.com/games/nba-live-2003/",
-      "screenshot_verification_status": "no_screen_capture_verified"
+      "screenshot_verification_status": "source_checked_not_browser_verified"
     },
     {
-      "id": "nba-104",
+      "id": "nba-2004",
       "sport": "nba",
       "series": "NBA Live",
       "title": "NBA Live 2004",
@@ -449,7 +515,7 @@
       "screenshot_verification_status": "no_screen_capture_verified"
     },
     {
-      "id": "nba-105",
+      "id": "nba-2005",
       "sport": "nba",
       "series": "NBA Live",
       "title": "NBA Live 2005",
@@ -462,9 +528,20 @@
       "camera": "Broadcast court",
       "visual_notes": "Large polygonal players, court branding and broadcast overlays offer a useful ceiling for a low-poly arcade target.",
       "design_takeaway": "Borrow lighting, surface cues, and broadcasts without requiring complex character rigs.",
-      "screenshots": [],
+      "screenshots": [
+        {
+          "platform": "Xbox",
+          "image_url": "https://gamefabrique.com/storage/screenshots/xbox/nba-live-2005-11.png",
+          "source_page": "https://gamefabrique.com/games/nba-live-2005/",
+          "attribution": "GameFabrique — NBA Live 2005 Xbox gameplay",
+          "rights": "Reuse terms not independently confirmed. Link to original is provided; do not redistribute without permission.",
+          "visual_review": "source_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        }
+      ],
       "source_gallery": "https://gamefabrique.com/games/nba-live-2005/",
-      "screenshot_verification_status": "no_screen_capture_verified"
+      "screenshot_verification_status": "source_checked_not_browser_verified"
     },
     {
       "id": "madden-94",
@@ -619,7 +696,7 @@
       "screenshot_verification_status": "no_screen_capture_verified"
     },
     {
-      "id": "madden-100",
+      "id": "madden-2000",
       "sport": "madden",
       "series": "Madden NFL",
       "title": "Madden NFL 2000",
@@ -637,7 +714,7 @@
       "screenshot_verification_status": "no_screen_capture_verified"
     },
     {
-      "id": "madden-101",
+      "id": "madden-2001",
       "sport": "madden",
       "series": "Madden NFL",
       "title": "Madden NFL 2001",
@@ -655,7 +732,7 @@
       "screenshot_verification_status": "no_screen_capture_verified"
     },
     {
-      "id": "madden-102",
+      "id": "madden-2002",
       "sport": "madden",
       "series": "Madden NFL",
       "title": "Madden NFL 2002",
@@ -668,12 +745,23 @@
       "camera": "Broadcast/behind offense",
       "visual_notes": "Character proportions and dropback animations become smoother; compare that with the older versions' immediate input response.",
       "design_takeaway": "Borrow lighting, surface cues, and broadcasts without requiring complex character rigs.",
-      "screenshots": [],
+      "screenshots": [
+        {
+          "platform": "PlayStation 2",
+          "image_url": "https://s2-techtudo.glbimg.com/AZND19YYVSRkrwFkEKnmaudK-Gg%3D/0x0%3A1200x675/1000x0/smart/filters%3Astrip_icc%28%29/i.s3.glbimg.com/v1/AUTH_08fbf48bc0524877943fe86e43087e7a/internal_photos/bs/2025/o/w/JXMA7wTYOyA3ejOBuEsQ/madden-nfl-2002-electronic-arts.jpg",
+          "source_page": "https://www.techtudo.com.br/listas/2025/03/25-anos-de-ps2-veja-os-25-melhores-jogos-da-historia-no-console-da-sony-edjogos.ghtml",
+          "attribution": "TechTudo — Madden NFL 2002 PlayStation 2 feature",
+          "rights": "Reuse terms not independently confirmed. Link to original is provided; do not redistribute without permission.",
+          "visual_review": "source_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        }
+      ],
       "source_gallery": "https://gamefabrique.com/games/madden-nfl-2002/",
-      "screenshot_verification_status": "no_screen_capture_verified"
+      "screenshot_verification_status": "source_checked_not_browser_verified"
     },
     {
-      "id": "madden-103",
+      "id": "madden-2003",
       "sport": "madden",
       "series": "Madden NFL",
       "title": "Madden NFL 2003",
@@ -691,7 +779,7 @@
       "screenshot_verification_status": "no_screen_capture_verified"
     },
     {
-      "id": "madden-104",
+      "id": "madden-2004",
       "sport": "madden",
       "series": "Madden NFL",
       "title": "Madden NFL 2004",
@@ -704,9 +792,20 @@
       "camera": "Broadcast/behind offense",
       "visual_notes": "Textured stadiums and larger 3D players improve presence; animation silhouettes and reliable collision states remain the useful lesson.",
       "design_takeaway": "Borrow lighting, surface cues, and broadcasts without requiring complex character rigs.",
-      "screenshots": [],
+      "screenshots": [
+        {
+          "platform": "Windows",
+          "image_url": "https://www.wsgf.org/f/u/styles/node_gallery_display/public/contrib/dr/578/ingame_16x10.jpg?itok=zx0MdUxX",
+          "source_page": "https://www.wsgf.org/dr/madden-nfl-2004",
+          "attribution": "WSGF — Madden NFL 2004 PC gameplay",
+          "rights": "Reuse terms not independently confirmed. Link to original is provided; do not redistribute without permission.",
+          "visual_review": "source_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        }
+      ],
       "source_gallery": "https://gamefabrique.com/games/madden-nfl-2004/",
-      "screenshot_verification_status": "no_screen_capture_verified"
+      "screenshot_verification_status": "source_checked_not_browser_verified"
     }
   ]
 }

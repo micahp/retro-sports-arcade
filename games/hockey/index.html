@@ -1,0 +1,96 @@
+<title>Rink '95</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a full-screen game. The rink fills the screen behind a slim scoreboard; the stick sits bottom-left and two action buttons bottom-right. Menus are sheets over the ice. Single dark arena look by choice. */
+:root {
+  --night: #0f141c; --board: #18202c; --line: #2b3747; --ice: #eef4f8; --frost: #9fb2c4;
+  --kick: #f2d24b; --home: #3f74d6; --away: #e0505a; --ok: #6fd39a; --bad: #ff6b72;
+  --f-display: "Silkscreen", ui-monospace, monospace; --f-body: "IBM Plex Sans", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+html, body { height: 100%; background: var(--night); color: var(--ice); }
+body { margin: 0; overflow: hidden; font-family: var(--f-body); font-size: 15px; padding-left: max(0px, env(safe-area-inset-left, 0px)); padding-right: max(0px, env(safe-area-inset-right, 0px)); padding-block: 0; touch-action: none; user-select: none; -webkit-user-select: none; }
+.game { position: fixed; inset: 0; }
+#ice { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#hud { position: absolute; top: calc(8px + env(safe-area-inset-top, 0px)); left: max(12px, env(safe-area-inset-left, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); display: flex; align-items: center; gap: 10px; pointer-events: none; }
+.score { display: flex; align-items: stretch; background: color-mix(in srgb, var(--night) 88%, transparent); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; font-family: var(--f-display); font-size: 14px; }
+.score > span { padding: 6px 9px; display: flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+.t0 { border-left: 4px solid var(--home); } .t1 { border-right: 4px solid var(--away); }
+.mid { background: var(--board); color: var(--kick); min-width: 4.2em; justify-content: center; }
+#man { font-family: var(--f-mono); font-size: 12px; color: var(--frost); white-space: nowrap; text-shadow: 0 1px 0 #000; }
+#pause { margin-left: auto; pointer-events: auto; }
+#banner { position: absolute; top: 28%; left: 0; right: 0; text-align: center; font-family: var(--f-display); font-size: clamp(22px, 7vw, 40px); color: var(--kick); text-shadow: 0 2px 0 #000, 0 0 14px rgba(0,0,0,.6); pointer-events: none; }
+.ctl { position: absolute; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); }
+#stick { left: max(18px, env(safe-area-inset-left, 0px)); width: 128px; height: 128px; border-radius: 50%; background: color-mix(in srgb, var(--board) 70%, transparent); border: 2px solid var(--line); touch-action: none; }
+#knob { position: absolute; left: 50%; top: 50%; width: 54px; height: 54px; margin: -27px 0 0 -27px; border-radius: 50%; background: color-mix(in srgb, var(--frost) 80%, transparent); }
+.acts { right: max(18px, env(safe-area-inset-right, 0px)); display: flex; gap: 14px; align-items: flex-end; }
+.act { width: 76px; height: 76px; border-radius: 50%; border: 0; font-family: var(--f-display); font-size: 12px; color: var(--night); display: grid; place-items: center; touch-action: none; position: relative; }
+#bA { background: #7fd1ff; margin-bottom: 30px; }
+#bB { background: var(--kick); --charge: 0; }
+#bB::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; background: conic-gradient(var(--bad) calc(var(--charge) * 360deg), transparent 0); -webkit-mask: radial-gradient(circle, transparent 60%, #000 61%); mask: radial-gradient(circle, transparent 60%, #000 61%); }
+button { font-family: var(--f-display); cursor: pointer; }
+.ghost { background: color-mix(in srgb, var(--night) 85%, transparent); color: var(--ice); border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; font-size: 12px; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--kick); outline-offset: 2px; }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 86%; overflow-y: auto; background: color-mix(in srgb, var(--night) 94%, transparent); border-top: 1px solid var(--line); padding: 18px max(16px, env(safe-area-inset-right, 0px)) calc(18px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); display: grid; gap: 14px; touch-action: pan-y; user-select: text; }
+.sheet h1 { font-family: var(--f-display); font-size: clamp(26px, 8vw, 40px); margin: 0; line-height: 1; }
+.sheet h1 b { color: var(--kick); font-weight: 700; }
+.sheet p { margin: 0; color: var(--frost); max-width: 62ch; font-size: 14px; }
+.modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.modes button { text-align: left; background: var(--board); color: var(--ice); border: 1px solid var(--line); border-radius: 6px; padding: 12px; font-size: 13px; display: grid; gap: 4px; }
+.modes button small { font-family: var(--f-body); font-size: 12px; color: var(--frost); }
+.modes button.main { border-color: var(--kick); }
+.row { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; font-size: 13px; color: var(--frost); }
+.keys { font-family: var(--f-mono); font-size: 12px; color: var(--frost); }
+#lab { max-height: 52%; }
+#lab.peek { opacity: .98; }
+.lrow { display: flex; gap: 10px; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+.lmain { display: grid; gap: 2px; min-width: 0; flex: 1; }
+.lmain span { font-size: 12px; color: var(--frost); }
+.lres { font-family: var(--f-mono); font-size: 12px; font-style: normal; color: var(--frost); }
+.lres.ok { color: var(--ok); } .lres.bad { color: var(--bad); }
+#labNow { font-family: var(--f-display); font-size: 12px; color: var(--kick); }
+#err, #load { position: absolute; top: 40%; left: 16px; right: 16px; text-align: center; font-family: var(--f-mono); font-size: 13px; color: var(--kick); }
+#err { color: var(--bad); background: var(--night); padding: 10px; border: 1px solid var(--bad); border-radius: 6px; }
+#dbg { position: absolute; top: calc(52px + env(safe-area-inset-top, 0px)); left: 12px; right: 12px; font-family: var(--f-mono); font-size: 11px; color: var(--ice); text-shadow: 0 1px 0 #000; pointer-events: none; }
+#again { position: absolute; top: 40%; left: 50%; transform: translateX(-50%); }
+[hidden] { display: none !important; }
+</style>
+
+<div class="game">
+  <canvas id="ice" aria-label="Hockey rink"></canvas>
+  <div id="hud" hidden>
+    <div class="score"><span class="t0">HAR <b id="sc0">0</b></span><span class="mid"><b id="clock">3:00</b>&nbsp;<small id="per">P1</small></span><span class="t1"><b id="sc1">0</b> FDY</span></div>
+    <span id="man">5 on 5</span>
+    <button id="pause" type="button" class="ghost">Menu</button>
+  </div>
+  <div id="banner" hidden></div>
+  <div id="dbg" hidden></div>
+  <div id="stick" class="ctl" aria-label="Skate"><div id="knob"></div></div>
+  <div class="ctl acts"><button id="bA" class="act" type="button"><span>PASS</span></button><button id="bB" class="act" type="button"><span>SHOOT</span></button></div>
+  <button id="again" class="ghost" type="button" hidden>Back to menu</button>
+
+  <div id="menu" class="sheet">
+    <h1>RINK <b>'95</b></h1>
+    <p>Arcade hockey, five on five. You play the blue Harbor skater with the yellow ring; control follows the puck.</p>
+    <div class="modes">
+      <button type="button" class="main" data-mode="regulation">Regulation<small>5 on 5 · three 3-minute periods · 3-on-3 overtime, then a shootout</small></button>
+      <button type="button" data-mode="ot3">Overtime<small>3 on 3 · sudden death · then a shootout</small></button>
+      <button type="button" data-mode="pp">Power play<small>5 on 4 for two minutes</small></button>
+      <button type="button" data-mode="en">Empty net<small>6 on 5 · your goalie pulled</small></button>
+      <button type="button" data-mode="shootout">Shootout<small>best of three</small></button>
+      <button type="button" id="openLab">Puck lab<small>nine puck tests, run on this phone, with replays</small></button>
+    </div>
+    <div class="row"><label><input type="checkbox" id="dbgT"> Debug view: puck trail, shots, saves, hits, posts</label></div>
+    <p class="keys">With the puck: PASS, SHOOT (tap for a wrist shot, hold for a slap shot). Without it: SWITCH to the skater nearest the puck, CHECK (skate into him for a hit; slow and close is a poke check). Push the stick hard against your direction to stop. Keyboard: WASD, J, K.</p>
+  </div>
+
+  <div id="lab" class="sheet" hidden>
+    <div class="row"><button id="labBack" type="button" class="ghost">Back</button><span id="labNow">Tap Replay to watch a test on the rink</span></div>
+    <div id="labList"></div>
+  </div>
+  <div id="load">Loading…</div>
+  <div id="err" hidden></div>
+</div>
+
+<script type="module" src="src/main.js"></script>

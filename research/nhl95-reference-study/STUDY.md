@@ -156,7 +156,7 @@ Both were caught by checking the data before analysing it.
 5. **Penalties and power plays:**
    - about 20 penalties per 60 minutes, about 7.6 per team per 60 against 4.85 real;
    - **power-play conversion about 9–15%**, against 18.6% real.
-6. **Overtime:** regular-season OT is 10 minutes, and **ties happen** (4 of 30 games). Overtime goals came in 6 of the 9 overtimes; OT is too short a sample to rate.
+6. **Overtime:** regular-season OT is 10 minutes, and **ties happen** (4 of 30 games). Overtime goals came in 5 of the 9 overtimes; OT is too short a sample to rate.
 
 **Not yet measured:**
 - faceoffs, hits and checks (no counters in the team block; need player-level addresses);

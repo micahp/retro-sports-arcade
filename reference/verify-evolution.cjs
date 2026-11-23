@@ -114,6 +114,50 @@ const wait=(ms)=>new Promise(r=>setTimeout(r,ms));
  assert.equal(errors.length,0,'no JavaScript page errors');
  console.log(JSON.stringify({total:report.total_games,source_traced:report.source_traced,browser_loaded:report.browser_loaded,blocked:report.browser_failed_or_blocked,all_capture_count:report.all_capture_count,all_capture_loaded:report.all_capture_loaded,all_capture_failed:report.all_capture_failed,unresolved:report.unresolved,errors},null,2));
 
+
+ // The main page must contain the real 33 game images, not just a link to the exhibit.
+ const home=await browser.newPage({viewport:{width:1440,height:900},deviceScaleFactor:1});
+ const homeErrors=[];home.on('pageerror',e=>homeErrors.push(e.message));
+ await home.goto('http://127.0.0.1:'+port+'/index.html',{waitUntil:'domcontentloaded',timeout:30000});
+ await home.waitForSelector('.archive-card');
+ assert.equal(await home.locator('.archive-card').count(),33,'main page embeds all 33 gameplay cards');
+ assert.equal(await home.locator('.archive-sport').count(),3,'main page embeds NHL, NBA Live, and Madden');
+ assert.equal(await home.locator('#home-nhl .archive-card').count(),11,'main page NHL has 11 editions');
+ assert.equal(await home.locator('#home-nba .archive-card').count(),11,'main page NBA Live has 11 editions');
+ assert.equal(await home.locator('#home-madden .archive-card').count(),11,'main page Madden has 11 editions');
+ assert.equal(await home.locator('#rink-prototype #rink').count(),1,'Rink 95 game preserved below exhibit');
+ assert.equal(await home.locator('.archive-preview img').count(),3,'three prominent source-traced gameplay screenshots');
+ const homeImages=[];
+ for (const element of await home.locator('.archive-shot img').all()) {
+   await element.scrollIntoViewIfNeeded();
+   await element.evaluate(el=>new Promise(resolve=>{
+     if(el.complete)return resolve();
+     const done=()=>{clearTimeout(timer);resolve()};
+     const timer=setTimeout(done,10000);
+     el.addEventListener('load',done,{once:true});
+     el.addEventListener('error',done,{once:true});
+   }));
+   homeImages.push(await element.evaluate(el=>({id:el.closest('.archive-card')?.id,loaded:el.complete&&el.naturalWidth>0,src:el.currentSrc})));
+ }
+ await home.locator('#evolution').scrollIntoViewIfNeeded();
+ await home.screenshot({path:path.join(out,'home-desktop-top.png'),fullPage:false});
+ await home.locator('#home-nhl').scrollIntoViewIfNeeded();
+ await home.screenshot({path:path.join(out,'home-nhl-desktop.png'),fullPage:false});
+ await home.setViewportSize({width:390,height:844});
+ await home.goto('http://127.0.0.1:'+port+'/index.html',{waitUntil:'domcontentloaded',timeout:30000});
+ assert.equal(await home.locator('.archive-card').count(),33,'all 33 homepage games also on mobile');
+ const homeOverflow=await home.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);
+ assert.equal(homeOverflow,false,'homepage has no mobile horizontal overflow');
+ await home.screenshot({path:path.join(out,'home-mobile-top.png'),fullPage:false});
+ await home.locator('#home-nhl').scrollIntoViewIfNeeded();
+ await home.screenshot({path:path.join(out,'home-mobile-nhl.png'),fullPage:false});
+ const homepageReport={games:33,nhl:11,nba:11,madden:11,primary_screenshots_loaded:homeImages.filter(x=>x.loaded).length,primary_screenshots_broken:homeImages.filter(x=>!x.loaded),js_errors:homeErrors,mobile_overflow:homeOverflow};
+ fs.writeFileSync(path.join(out,'homepage-report.json'),JSON.stringify(homepageReport,null,2)+'\n');
+ console.log('HOMEPAGE '+JSON.stringify({games:33,images_loaded:homepageReport.primary_screenshots_loaded,broken:homepageReport.primary_screenshots_broken.length,mobile_overflow:homeOverflow,errors:homeErrors}));
+ assert.equal(homeImages.filter(x=>x.loaded).length,33,'every gameplay screenshot on main page loads');
+ assert.equal(homeErrors.length,0,'no errors on main page');
+ await home.close();
+
  // Simulate iOS Safari's rendering engine. Verify that neither scripts nor
  // third-party dynamic markup is required to see NHL/Madden screenshots.
  const webkitBrowser=await webkit.launch({headless:true});
@@ -149,6 +193,10 @@ const wait=(ms)=>new Promise(r=>setTimeout(r,ms));
  assert.equal(staticCardCount,33,'gameplay catalog renders without JavaScript');
  assert.equal(staticNhl,11,'all NHL screenshots are in HTML, not merely external links');
  assert.equal(staticMadden,11,'all Madden screenshots are in HTML, not merely external links');
+ await withoutScript.goto('http://127.0.0.1:'+port+'/index.html',{waitUntil:'domcontentloaded',timeout:30000});
+ assert.equal(await withoutScript.locator('#evolution .archive-card').count(),33,'main-page image cards survive without JavaScript');
+ assert.equal(await withoutScript.locator('#home-nhl .archive-shot img').count(),11,'main page NHL screenshots are inline HTML');
+ assert.equal(await withoutScript.locator('#home-madden .archive-shot img').count(),11,'main page Madden screenshots are inline HTML');
  const safariReport={engine:'Playwright WebKit',viewport:'390x844',sourced_images:iosImages.length,loaded_images:iosImages.filter(x=>x.loaded).length,unloaded:iosImages.filter(x=>!x.loaded),js_errors:iosErrors,mobile_layout:layout,static_without_javascript:{cards:staticCardCount,nhl:staticNhl,madden:staticMadden}};
  fs.writeFileSync(path.join(out,'webkit-report.json'),JSON.stringify(safariReport,null,2)+'\n');
  console.log('WEBKIT '+JSON.stringify({loaded:safariReport.loaded_images,total:iosImages.length,static_cards:staticCardCount,errors:iosErrors}));

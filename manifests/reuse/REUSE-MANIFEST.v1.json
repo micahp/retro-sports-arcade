@@ -1,0 +1,235 @@
+{
+  "schema_version": "reuse-manifest.v1",
+  "audited": "2026-11-23",
+  "method": "Every repository freshly cloned from GitHub on 2026-11-23 (E:/repos, partial clones). Refs pinned below. Tests listed under evidence were re-run in this audit unless marked 'read only'. Statuses follow docs/CROSS-PROJECT-INTEGRATION.md: reference | candidate | imported | validated | rejected. Nothing in this manifest is 'imported' or 'validated' for the arcade yet.",
+  "consumer": {
+    "repository": "micahp/retro-sports-arcade",
+    "ref": "feat/hockey-arcade-vertical-slice",
+    "commit": "15b65a92de02bd986abcde7bd457e314cf66df85",
+    "stack": "plain browser JS + canvas, fixed-step loop (1/120 s), pixel units, unseeded Math.random"
+  },
+  "refs": {
+    "college-sports-rpg@dev": "310424653bb1ec4cf0143a90f46d32b5f9dd6860",
+    "college-sports-rpg@main": "a34407b71f3915d16eef890ad65fafb7d2bc8b82",
+    "college-sports-rpg@docs/basketball-motion-library": "03439a99bde9f6e7cf8c4742c8a5b4caddb5c4d9",
+    "gridiron-physics@main": "623c049060eb021f15c41b88ac7bc53ec3212748",
+    "gridiron-physics@feat/basketball-action-library": "49c4000939f0da7cbeddf6e20941ca33af6df816",
+    "gridiron-physics@research/nfl-team-season-playbooks-2026-10-27": "ad9880d653dbb3de99e58ffac114fc5919f1e952",
+    "gridiron-physics@feat/slc-2d-simulation-replay-2026-10-31": "93eba28768c17d7e265090bde9342473c9b278ff",
+    "legendarypicks@dev": "14bacb1a7035354d782c51303072ba6068547999",
+    "legendarypicks@research/nhl-game-state-v02b-2026-10-25": "60c428ada77a643d9560af60f1f971f7f7575664",
+    "legendarypicks@research/nhl-shot-to-rebound-tracking-2026-10-22": "25d1c746f714d89cbaf2561d4d25035c0fb4b33a",
+    "legendarypicks@research/nhl-multi-agent-movement-2026-10-23": "c68e33b2a787ad0cadcea7f63368ae79b13d2da7",
+    "legendarypicks@feat/pixel-nfl-hq-design": "6e19e7b10984bc0b549d42a1686e6bcf9436978e",
+    "legendarypicks@docs/pixel-redzone-arcade-training-2026-11-01": "076ad801ce55c952b8a339e821bc0865f65805bc",
+    "nhl-dataset@main": "a755bfec0159bc18471db3a33e0f0cd878437699",
+    "tennis-point-by-point-archive@main": "83733587353df8a41f2fd4f516147d5aa83f5a8d"
+  },
+  "entries": [
+    {
+      "id": "gp.rng",
+      "repo": "gridiron-physics@main", "path": "engine/rng.js",
+      "sports": ["all"], "kind": "code (JS, 24 lines, no deps)",
+      "status": "candidate",
+      "what": "Seeded mulberry32 PRNG with range() and normal(); string seeds hashed (FNV-1a).",
+      "evidence": "Used by every gridiron replay; determinism covered by test/autonomous-results.mjs (passes, re-run).",
+      "arcade_use": "Hockey R1 'seed all randomness': replace the 4 Math.random calls in src/hockey.js. Smallest, highest-value reuse.",
+      "boundary": "MIT. Copy with provenance header; no runtime dependency on gridiron."
+    },
+    {
+      "id": "gp.basketball-web",
+      "repo": "gridiron-physics@feat/basketball-action-library",
+      "path": "web/basketball/{library,actions,skeleton,sprite,body-mesh,body-parts}.js, web/basketball/refs/*.json",
+      "sports": ["basketball"], "kind": "code (browser JS, three.js-free core)",
+      "status": "candidate",
+      "what": "Constrained basketball action library: the caller picks an action by name and a 0..1 time and never sets joints; runtime enforces feet on floor, elbow/knee limits, palm-to-ball at named contact time. v1 actions: stance, dribble, swipe (more ball actions named: crossover, fadeaway, floater, catch, shot, block). CMU 124_05 jump shot and 15_12 pass reference poses.",
+      "evidence": "Re-run 2026-11-23: library.test.mjs, actions.test.mjs, skeleton.test.mjs, sprite.test.mjs all pass.",
+      "arcade_use": "Basketball micro-slice and the action.v1 contract: this is the same stack as the arcade (browser JS) and already matches 'action owns declared joints and contact timing'. Prefer it over porting The U's GDScript for R0-R2.",
+      "boundary": "Unmerged: 94 commits ahead of gridiron main, 3 behind. CMU refs: CMU places no restrictions. Must pass the arcade's own rendered-mesh review before promotion."
+    },
+    {
+      "id": "gp.mesh-contact",
+      "repo": "gridiron-physics@feat/basketball-action-library",
+      "path": "web/mesh/{contact,footlock,ik,interactions,pair,pose-blend,stride,tackle-sim,tackles}.js, tools/validate-tackles.mjs, tools/validate-locomotion.mjs",
+      "sports": ["football", "basketball", "wrestling (paired contact)", "hockey (checks)"], "kind": "code (browser JS) + validators",
+      "status": "candidate",
+      "what": "Two-body contact, foot lock, two-bone IK, pose blending, stride generation, tackle simulation with fall directions, and validators that measure them.",
+      "evidence": "Re-run 2026-11-23: validate-locomotion 'all gaits under 10 cm per plant' (carry 2.5-3.2 cm, backpedal 7.7-8.5 cm, shuffle 4.2-5.2 cm). validate-tackles: penetration median 0.018 m (max 0.133), foot slide median 0.211 m (p90 0.382, max 0.599), root speed max 12.83 m/s, falls back 66/105, L 40/63, R 44/72, fwd 5/6.",
+      "arcade_use": "Wrestling paired-actor contact and football tackle slices; the validators are the measurement half of the arcade 'Motion' gate. Tackle foot slide (0.2-0.6 m) and 12.8 m/s peak root speed are open defects to carry, not adopt.",
+      "boundary": "Unmerged branch. Visual acceptance on the rendered mesh still required."
+    },
+    {
+      "id": "gp.replay-contract",
+      "repo": "gridiron-physics@main",
+      "path": "docs/GRIDIRON-CONTRACT-v1.md, docs/NFL-HISTORICAL-REPLAY-VALIDATION-2026-10-24.md, engine/play.js, engine/game.js",
+      "sports": ["football"], "kind": "contract + replay engine",
+      "status": "reference",
+      "what": "LP owns game state and sampled outcomes; Gridiron renders outcome-anchored physics. Typed event families; a score never teleports; unknown kinds fail.",
+      "evidence": "Re-run: test/validate.mjs --strict passes. test/prototype.mjs FAILS on main (TypeError: book.pregame_2026_comparison undefined). test:week7 mutation audit FAILS: 10 mutations survive (kickoff/safety/blocked-punt spot rules).",
+      "arcade_use": "Pattern for the arcade replay log and 'possession changes only on a declared event'. Not football gameplay: the replay track is anchored to sampled outcomes, so it is not a movement model.",
+      "boundary": "Two failing suites on main must be reported, not inherited silently."
+    },
+    {
+      "id": "gp.autonomous",
+      "repo": "gridiron-physics@main",
+      "path": "engine/autonomous/*, engine/autonomous-run.js, test/autonomous-*.mjs",
+      "sports": ["football"], "kind": "simulation engine",
+      "status": "rejected (locomotion) / candidate (rules + result reconciliation pattern)",
+      "what": "Autonomous inside-zone simulation with perception, passing, rules, kneel/spike, results reconciliation.",
+      "evidence": "Re-run: npm run test:autonomous passes. Read only: docs/AUTONOMOUS-STAGE-ONE-REPORT-2026-10-25.md: 1.0 s mean position error 2.092 m vs constant-velocity baseline 0.992 m. It loses to the trivial baseline.",
+      "arcade_use": "Do not adopt its movement (fails the spec's own baseline rule). Reuse the shape: one whistle per play, event log that reconciles to the result, frame-by-frame determinism tests.",
+      "boundary": "As above."
+    },
+    {
+      "id": "gp.team-movement-priors",
+      "repo": "gridiron-physics@main", "path": "data/research/team-movement/week5-summary.json, docs/NFL-PLAYER-TRACKING-22-PLAYER-VALIDATION-2026-10-24.md",
+      "sports": ["football"], "kind": "measured priors", "status": "reference",
+      "what": "Role-based movement priors vs constant acceleration on 1,859 plays.",
+      "evidence": "Read only: 1 s mean error constant acceleration 1.071 m, league-role prior 0.792 m, role+team 0.789 m. Development set, not a holdout.",
+      "arcade_use": "Football AI spacing: role priors beat physics-free baselines; team identity adds almost nothing at 1 s.",
+      "boundary": "Development-only numbers."
+    },
+    {
+      "id": "gp.playbooks",
+      "repo": "gridiron-physics@research/nfl-team-season-playbooks-2026-10-27", "path": "data/playbooks/, docs/research/HPV1-DATA-CONTRACT-2026-11-02.md",
+      "sports": ["football"], "kind": "data + contract", "status": "reference",
+      "what": "Team-season playbooks (formations/play frequencies) with a data contract and 2022-2024 historical validation.",
+      "evidence": "Read only. Unmerged: 20 ahead, 8 behind main; 515k inserted lines (mostly data).",
+      "arcade_use": "Football AI play-calling tendencies, with the RedZone transcript tendencies (rs.redzone-tendencies) as hypotheses to check against it.",
+      "boundary": "Large data; reference by commit, do not copy."
+    },
+    {
+      "id": "gp.slc-2d-replay",
+      "repo": "gridiron-physics@feat/slc-2d-simulation-replay-2026-10-31", "path": "sequence-2d.html, web/sequence-2d*.js, test/sequence-2d.mjs",
+      "sports": ["football"], "kind": "2D replay viewer", "status": "candidate",
+      "what": "Experimental top-down 2D replay of LP sequence records.",
+      "evidence": "Read only; not re-run. 7 ahead, 5 behind main.",
+      "arcade_use": "Closest existing 2D football presentation for the R2 2D-sprite stage.",
+      "boundary": "Experimental."
+    },
+    {
+      "id": "csrpg.court-actor",
+      "repo": "college-sports-rpg@dev",
+      "path": "scripts/court/*.gd (22 files: court_actor, court_game, court_dribble, mocap_retarget, torso_posture, elbow_hinge, arm_clearance, hand_aim, foot_floor, crouch, reach_lean, pose_tap, ...)",
+      "sports": ["basketball"], "kind": "code (Godot 4.7 typed GDScript)", "status": "candidate (R3 Godot only)",
+      "what": "The U's playable 3D court: player controller, AnimationTree, layered IK and corrections, defender jump, contest arms, release flick.",
+      "evidence": "Re-run on fresh dev with --fixed-fps 60: see test_results in docs/REUSE-AUDIT-2026-11-23.md.",
+      "arcade_use": "Reference implementation for the R3 Godot rig and action player. Not usable in the browser stages. Carry the known failures, not the layer stack: OWNERSHIP.md shows four layers rewriting the shooter's arms and catch/pass/screen/stance elbows still having several owners.",
+      "boundary": "CC0 / CMU assets. NOTE: The U's default branch 'main' is 39 commits behind 'dev' (its integration branch); always pin dev. Three rig branches (rig/joint-alignment +5, rig/bind-pose-import +3, rig/certification +2) are unmerged rig fixes."
+    },
+    {
+      "id": "csrpg.ownership",
+      "repo": "college-sports-rpg@dev", "path": "docs/animation/OWNERSHIP.md, docs/animation/rebound-gather.md, AGENTS.md",
+      "sports": ["all"], "kind": "method + failure record", "status": "reference",
+      "what": "13-layer bone ownership pipeline, per-action owner tables, torso_posture audit, diagnostic order, proof rules.",
+      "evidence": "Read only.",
+      "arcade_use": "action.v1 'ownership' should copy the per-action Hand/Elbow/Legs owner table format; the diagnostic order and 'proof on the rendered character' rules become the arcade animation gate.",
+      "boundary": "Text; cite by commit."
+    },
+    {
+      "id": "csrpg.court-assets",
+      "repo": "college-sports-rpg@dev", "path": "assets/court/{player.glb, ual_standard.glb, *.glb, bonemap_*.tres, sprites/*.res, sprites/meta.json, dribble_ball.json, source_hands.json}",
+      "sports": ["basketball"], "kind": "assets", "status": "candidate",
+      "what": "Quaternius base character and Universal Animation Library (CC0), CMU-derived clips (subjects 6, 76, 102, 124), bone maps, 2D court sprite sheets with per-frame hand positions and anchors.",
+      "evidence": "Licence statement in assets/court/README.md (read only).",
+      "arcade_use": "sprites/meta.json per-frame hand_l/hand_r is exactly what 2D possession-on-contact needs. GLBs for the R3 shared rig.",
+      "boundary": "Sprites are Godot .res; re-export to PNG sheets via tools/court_sprites/draw.gd."
+    },
+    {
+      "id": "csrpg.motion-reference",
+      "repo": "college-sports-rpg@docs/basketball-motion-library",
+      "path": "see manifests/reuse/the-u-motion-reference.v1.json",
+      "sports": ["basketball"], "kind": "reference library", "status": "reference",
+      "what": "33 actions, 201 real clips (local only), 2D pose for all, noise report, source links.",
+      "evidence": "Measured 2026-11-23; ~10% identity switches, wrist jitter 1-6.5% body height/frame.",
+      "arcade_use": "Action taxonomy and real-speed phase timing; acceptance references.",
+      "boundary": "Not merged to dev. Footage never committed."
+    },
+    {
+      "id": "lp.nhl.rules-gate1",
+      "repo": "legendarypicks@dev", "path": "research/nhl/game-rules-gate1/{validator.py, tests/test_validator.py, fixtures/*.json}",
+      "sports": ["hockey"], "kind": "rules validator + official fixtures", "status": "candidate",
+      "what": "Independent structural NHL rules audit for simulated games: center faceoff after a goal, restart locations, penalty restart, shift boundaries at faceoffs, shootout early decision.",
+      "evidence": "Re-run 2026-11-23: 18 tests, 14 pass, 4 error (FileNotFoundError: /root/lp-data/nhl-fullframe-event-audit-2026-10-21/manifests/... on another machine).",
+      "arcade_use": "Hockey R1 invariant tests: port the faceoff-after-goal and restart rules to JS checks over the arcade event log. Arcade rules are a subset (no penalties/offside yet), so take only the rules the slice implements.",
+      "boundary": "Python; port, don't depend. The 4 fixture tests need the LP data box."
+    },
+    {
+      "id": "lp.nhl.full-game-sim",
+      "repo": "legendarypicks@research/nhl-game-state-v02b-2026-10-25", "path": "docs/research/NHL-FULL-GAME-V02B-2021-EVALUATION-REPORT-2026-10-26.md, research/nhl/statistical-full-game-v0.1/",
+      "sports": ["hockey"], "kind": "statistical game generator", "status": "rejected (player/goalie models) / reference (team-rate reference)",
+      "what": "Event-level NHL game generator with team, player, goalie and shift models.",
+      "evidence": "Read only: on 1,100 matched 2021 games the simple team-rate reference beat every v0.2b candidate on goal CRPS, final-score energy, winner Brier and SOG CRPS; candidates also had 52-68 penalty-expiration and 35-53 penalized-player-on-ice state failures. Report says: do not adopt.",
+      "arcade_use": "Tune arcade AI to team-level shot and goal rates, not player models. The two state-failure classes are exactly what the arcade's penalty work must test for.",
+      "boundary": "Unmerged research branch (21 ahead of dev)."
+    },
+    {
+      "id": "lp.nhl.shot-rebound-tracking",
+      "repo": "legendarypicks@research/nhl-shot-to-rebound-tracking-2026-10-22", "path": "docs/research/NHL-SHOT-TO-REBOUND-TRACKING-EXPERIMENT-2026-10-22.md, research/nhl-shot-to-rebound-2026-10-22/",
+      "sports": ["hockey"], "kind": "tracking-data analysis", "status": "reference",
+      "what": "Big Data Cup 2026 (10 anonymized games, 959,754 tracking frames, puck in every frame): what follows a shot.",
+      "evidence": "Read only: 1,190 attempts (58 goals); 508 on net, 290 blocked, 334 missed; puck recovered within 3 s after 621 (295 shooting team, 326 opponent); follow-up shot within 5 s after 174.",
+      "arcade_use": "Concrete targets for arcade puck recovery and rebounds (about half of shots are recovered within 3 s, split nearly evenly; about 15% produce a follow-up shot within 5 s). The tracking data is also the only real skater/puck speed source found for hockey motion benchmarks.",
+      "boundary": "Data (674 MB) is not in git; check Big Data Cup terms before any derived asset ships."
+    },
+    {
+      "id": "lp.nhl.multi-agent-movement",
+      "repo": "legendarypicks@research/nhl-multi-agent-movement-2026-10-23", "path": "docs/research/NHL-JC-CHAIN-DECISION-2026-10-23.md",
+      "sports": ["hockey"], "kind": "movement research", "status": "rejected (runtime)",
+      "what": "Pair-level multi-agent skater movement diagnostics on 10 games.",
+      "evidence": "Read only: descriptive structure only; 'No accuracy, skill, or profit claim'; cross-game identity untestable on the source.",
+      "arcade_use": "None at runtime. Its finding (pair errors persist; one shrink factor does not explain spacing) is a warning for hockey AI spacing claims.",
+      "boundary": "-"
+    },
+    {
+      "id": "lp.pixel-red-zone",
+      "repo": "legendarypicks@feat/pixel-nfl-hq-design + docs/pixel-redzone-arcade-training-2026-11-01",
+      "path": "backend/pixel_red_zone.py, backend/arcade_store.py, backend/routers/arcade.py, docs/product/legendary-play/{ARCADE-TRAINING-MINIGAMES-SPEC,PIXEL-RED-ZONE-CHANNEL-SPEC}-2026-11-01.md, docs/design/legendary-picks-pixel-nfl/",
+      "sports": ["football"], "kind": "existing arcade product spec + backend", "status": "candidate",
+      "what": "An earlier 16-bit NFL arcade: Pixel Red Zone channel driven by a verified ESPN event adapter (only event classes with no spot disagreement in a 988-play ESPN-vs-nflfastR comparison are marked verified), one-input real-context challenges ('52 yards. Your turn.'), Kicking Camp drills.",
+      "evidence": "Read only. Unmerged: 42 ahead of LP dev.",
+      "arcade_use": "Retro Sports Arcade's football slice should start here instead of a new design: same retro goal, already has the real-context hook and a verified-event boundary.",
+      "boundary": "Decide which repo owns the football arcade before building; do not fork the design silently."
+    },
+    {
+      "id": "lp.nba-game-model",
+      "repo": "legendarypicks@dev", "path": "research/nba-game-model/{benchmark.json, sources.json}",
+      "sports": ["basketball"], "kind": "benchmark", "status": "reference",
+      "what": "NBA game-model benchmark and source list.", "evidence": "Read only.",
+      "arcade_use": "Team pace and scoring rates for a basketball AI, if needed.", "boundary": "-"
+    },
+    {
+      "id": "nhl-dataset",
+      "repo": "nhl-dataset@main", "path": "nhl_database.duckdb, NHL_DATABASE_DOCUMENTATION.md",
+      "sports": ["hockey"], "kind": "data (DuckDB, 2007-2025, 10 tables, 7.9M rows: xG, Corsi, Fenwick, shot level)", "status": "reference",
+      "what": "Shot-level NHL data with locations and xG.", "evidence": "Read only.",
+      "arcade_use": "Shot-location and shot-type distributions to make arcade AI shot selection feel like hockey.",
+      "boundary": "Repo is MIT, but the underlying source data's licence is not stated in the README; verify before shipping anything derived."
+    },
+    {
+      "id": "tennis-archive",
+      "repo": "tennis-point-by-point-archive@main", "path": "slam_pointbypoint/, atp/, wta/",
+      "sports": ["tennis"], "kind": "data", "status": "reference",
+      "what": "Mirror of Jeff Sackmann's tennis data.", "evidence": "Read only.",
+      "arcade_use": "Only if a tennis slice is added.",
+      "boundary": "CC BY-NC-SA 4.0: non-commercial. Cannot feed a commercial game."
+    },
+    {
+      "id": "rs.redzone-tendencies",
+      "repo": "legendarypicks@dev", "path": "docs/research/redzone-tendencies-2026-11-22/sean-payton-broncos.md",
+      "sports": ["football"], "kind": "broadcast-derived hypotheses", "status": "reference",
+      "what": "Coach tendencies stated on the 2026-11-22 RedZone broadcast (transcribed), with hypotheses to test against play-by-play.",
+      "evidence": "Commit 3903131e. Announcer claims, not measurements. Raw transcript local only (C:/Users/micah/Documents/redzone_transcripts/).",
+      "arcade_use": "Coach personality for football AI once checked against gp.playbooks.",
+      "boundary": "Hypotheses only."
+    }
+  ],
+  "excluded": [
+    {"repo": "cut-trees-hytopia", "reason": "Not a sports game (Hytopia tree-chopping progression)."},
+    {"local": "Workspace/football-player-asset", "reason": "No git remote; Blender source with a licence HTML. Unverified; gridiron's web/assets/FOOTBALL_PLAYER_ATTRIBUTION.md covers the exported version."},
+    {"local": "Workspace/stadium-src", "reason": "No git remote; Blender stadium source. Gridiron ships it as CC BY 3.0 (web/assets/STADIUM_ATTRIBUTION.md)."},
+    {"local": "Workspace/rigged-player-evidence", "reason": "Broadcast frames and video; reference only, never redistributable."},
+    {"local": "Workspace/nfldraftbuzz-madden", "reason": "No git remote; scraped Madden ratings. Rights risk; do not use in a shipped game."},
+    {"local": "Workspace/minnesota-lakes-game", "reason": "No git remote; not a sports game."}
+  ]
+}

@@ -38,7 +38,7 @@ Use its action library and pose/reference taxonomy for basketball, but only use 
 
 ## Immediate work packages
 
-- **Reuse audit:** build a machine-readable manifest for The U, Gridiron Physics, Legendary Picks, and verified additional projects.
+- **Reuse audit:** build a machine-readable manifest for The U, Gridiron Physics, Legendary Picks, and verified additional projects. First pass done 2026-11-23: `docs/REUSE-AUDIT-2026-11-23.md` and `manifests/reuse/REUSE-MANIFEST.v1.json`.
 - **Hockey:** split the current browser prototype into a pure fixed-step state/reducer and presentation; add event/replay fixtures before Godot port.
 - **Basketball:** make a playable micro-slice using The U's named actions, then test animation ownership on the actual rig before importing more actions.
 - **Football:** implement one controlled movement/catch/tackle scenario; compare physics to constant-velocity and constant-acceleration baselines.

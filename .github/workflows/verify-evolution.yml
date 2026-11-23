@@ -19,10 +19,21 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Test exhibit and capture screenshots
         run: node reference/verify-evolution.cjs
+      - name: Check shareable preview URL
+        continue-on-error: true
+        run: |
+          url="https://raw.githack.com/micahp/retro-sports-arcade/feat/hockey-arcade-vertical-slice/reference/evolution.html"
+          status=$(curl --connect-timeout 10 --max-time 30 -sS -L -o /tmp/public-gallery.html -w "%{http_code}" "$url")
+          echo "Preview URL $url returned HTTP $status"
+          test "$status" = "200"
+          grep -q "From" /tmp/public-gallery.html
       - name: Upload desktop/mobile screenshots and source audit
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ea-evolution-browser-evidence
-          path: reference/evidence/
+          path: |
+            reference/evidence/
+            reference/evolution.html
+            reference/evolution-manifest.json
           if-no-files-found: warn

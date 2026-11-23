@@ -65,6 +65,44 @@ button{cursor:pointer;background:#66e3b5;border:0;border-radius:7px;color:#09151
 @media(max-width:800px){#evolution .archive-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#evolution .archive-card p{min-height:96px}}
 @media(max-width:520px){#evolution .archive-intro{padding:22px 15px}#evolution .archive-grid{grid-template-columns:1fr}#evolution .archive-preview{gap:6px}#evolution .archive-feature figcaption{font-size:9px;padding:7px}#evolution .archive-section-heading{display:block}#evolution .archive-section-heading p{text-align:left;max-width:none;margin-top:9px}#evolution .archive-card p{min-height:0}#evolution .archive-nav a{font-size:11px;padding:9px 10px}#evolution .archive-stats span{font-size:10px}#rink-prototype .rink-heading{display:block}#rink-prototype .rink-heading p{margin-top:10px}}
 
+
+/* Full-screen gallery viewer */
+#evolution .archive-card{cursor:zoom-in;transition:border-color .16s,transform .16s}
+#evolution .archive-card:hover{border-color:#91f9ca;transform:translateY(-2px)}
+#evolution .archive-shot[role="button"]:focus-visible,#evolution .archive-feature[role="button"]:focus-visible{outline:3px solid #91f9ca;outline-offset:3px}
+#evolution .archive-feature[role="button"]{cursor:zoom-in}
+#archive-detail{position:fixed;inset:0;margin:auto;width:min(1080px,calc(100vw - 28px));max-height:min(920px,calc(100dvh - 22px));border:1px solid #547c7d;border-radius:13px;padding:0;color:#eef7f4;background:#0b1923;box-shadow:0 25px 100px #000c;overflow:hidden}
+#archive-detail::backdrop{background:#020910d9;backdrop-filter:blur(6px)}
+.archive-detail-shell{display:flex;flex-direction:column;max-height:min(920px,calc(100dvh - 22px))}
+.archive-detail-header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 18px;border-bottom:1px solid #294c51;background:#102b32}
+.archive-detail-meta{color:#96e9c9;font-size:11px;font-weight:800;letter-spacing:.06em}
+.archive-detail-close{background:#1e4045;color:white!important;border:1px solid #517b7a;font-size:20px;padding:6px 12px;line-height:1}
+.archive-detail-stage{display:grid;grid-template-columns:60px minmax(0,1fr) 60px;gap:8px;align-items:center;min-height:0;flex:1;background:#040d15;padding:12px 5px;touch-action:pan-y}
+.archive-detail-stage button{height:74px;border:1px solid #517b7a;background:#18363c;color:#effffa;font-size:43px;padding:0;border-radius:8px}
+.archive-detail-stage button:hover{background:#2e6a63}
+.archive-detail-image-wrap{position:relative;display:grid;place-items:center;min-width:0;min-height:0;height:100%;max-height:55dvh}
+.archive-detail-image-wrap img{display:block;max-width:100%;max-height:55dvh;width:auto;height:auto;object-fit:contain;image-rendering:auto}
+.archive-detail-image-wrap img[hidden]{display:none}
+.archive-detail-image-fallback{padding:40px 20px;color:#f1d6ac;font-size:14px;text-align:center}
+.archive-detail-body{padding:15px 25px 22px;overflow-y:auto;border-top:1px solid #294c51}
+.archive-detail-body h2{font-size:clamp(22px,3vw,34px);margin:5px 0 10px;letter-spacing:-.035em}
+.archive-detail-body p{font-size:13px;line-height:1.6;color:#c3d5d7;margin:9px 0}
+.archive-detail-tags{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}
+.archive-detail-tags span{font-size:11px;padding:6px 9px;border:1px solid #385e5e;background:#153335;color:#c5eddf;border-radius:6px}
+.archive-detail-footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-top:12px}
+.archive-detail-footer a{color:#94f1c8;font-size:12px}
+.archive-detail-hint{font-size:11px;color:#98b4ba}
+@media(max-width:620px){
+ #archive-detail{width:calc(100vw - 12px);max-height:calc(100dvh - 12px)}
+ .archive-detail-shell{max-height:calc(100dvh - 12px)}
+ .archive-detail-header{padding:10px 13px}
+ .archive-detail-stage{grid-template-columns:36px minmax(0,1fr) 36px;gap:3px;padding:6px 2px}
+ .archive-detail-stage button{height:58px;font-size:28px}
+ .archive-detail-image-wrap{max-height:52dvh}
+ .archive-detail-image-wrap img{max-height:52dvh}
+ .archive-detail-body{padding:12px 17px 18px}
+ .archive-detail-hint{font-size:10px}
+}
 </style>
 </head>
 <body>
@@ -76,7 +114,7 @@ button{cursor:pointer;background:#66e3b5;border:0;border-radius:7px;color:#09151
 <h2>33 games. <em>All on this page.</em></h2>
 <p>The complete EA Sports gameplay timeline, <strong>NHL ’94–2004, NBA Live 95–2005, and Madden NFL ’94–2004</strong>. Compare camera angles, 2D sprites, hybrid rendering, and early 3D to inform our own games. Every annual edition has its own screenshot directly below.</p>
 <div class="archive-stats"><span>🏒 11 NHL editions</span><span>🏀 11 NBA Live editions</span><span>🏈 11 Madden editions</span><span>33 gameplay image cards</span></div>
-<div class="archive-preview"><figure class="archive-feature"><img src="https://www.nhl94.com/images/screenshots/segagens/31_roenick_stuffin.jpg" alt="NHL &#39;94 gameplay on Genesis" loading="eager" decoding="async" referrerpolicy="no-referrer"><figcaption>NHL &#39;94 · Genesis</figcaption></figure><figure class="archive-feature"><img src="https://images.launchbox-app.com/6fe3d758-3ecb-419c-8ad4-67f4b04fbba8.png" alt="NBA Live 95 gameplay on Genesis" loading="eager" decoding="async" referrerpolicy="no-referrer"><figcaption>NBA Live 95 · Genesis</figcaption></figure><figure class="archive-feature"><img src="https://gamefabrique.com/storage/screenshots/snes/madden-nfl-94-08.png" alt="Madden NFL &#39;94 gameplay on SNES" loading="eager" decoding="async" referrerpolicy="no-referrer"><figcaption>Madden NFL &#39;94 · SNES</figcaption></figure></div>
+<div class="archive-preview"><figure class="archive-feature" data-open-game="nhl-94" role="button" tabindex="0" aria-label="View NHL '94 details"><img src="https://www.nhl94.com/images/screenshots/segagens/31_roenick_stuffin.jpg" alt="NHL &#39;94 gameplay on Genesis" loading="eager" decoding="async" referrerpolicy="no-referrer"><figcaption>NHL &#39;94 · Genesis</figcaption></figure><figure class="archive-feature" data-open-game="nba-95" role="button" tabindex="0" aria-label="View NBA Live 95 details"><img src="https://images.launchbox-app.com/6fe3d758-3ecb-419c-8ad4-67f4b04fbba8.png" alt="NBA Live 95 gameplay on Genesis" loading="eager" decoding="async" referrerpolicy="no-referrer"><figcaption>NBA Live 95 · Genesis</figcaption></figure><figure class="archive-feature" data-open-game="madden-94" role="button" tabindex="0" aria-label="View Madden NFL '94 details"><img src="https://images.launchbox-app.com/e8c8cc81-1d74-422f-8f55-97612ea2851b.png" alt="Madden NFL &#39;94 gameplay on SNES" loading="eager" decoding="async" referrerpolicy="no-referrer"><figcaption>Madden NFL &#39;94 · SNES</figcaption></figure></div>
 <nav class="archive-nav" aria-label="Jump to each sport"><a href="#home-nhl">NHL screenshots</a><a href="#home-nba">NBA Live screenshots</a><a href="#home-madden">Madden screenshots</a><a href="#rink-prototype">Play Rink ’95 ↓</a><a href="reference/evolution.html">Explore full comparison exhibit ↗</a></nav>
 </div>
 <section class="archive-sport" id="home-nhl">
@@ -96,15 +134,15 @@ button{cursor:pointer;background:#66e3b5;border:0;border-radius:7px;color:#09151
 </article>
 <article class="archive-card" id="home-nhl-95">
   <div class="archive-shot">
-    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamefabrique.com/games/nhl-95/" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
-    <img src="https://gamefabrique.com/screenshots/genesis/nhl-95-08.jpg" alt="NHL 95 actual in-game gameplay screenshot on Genesis" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamesdb.launchbox-app.com/games/images/639-nhl-95" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://images.launchbox-app.com/529088b6-d5dd-497b-8310-9adfc895db09.png" alt="NHL 95 actual in-game gameplay screenshot on Genesis" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
     <span class="archive-image-label">Genesis · 2D sprites</span>
   </div>
   <div class="archive-card-body">
     <div class="archive-card-years">RELEASE 1994 · TITLE 1995</div>
     <h4>NHL 95</h4>
     <p>Tighter sprite frames, quick skating response and bright rink markings; Genesis and SNES use visibly different palettes.</p>
-    <div class="archive-card-foot"><span>Fourth generation</span><a href="https://gamefabrique.com/games/nhl-95/" target="_blank" rel="noopener noreferrer" aria-label="Source for NHL 95 gameplay image">Source credit</a></div>
+    <div class="archive-card-foot"><span>Fourth generation</span><a href="https://gamesdb.launchbox-app.com/games/images/639-nhl-95" target="_blank" rel="noopener noreferrer" aria-label="Source for NHL 95 gameplay image">Source credit</a></div>
   </div>
 </article>
 <article class="archive-card" id="home-nhl-96">
@@ -174,15 +212,15 @@ button{cursor:pointer;background:#66e3b5;border:0;border-radius:7px;color:#09151
 </article>
 <article class="archive-card" id="home-nhl-2001">
   <div class="archive-shot">
-    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamefabrique.com/games/nhl-2001/" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
-    <img src="https://gamefabrique.com/storage/screenshots/ps2/nhl-2001-05.png" alt="NHL 2001 actual in-game gameplay screenshot on PlayStation 2" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamesdb.launchbox-app.com/games/images/23884-nhl-2001" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://images.launchbox-app.com/3c19e8e0-a4ba-4553-b5d3-1fabd6b9faf3.jpg" alt="NHL 2001 actual in-game gameplay screenshot on PlayStation 2" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
     <span class="archive-image-label">PlayStation 2 · 3D</span>
   </div>
   <div class="archive-card-body">
     <div class="archive-card-years">RELEASE 2000 · TITLE 2001</div>
     <h4>NHL 2001</h4>
     <p>Closer, more TV-like presentation and larger skaters; frame the player and the puck, not just the arena.</p>
-    <div class="archive-card-foot"><span>Sixth generation</span><a href="https://gamefabrique.com/games/nhl-2001/" target="_blank" rel="noopener noreferrer" aria-label="Source for NHL 2001 gameplay image">Source credit</a></div>
+    <div class="archive-card-foot"><span>Sixth generation</span><a href="https://gamesdb.launchbox-app.com/games/images/23884-nhl-2001" target="_blank" rel="noopener noreferrer" aria-label="Source for NHL 2001 gameplay image">Source credit</a></div>
   </div>
 </article>
 <article class="archive-card" id="home-nhl-2002">
@@ -213,15 +251,15 @@ button{cursor:pointer;background:#66e3b5;border:0;border-radius:7px;color:#09151
 </article>
 <article class="archive-card" id="home-nhl-2004">
   <div class="archive-shot">
-    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamefabrique.com/games/nhl-2004/" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
-    <img src="https://gamefabrique.com/storage/screenshots/ps2/nhl-2004-16.png" alt="NHL 2004 actual in-game gameplay screenshot on PlayStation 2" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
-    <span class="archive-image-label">PlayStation 2 · 3D</span>
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamesdb.launchbox-app.com/games/images/45294-nhl-2004" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://images.launchbox-app.com/492200dd-fff7-4a98-bba2-8394807277b6.png" alt="NHL 2004 actual in-game gameplay screenshot on Xbox" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">Xbox · 3D</span>
   </div>
   <div class="archive-card-body">
     <div class="archive-card-years">RELEASE 2003 · TITLE 2004</div>
     <h4>NHL 2004</h4>
     <p>Cleaner overhead 3D ice and readable indicators show the lasting importance of tactical space.</p>
-    <div class="archive-card-foot"><span>Sixth generation</span><a href="https://gamefabrique.com/games/nhl-2004/" target="_blank" rel="noopener noreferrer" aria-label="Source for NHL 2004 gameplay image">Source credit</a></div>
+    <div class="archive-card-foot"><span>Sixth generation</span><a href="https://gamesdb.launchbox-app.com/games/images/45294-nhl-2004" target="_blank" rel="noopener noreferrer" aria-label="Source for NHL 2004 gameplay image">Source credit</a></div>
   </div>
 </article></div>
   </section>
@@ -268,15 +306,15 @@ button{cursor:pointer;background:#66e3b5;border:0;border-radius:7px;color:#09151
 </article>
 <article class="archive-card" id="home-nba-98">
   <div class="archive-shot">
-    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamefabrique.com/games/nba-live-98/" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
-    <img src="https://gamefabrique.com/storage/screenshots/snes/nba-live-98-17.png" alt="NBA Live 98 actual in-game gameplay screenshot on SNES" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamesdb.launchbox-app.com/games/images/5361-nba-live-98" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://images.launchbox-app.com/192377ee-228c-4015-9182-127699e4109b.png" alt="NBA Live 98 actual in-game gameplay screenshot on SNES" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
     <span class="archive-image-label">SNES · 2D sprites</span>
   </div>
   <div class="archive-card-body">
     <div class="archive-card-years">RELEASE 1997 · TITLE 1998</div>
     <h4>NBA Live 98</h4>
     <p>This SNES branch is still sprite-based: never mistake a title-year label for a single cross-platform rendering technology.</p>
-    <div class="archive-card-foot"><span>Fourth generation</span><a href="https://gamefabrique.com/games/nba-live-98/" target="_blank" rel="noopener noreferrer" aria-label="Source for NBA Live 98 gameplay image">Source credit</a></div>
+    <div class="archive-card-foot"><span>Fourth generation</span><a href="https://gamesdb.launchbox-app.com/games/images/5361-nba-live-98" target="_blank" rel="noopener noreferrer" aria-label="Source for NBA Live 98 gameplay image">Source credit</a></div>
   </div>
 </article>
 <article class="archive-card" id="home-nba-99">
@@ -307,15 +345,15 @@ button{cursor:pointer;background:#66e3b5;border:0;border-radius:7px;color:#09151
 </article>
 <article class="archive-card" id="home-nba-2001">
   <div class="archive-shot">
-    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamefabrique.com/games/nba-live-2001/" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
-    <img src="https://gamefabrique.com/storage/screenshots/ps2/nba-live-2001-09.png" alt="NBA Live 2001 actual in-game gameplay screenshot on PlayStation 2" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
-    <span class="archive-image-label">PlayStation 2 · 3D</span>
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamesdb.launchbox-app.com/games/images/33289-nba-live-2001" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://images.launchbox-app.com/r2_3869252d-1c76-47c3-a079-7dddb4070f5f.png" alt="NBA Live 2001 actual in-game gameplay screenshot on PlayStation" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">PlayStation · 3D</span>
   </div>
   <div class="archive-card-body">
     <div class="archive-card-years">RELEASE 2000 · TITLE 2001</div>
     <h4>NBA Live 2001</h4>
     <p>PS2 models and crowd detail give broadcast polish; camera cuts must not hide defensive spacing.</p>
-    <div class="archive-card-foot"><span>Sixth generation</span><a href="https://gamefabrique.com/games/nba-live-2001/" target="_blank" rel="noopener noreferrer" aria-label="Source for NBA Live 2001 gameplay image">Source credit</a></div>
+    <div class="archive-card-foot"><span>Sixth generation</span><a href="https://gamesdb.launchbox-app.com/games/images/33289-nba-live-2001" target="_blank" rel="noopener noreferrer" aria-label="Source for NBA Live 2001 gameplay image">Source credit</a></div>
   </div>
 </article>
 <article class="archive-card" id="home-nba-2002">
@@ -359,15 +397,15 @@ button{cursor:pointer;background:#66e3b5;border:0;border-radius:7px;color:#09151
 </article>
 <article class="archive-card" id="home-nba-2005">
   <div class="archive-shot">
-    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamefabrique.com/games/nba-live-2005/" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
-    <img src="https://gamefabrique.com/storage/screenshots/xbox/nba-live-2005-11.png" alt="NBA Live 2005 actual in-game gameplay screenshot on Xbox" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
-    <span class="archive-image-label">Xbox · 3D</span>
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://abandonwaregames.net/game/nba-live-2005" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://screens.16bit.pl/nba-live-2005/15.jpg" alt="NBA Live 2005 actual in-game gameplay screenshot on Windows" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">Windows · 3D</span>
   </div>
   <div class="archive-card-body">
     <div class="archive-card-years">RELEASE 2004 · TITLE 2005</div>
     <h4>NBA Live 2005</h4>
     <p>Large polygonal players, court branding and broadcast overlays offer a useful ceiling for a low-poly arcade target.</p>
-    <div class="archive-card-foot"><span>Sixth generation</span><a href="https://gamefabrique.com/games/nba-live-2005/" target="_blank" rel="noopener noreferrer" aria-label="Source for NBA Live 2005 gameplay image">Source credit</a></div>
+    <div class="archive-card-foot"><span>Sixth generation</span><a href="https://abandonwaregames.net/game/nba-live-2005" target="_blank" rel="noopener noreferrer" aria-label="Source for NBA Live 2005 gameplay image">Source credit</a></div>
   </div>
 </article></div>
   </section>
@@ -375,15 +413,15 @@ button{cursor:pointer;background:#66e3b5;border:0;border-radius:7px;color:#09151
     <div class="archive-section-heading"><div><div class="archive-overline">🏈 MADDEN NFL / 11 ANNUAL EDITIONS</div><h3>Madden NFL</h3></div><p>Readable routes and formations, then stadium-scale 3D</p></div>
     <div class="archive-grid"><article class="archive-card" id="home-madden-94">
   <div class="archive-shot">
-    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamefabrique.com/screenshots/john-madden-nfl-94/" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
-    <img src="https://gamefabrique.com/storage/screenshots/snes/madden-nfl-94-08.png" alt="Madden NFL &#39;94 actual in-game gameplay screenshot on SNES" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamesdb.launchbox-app.com/games/images/3059-madden-nfl-94" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://images.launchbox-app.com/e8c8cc81-1d74-422f-8f55-97612ea2851b.png" alt="Madden NFL &#39;94 actual in-game gameplay screenshot on SNES" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
     <span class="archive-image-label">SNES · 2D sprites</span>
   </div>
   <div class="archive-card-body">
     <div class="archive-card-years">RELEASE 1993 · TITLE 1994</div>
     <h4>Madden NFL &#39;94</h4>
     <p>A stable behind-offense camera makes formation spacing and route direction legible with very few frames.</p>
-    <div class="archive-card-foot"><span>Fourth generation</span><a href="https://gamefabrique.com/screenshots/john-madden-nfl-94/" target="_blank" rel="noopener noreferrer" aria-label="Source for Madden NFL &#39;94 gameplay image">Source credit</a></div>
+    <div class="archive-card-foot"><span>Fourth generation</span><a href="https://gamesdb.launchbox-app.com/games/images/3059-madden-nfl-94" target="_blank" rel="noopener noreferrer" aria-label="Source for Madden NFL &#39;94 gameplay image">Source credit</a></div>
   </div>
 </article>
 <article class="archive-card" id="home-madden-95">
@@ -414,15 +452,15 @@ button{cursor:pointer;background:#66e3b5;border:0;border-radius:7px;color:#09151
 </article>
 <article class="archive-card" id="home-madden-97">
   <div class="archive-shot">
-    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamefabrique.com/games/madden-nfl-97/" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
-    <img src="https://www.gamefabrique.com/storage/screenshots/genesis/madden-nfl-97-05.png" alt="Madden NFL 97 actual in-game gameplay screenshot on Genesis" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamesdb.launchbox-app.com/games/images/4256-madden-nfl-97" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://images.launchbox-app.com/612f6b72-3bf1-4814-8d2d-bfc6be167f31.png" alt="Madden NFL 97 actual in-game gameplay screenshot on Genesis" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
     <span class="archive-image-label">Genesis · 2D sprites</span>
   </div>
   <div class="archive-card-body">
     <div class="archive-card-years">RELEASE 1996 · TITLE 1997</div>
     <h4>Madden NFL 97</h4>
     <p>Late 16-bit sprite handling stays coherent even as PlayStation editions offer different visual systems.</p>
-    <div class="archive-card-foot"><span>Fourth generation</span><a href="https://gamefabrique.com/games/madden-nfl-97/" target="_blank" rel="noopener noreferrer" aria-label="Source for Madden NFL 97 gameplay image">Source credit</a></div>
+    <div class="archive-card-foot"><span>Fourth generation</span><a href="https://gamesdb.launchbox-app.com/games/images/4256-madden-nfl-97" target="_blank" rel="noopener noreferrer" aria-label="Source for Madden NFL 97 gameplay image">Source credit</a></div>
   </div>
 </article>
 <article class="archive-card" id="home-madden-98">
@@ -528,12 +566,117 @@ button{cursor:pointer;background:#66e3b5;border:0;border-radius:7px;color:#09151
 <div id="status" aria-live="polite">Ready for faceoff.</div>
 </section>
 </main>
+<dialog id="archive-detail" aria-labelledby="archive-detail-title" aria-modal="true">
+ <div class="archive-detail-shell">
+  <div class="archive-detail-header">
+   <span id="archive-detail-counter" class="archive-detail-meta">GAME 1 / 33</span>
+   <button type="button" class="archive-detail-close" id="archive-detail-close" aria-label="Close game details">✕</button>
+  </div>
+  <div class="archive-detail-stage" id="archive-detail-stage">
+   <button type="button" id="archive-detail-prev" aria-label="Previous game">‹</button>
+   <div class="archive-detail-image-wrap">
+    <img id="archive-detail-image" alt="Gameplay screenshot" referrerpolicy="no-referrer">
+    <div id="archive-detail-image-fallback" class="archive-detail-image-fallback" hidden>Gameplay image unavailable on this connection. The source archive is linked below.</div>
+   </div>
+   <button type="button" id="archive-detail-next" aria-label="Next game">›</button>
+  </div>
+  <div class="archive-detail-body">
+   <h2 id="archive-detail-title"></h2>
+   <div id="archive-detail-tags" class="archive-detail-tags"></div>
+   <p id="archive-detail-notes"></p>
+   <div class="archive-detail-footer"><a id="archive-detail-source" target="_blank" rel="noopener noreferrer">Gameplay image source ↗</a><span class="archive-detail-hint">← → keys or swipe to browse · Esc to close</span></div>
+  </div>
+ </div>
+</dialog>
 <script>
 // Keep external screenshots in the actual HTML. Show the fallback if a host blocks embedding.
 document.querySelectorAll('.archive-shot img').forEach(img=>{
   img.addEventListener('error',()=>{img.hidden=true},{once:true});
   if(img.complete&&!img.naturalWidth)img.hidden=true;
 });
+</script>
+<script>
+(function(){
+  const gallery=document.getElementById('evolution');
+  const dialog=document.getElementById('archive-detail');
+  if(!gallery||!dialog)return;
+  const cards=[...gallery.querySelectorAll('.archive-card')],img=document.getElementById('archive-detail-image'),
+  fallback=document.getElementById('archive-detail-image-fallback'),
+  title=document.getElementById('archive-detail-title'),
+  counter=document.getElementById('archive-detail-counter'),
+  tags=document.getElementById('archive-detail-tags'),
+  notes=document.getElementById('archive-detail-notes'),
+  source=document.getElementById('archive-detail-source');
+  let index=0,lastFocus=null,startX=null,startY=null;
+  const getIndex=id=>cards.findIndex(card=>card.id==='home-'+id);
+  const update=()=>{
+    const card=cards[index],image=card.querySelector('.archive-shot img');
+    const sourceLink=card.querySelector('.archive-card-foot a');
+    const label=card.querySelector('.archive-image-label')?.textContent||'Gameplay';
+    const year=card.querySelector('.archive-card-years')?.textContent||'';
+    const generation=card.querySelector('.archive-card-foot span')?.textContent||'';
+    title.textContent=card.querySelector('h4')?.textContent||'Game';
+    counter.textContent=(index+1)+' / '+cards.length+' · '+(card.closest('.archive-sport')?.querySelector('h3')?.textContent||'');
+    tags.replaceChildren();
+    [year,label,generation].forEach(value=>{const el=document.createElement('span');el.textContent=value;tags.appendChild(el)});
+    notes.textContent=card.querySelector('.archive-card-body p')?.textContent||'';
+    source.href=sourceLink?.href||'#';
+    fallback.hidden=true;img.hidden=false;
+    img.alt=image.alt;
+    // Reload from the same correctly attributed gameplay source.
+    img.src=image.currentSrc||image.src;
+    if(image.complete&&!image.naturalWidth){img.hidden=true;fallback.hidden=false}
+  };
+  const show=i=>{index=(i+cards.length)%cards.length;update()};
+  const open=i=>{
+    if(i<0)return;
+    lastFocus=document.activeElement;
+    show(i);
+    if(!dialog.open)dialog.showModal();
+    document.getElementById('archive-detail-close').focus();
+  };
+  const close=()=>{if(dialog.open)dialog.close()};
+  gallery.querySelectorAll('.archive-shot').forEach((shot,i)=>{
+    shot.setAttribute('tabindex','0');
+    shot.setAttribute('role','button');
+    shot.setAttribute('aria-label','Open '+cards[i]?.querySelector('h4')?.textContent+' gameplay details');
+  });
+  gallery.addEventListener('click',e=>{
+    if(e.target.closest('a,button'))return;
+    const hero=e.target.closest('[data-open-game]');
+    if(hero){open(getIndex(hero.dataset.openGame));return}
+    const card=e.target.closest('.archive-card');
+    if(card)open(cards.indexOf(card));
+  });
+  gallery.addEventListener('keydown',e=>{
+    if((e.key!=='Enter'&&e.key!==' ')||!e.target.matches('[role="button"]'))return;
+    e.preventDefault();
+    if(e.target.dataset.openGame)open(getIndex(e.target.dataset.openGame));
+    else{const card=e.target.closest('.archive-card');if(card)open(cards.indexOf(card))}
+  });
+  document.getElementById('archive-detail-prev').addEventListener('click',()=>show(index-1));
+  document.getElementById('archive-detail-next').addEventListener('click',()=>show(index+1));
+  document.getElementById('archive-detail-close').addEventListener('click',close);
+  dialog.addEventListener('click',e=>{if(e.target===dialog)close()});
+  dialog.addEventListener('close',()=>{if(lastFocus&&lastFocus.isConnected)lastFocus.focus()});
+  document.addEventListener('keydown',e=>{
+    if(!dialog.open)return;
+    if(e.key==='ArrowLeft'){e.preventDefault();show(index-1)}
+    if(e.key==='ArrowRight'){e.preventDefault();show(index+1)}
+  });
+  const stage=document.getElementById('archive-detail-stage');
+  stage.addEventListener('touchstart',e=>{
+    if(e.touches.length!==1)return;
+    startX=e.touches[0].clientX;startY=e.touches[0].clientY
+  },{passive:true});
+  stage.addEventListener('touchend',e=>{
+    if(startX===null||!e.changedTouches.length)return;
+    const dx=e.changedTouches[0].clientX-startX,dy=e.changedTouches[0].clientY-startY;
+    startX=null;startY=null;
+    if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.3)show(index+(dx<0?1:-1));
+  },{passive:true});
+  img.addEventListener('error',()=>{img.hidden=true;fallback.hidden=false});
+})();
 </script>
 <script type="module" src="./src/hockey.js"></script>
 </body></html>

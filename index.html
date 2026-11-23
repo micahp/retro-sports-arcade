@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Retro Sports Arcade | Rink '95</title>
+<title>Retro Sports Arcade | 33 EA Sports Games & Rink ’95</title>
 <style>
 :root{color-scheme:dark;font-family:ui-monospace,Consolas,monospace;background:#090e1b;color:#eaf5f8}
 *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at top,#21304a,#090e1b 70%);display:flex;align-items:center;flex-direction:column}
@@ -21,17 +21,519 @@ button{cursor:pointer;background:#66e3b5;border:0;border-radius:7px;color:#09151
 #mobile{display:none;justify-content:space-between;margin-top:10px;gap:16px;touch-action:none}#dpad{display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(3,46px)}#mobile button{padding:0;min-width:48px;user-select:none}#actions{display:flex;align-items:center;gap:10px}
 #status{font-size:13px;color:#93b4c7;min-height:20px;margin-top:12px}
 @media(pointer:coarse){#mobile{display:flex}#controls .keys{display:none}}
+
+/* Main-page EA Sports exhibit, independent of the hockey prototype module. */
+#evolution{margin:8px 0 44px;padding:0;--arc-mint:#91f9ca;--arc-warm:#ffe4a3}
+#evolution .archive-intro{padding:37px clamp(18px,4vw,42px) 28px;border:1px solid #41616a;border-radius:15px;background:radial-gradient(ellipse at 95% 0%,#1d554a 0,transparent 56%),linear-gradient(130deg,#142a38,#08131f);margin-bottom:21px}
+#evolution .archive-overline{font-size:11px;color:var(--arc-mint);font-weight:800;letter-spacing:.13em}
+#evolution h2{font-size:clamp(32px,5vw,57px);margin:12px 0;line-height:1.05;letter-spacing:-.045em;font-weight:900}
+#evolution h2 em{font-style:normal;color:var(--arc-mint)}
+#evolution .archive-intro p{font-size:14px;color:#d2e2e3;line-height:1.7;max-width:750px}
+#evolution .archive-intro strong{color:#fff}
+#evolution .archive-stats{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 17px}
+#evolution .archive-stats span{display:inline-flex;padding:8px 11px;color:#d4f9ed;border:1px solid #456b65;border-radius:7px;background:#0e322f;font-size:12px;font-weight:800}
+#evolution .archive-nav{display:flex;flex-wrap:wrap;gap:9px;margin-top:20px}
+#evolution .archive-nav a{display:inline-flex;background:#203f43;border:1px solid #598780;border-radius:8px;color:#eaf8f1;padding:10px 13px;font-size:12px;text-decoration:none;font-weight:800}
+#evolution .archive-nav a:hover{background:#367565}
+#evolution .archive-preview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:22px}
+#evolution .archive-feature{margin:0;background:#092029;border:1px solid #3a5f61;border-radius:8px;overflow:hidden}
+#evolution .archive-feature img{width:100%;height:auto;aspect-ratio:16/10;object-fit:contain;display:block;background:#040d11;image-rendering:pixelated}
+#evolution .archive-feature figcaption{padding:10px 11px;color:#c7e2df;font-size:11px}
+#evolution .archive-sport{margin:35px 0 42px}
+#evolution .archive-section-heading{display:flex;align-items:end;justify-content:space-between;gap:15px;border-top:1px solid #4c696c;padding:19px 0}
+#evolution .archive-section-heading h3{font-size:clamp(24px,3vw,37px);margin:8px 0 0;letter-spacing:-.035em}
+#evolution .archive-section-heading p{color:#b2c8ca;line-height:1.5;font-size:12px;max-width:380px;text-align:right;margin:0}
+#evolution .archive-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+#evolution .archive-card{min-width:0;overflow:hidden;border:1px solid #3b5965;background:#112432;border-radius:11px}
+#evolution .archive-shot{position:relative;aspect-ratio:16/10;background:#06101b;overflow:hidden}
+#evolution .archive-shot img{width:100%;height:100%;object-fit:contain;display:block;position:relative;z-index:1;image-rendering:pixelated}
+#evolution .archive-shot img[hidden]{display:none}
+#evolution .archive-shot-backup{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;color:#e4cfa8;font-size:11px;line-height:2;margin:0;padding:12px}
+#evolution .archive-shot-backup a{color:#a9f4d0}
+#evolution .archive-image-label{position:absolute;z-index:2;bottom:7px;left:7px;border:1px solid #618275;background:#0c222be0;color:#e4f8ed;border-radius:5px;padding:6px 8px;font-size:10px;max-width:95%}
+#evolution .archive-card-body{padding:13px 14px 16px}
+#evolution .archive-card-years{font-size:10px;color:#98c7b9;font-weight:800;letter-spacing:.05em}
+#evolution .archive-card h4{font-size:20px;letter-spacing:-.035em;margin:9px 0 10px;color:#fff}
+#evolution .archive-card p{font-size:12px;line-height:1.6;color:#c0d2da;margin:0 0 12px;min-height:77px}
+#evolution .archive-card-foot{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #344b5a;padding-top:12px;gap:8px;font-size:10px;color:#9ac2c2}
+#evolution .archive-card-foot a{color:#91f9ca;text-decoration:underline}
+#evolution .archive-rights{font-size:11px;color:#9bb8c1;line-height:1.7;border-top:1px solid #3a5263;padding-top:15px}
+#rink-prototype{margin-top:20px;scroll-margin-top:12px}
+#rink-prototype .rink-heading{margin:0 0 15px;padding-top:23px;border-top:1px solid #4c696c;display:flex;justify-content:space-between;align-items:end;gap:12px}
+#rink-prototype .rink-heading h2{margin:8px 0 0;font-size:clamp(22px,3vw,31px)}
+#rink-prototype .rink-heading p{margin:0;color:#b8cbda;font-size:12px}
+@media(max-width:800px){#evolution .archive-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#evolution .archive-card p{min-height:96px}}
+@media(max-width:520px){#evolution .archive-intro{padding:22px 15px}#evolution .archive-grid{grid-template-columns:1fr}#evolution .archive-preview{gap:6px}#evolution .archive-feature figcaption{font-size:9px;padding:7px}#evolution .archive-section-heading{display:block}#evolution .archive-section-heading p{text-align:left;max-width:none;margin-top:9px}#evolution .archive-card p{min-height:0}#evolution .archive-nav a{font-size:11px;padding:9px 10px}#evolution .archive-stats span{font-size:10px}#rink-prototype .rink-heading{display:block}#rink-prototype .rink-heading p{margin-top:10px}}
+
 </style>
 </head>
 <body>
 <header><h1>RETRO <span>SPORTS</span> ARCADE</h1><small>RINK '95 · VERTICAL SLICE 0.1</small></header>
 <main>
+<section id="evolution" aria-label="EA Sports evolution game exhibit">
+<div class="archive-intro">
+<div class="archive-overline">RETRO SPORTS ARCADE / VISUAL GAME HISTORY</div>
+<h2>33 games. <em>All on this page.</em></h2>
+<p>The complete EA Sports gameplay timeline, <strong>NHL ’94–2004, NBA Live 95–2005, and Madden NFL ’94–2004</strong>. Compare camera angles, 2D sprites, hybrid rendering, and early 3D to inform our own games. Every annual edition has its own screenshot directly below.</p>
+<div class="archive-stats"><span>🏒 11 NHL editions</span><span>🏀 11 NBA Live editions</span><span>🏈 11 Madden editions</span><span>33 gameplay image cards</span></div>
+<div class="archive-preview"><figure class="archive-feature"><img src="https://www.nhl94.com/images/screenshots/segagens/31_roenick_stuffin.jpg" alt="NHL &#39;94 gameplay on Genesis" loading="eager" decoding="async" referrerpolicy="no-referrer"><figcaption>NHL &#39;94 · Genesis</figcaption></figure><figure class="archive-feature"><img src="https://images.launchbox-app.com/6fe3d758-3ecb-419c-8ad4-67f4b04fbba8.png" alt="NBA Live 95 gameplay on Genesis" loading="eager" decoding="async" referrerpolicy="no-referrer"><figcaption>NBA Live 95 · Genesis</figcaption></figure><figure class="archive-feature"><img src="https://gamefabrique.com/storage/screenshots/snes/madden-nfl-94-08.png" alt="Madden NFL &#39;94 gameplay on SNES" loading="eager" decoding="async" referrerpolicy="no-referrer"><figcaption>Madden NFL &#39;94 · SNES</figcaption></figure></div>
+<nav class="archive-nav" aria-label="Jump to each sport"><a href="#home-nhl">NHL screenshots</a><a href="#home-nba">NBA Live screenshots</a><a href="#home-madden">Madden screenshots</a><a href="#rink-prototype">Play Rink ’95 ↓</a><a href="reference/evolution.html">Explore full comparison exhibit ↗</a></nav>
+</div>
+<section class="archive-sport" id="home-nhl">
+    <div class="archive-section-heading"><div><div class="archive-overline">🏒 NHL / 11 ANNUAL EDITIONS</div><h3>NHL</h3></div><p>From rink-sized 16-bit sprites to TV-angle 3D</p></div>
+    <div class="archive-grid"><article class="archive-card" id="home-nhl-94">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://www.nhl94.com/html/multimedia/screenshots.php" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://www.nhl94.com/images/screenshots/segagens/31_roenick_stuffin.jpg" alt="NHL &#39;94 actual in-game gameplay screenshot on Genesis" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">Genesis · 2D sprites</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 1993 · TITLE 1994</div>
+    <h4>NHL &#39;94</h4>
+    <p>Exaggerated head-and-shoulder sprites make the puck and net easy to follow; readable checks and one-timers outrank detail.</p>
+    <div class="archive-card-foot"><span>Fourth generation</span><a href="https://www.nhl94.com/html/multimedia/screenshots.php" target="_blank" rel="noopener noreferrer" aria-label="Source for NHL &#39;94 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-nhl-95">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamefabrique.com/games/nhl-95/" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://gamefabrique.com/screenshots/genesis/nhl-95-08.jpg" alt="NHL 95 actual in-game gameplay screenshot on Genesis" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">Genesis · 2D sprites</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 1994 · TITLE 1995</div>
+    <h4>NHL 95</h4>
+    <p>Tighter sprite frames, quick skating response and bright rink markings; Genesis and SNES use visibly different palettes.</p>
+    <div class="archive-card-foot"><span>Fourth generation</span><a href="https://gamefabrique.com/games/nhl-95/" target="_blank" rel="noopener noreferrer" aria-label="Source for NHL 95 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-nhl-96">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamesdb.launchbox-app.com/games/images/640-nhl-96" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://images.launchbox-app.com/44b85f2d-40ef-44f0-b82c-bca1541f5824.png" alt="NHL 96 actual in-game gameplay screenshot on Genesis" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">Genesis · 2D sprites</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 1995 · TITLE 1996</div>
+    <h4>NHL 96</h4>
+    <p>More goalie and contact frames; a useful study in improving animation without abandoning the overhead play camera.</p>
+    <div class="archive-card-foot"><span>Fourth generation</span><a href="https://gamesdb.launchbox-app.com/games/images/640-nhl-96" target="_blank" rel="noopener noreferrer" aria-label="Source for NHL 96 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-nhl-97">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://vocal.media/gamers/nhl-97" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://res.cloudinary.com/jerrick/image/upload/d_642250b563292b35f27461a7.png%2Cf_jpg%2Cq_auto%2Cw_720/6492f004d6b8e0001d2a0e1b.png" alt="NHL 97 actual in-game gameplay screenshot on Genesis" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">Genesis · 2D sprites</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 1996 · TITLE 1997</div>
+    <h4>NHL 97</h4>
+    <p>Late 16-bit presentation refines tiny skaters and clear directional movement; compare against the simultaneous 3D-era releases.</p>
+    <div class="archive-card-foot"><span>Fourth generation</span><a href="https://vocal.media/gamers/nhl-97" target="_blank" rel="noopener noreferrer" aria-label="Source for NHL 97 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-nhl-98">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamesdb.launchbox-app.com/games/images/20354-nhl-98" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://images.launchbox-app.com/411ad7e4-8082-4b83-899b-6cd97a8ae00b.png" alt="NHL 98 actual in-game gameplay screenshot on PlayStation" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">PlayStation · early 3D</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 1997 · TITLE 1998</div>
+    <h4>NHL 98</h4>
+    <p>The PlayStation/PC branch emphasizes more lifelike bodies and movable cameras; the Genesis/SNES versions remained sprite-based.</p>
+    <div class="archive-card-foot"><span>Fifth generation</span><a href="https://gamesdb.launchbox-app.com/games/images/20354-nhl-98" target="_blank" rel="noopener noreferrer" aria-label="Source for NHL 98 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-nhl-99">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamesdb.launchbox-app.com/games/images/1137-nhl-99" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://images.launchbox-app.com/cb02804f-9574-40b6-8d38-21ba54f4a02d.png" alt="NHL 99 actual in-game gameplay screenshot on Nintendo 64" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">Nintendo 64 · early 3D</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 1998 · TITLE 1999</div>
+    <h4>NHL 99</h4>
+    <p>Camera freedom and polygonal skaters increase spectacle; a fixed broadcast option remains essential for puck tracking.</p>
+    <div class="archive-card-foot"><span>Fifth generation</span><a href="https://gamesdb.launchbox-app.com/games/images/1137-nhl-99" target="_blank" rel="noopener noreferrer" aria-label="Source for NHL 99 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-nhl-2000">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamesdb.launchbox-app.com/games/images/30626-nhl-2000" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://images.launchbox-app.com/9c5a0614-e910-4f93-9994-0a7ed56754ac.png" alt="NHL 2000 actual in-game gameplay screenshot on PlayStation" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">PlayStation · early 3D</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 1999 · TITLE 2000</div>
+    <h4>NHL 2000</h4>
+    <p>The rink gains arena surfaces and fuller 3D movement, but distant dark player silhouettes can lose contrast.</p>
+    <div class="archive-card-foot"><span>Fifth generation</span><a href="https://gamesdb.launchbox-app.com/games/images/30626-nhl-2000" target="_blank" rel="noopener noreferrer" aria-label="Source for NHL 2000 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-nhl-2001">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamefabrique.com/games/nhl-2001/" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://gamefabrique.com/storage/screenshots/ps2/nhl-2001-05.png" alt="NHL 2001 actual in-game gameplay screenshot on PlayStation 2" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">PlayStation 2 · 3D</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 2000 · TITLE 2001</div>
+    <h4>NHL 2001</h4>
+    <p>Closer, more TV-like presentation and larger skaters; frame the player and the puck, not just the arena.</p>
+    <div class="archive-card-foot"><span>Sixth generation</span><a href="https://gamefabrique.com/games/nhl-2001/" target="_blank" rel="noopener noreferrer" aria-label="Source for NHL 2001 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-nhl-2002">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://www.gamestar.de/artikel/nhl-2002-im-test%2C1330193.html" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://images.cgames.de/images/gamestar/226/nhl-2002-ts-nhl2002-04-g11jpg_1023924.jpg" alt="NHL 2002 actual in-game gameplay screenshot on Windows" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">Windows · 3D</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 2001 · TITLE 2002</div>
+    <h4>NHL 2002</h4>
+    <p>Better 3D proportions and more body-contact poses; the action angle still matters more than audience detail.</p>
+    <div class="archive-card-foot"><span>Sixth generation</span><a href="https://www.gamestar.de/artikel/nhl-2002-im-test%2C1330193.html" target="_blank" rel="noopener noreferrer" aria-label="Source for NHL 2002 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-nhl-2003">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://www.mobygames.com/game/9662/nhl-2003/screenshots/windows/300184/" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://cdn.mobygames.com/screenshots/11020751-nhl-2003-windows-players-ready-to-start-fighting.jpg" alt="NHL 2003 actual in-game gameplay screenshot on Windows" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">Windows · 3D</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 2002 · TITLE 2003</div>
+    <h4>NHL 2003</h4>
+    <p>Fuller animation and dense rink effects, at the risk of crowd/board noise competing with the puck.</p>
+    <div class="archive-card-foot"><span>Sixth generation</span><a href="https://www.mobygames.com/game/9662/nhl-2003/screenshots/windows/300184/" target="_blank" rel="noopener noreferrer" aria-label="Source for NHL 2003 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-nhl-2004">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamefabrique.com/games/nhl-2004/" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://gamefabrique.com/storage/screenshots/ps2/nhl-2004-16.png" alt="NHL 2004 actual in-game gameplay screenshot on PlayStation 2" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">PlayStation 2 · 3D</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 2003 · TITLE 2004</div>
+    <h4>NHL 2004</h4>
+    <p>Cleaner overhead 3D ice and readable indicators show the lasting importance of tactical space.</p>
+    <div class="archive-card-foot"><span>Sixth generation</span><a href="https://gamefabrique.com/games/nhl-2004/" target="_blank" rel="noopener noreferrer" aria-label="Source for NHL 2004 gameplay image">Source credit</a></div>
+  </div>
+</article></div>
+  </section>
+<section class="archive-sport" id="home-nba">
+    <div class="archive-section-heading"><div><div class="archive-overline">🏀 NBA LIVE / 11 ANNUAL EDITIONS</div><h3>NBA Live</h3></div><p>Isometric basketball, hybrid sprite courts, and polygonal players</p></div>
+    <div class="archive-grid"><article class="archive-card" id="home-nba-95">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamesdb.launchbox-app.com/games/images/4280-nba-live-95" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://images.launchbox-app.com/6fe3d758-3ecb-419c-8ad4-67f4b04fbba8.png" alt="NBA Live 95 actual in-game gameplay screenshot on Genesis" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">Genesis · 2D sprites</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 1994 · TITLE 1995</div>
+    <h4>NBA Live 95</h4>
+    <p>The oblique court and tall, distinct sprites communicate 10 players without complicated rigs.</p>
+    <div class="archive-card-foot"><span>Fourth generation</span><a href="https://gamesdb.launchbox-app.com/games/images/4280-nba-live-95" target="_blank" rel="noopener noreferrer" aria-label="Source for NBA Live 95 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-nba-96">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://www.moddb.com/games/nba-live-96/images/screenshot12" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://media.moddb.com/cache/images/games/1/24/23076/thumb_620x2000/nba-live-96-04.png" alt="NBA Live 96 actual in-game gameplay screenshot on Windows" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">Windows · pre-rendered sprites + 3D court</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 1995 · TITLE 1996</div>
+    <h4>NBA Live 96</h4>
+    <p>3D court with 2D athlete sprites: a useful hybrid for camera experimentation while keeping readable silhouettes.</p>
+    <div class="archive-card-foot"><span>Fifth generation</span><a href="https://www.moddb.com/games/nba-live-96/images/screenshot12" target="_blank" rel="noopener noreferrer" aria-label="Source for NBA Live 96 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-nba-97">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamesdb.launchbox-app.com/games/images/5360-nba-live-97" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://images.launchbox-app.com/24bf1a85-df21-438d-88a2-94707101fb2a.png" alt="NBA Live 97 actual in-game gameplay screenshot on SNES" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">SNES · 2D sprites</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 1996 · TITLE 1997</div>
+    <h4>NBA Live 97</h4>
+    <p>The 16-bit edition stays isometric and sprite-led even as other platforms experiment with 3D.</p>
+    <div class="archive-card-foot"><span>Fourth generation</span><a href="https://gamesdb.launchbox-app.com/games/images/5360-nba-live-97" target="_blank" rel="noopener noreferrer" aria-label="Source for NBA Live 97 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-nba-98">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamefabrique.com/games/nba-live-98/" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://gamefabrique.com/storage/screenshots/snes/nba-live-98-17.png" alt="NBA Live 98 actual in-game gameplay screenshot on SNES" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">SNES · 2D sprites</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 1997 · TITLE 1998</div>
+    <h4>NBA Live 98</h4>
+    <p>This SNES branch is still sprite-based: never mistake a title-year label for a single cross-platform rendering technology.</p>
+    <div class="archive-card-foot"><span>Fourth generation</span><a href="https://gamefabrique.com/games/nba-live-98/" target="_blank" rel="noopener noreferrer" aria-label="Source for NBA Live 98 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-nba-99">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamesdb.launchbox-app.com/games/images/554-nba-live-99" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://images.launchbox-app.com/357aeb89-3b5c-4d67-a74e-6a04ceadd0fd.png" alt="NBA Live 99 actual in-game gameplay screenshot on PlayStation" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">PlayStation · early 3D</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 1998 · TITLE 1999</div>
+    <h4>NBA Live 99</h4>
+    <p>Full 3D courts and more articulated bodies add depth but can obscure spacing at lower resolutions.</p>
+    <div class="archive-card-foot"><span>Fifth generation</span><a href="https://gamesdb.launchbox-app.com/games/images/554-nba-live-99" target="_blank" rel="noopener noreferrer" aria-label="Source for NBA Live 99 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-nba-2000">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://abandonwaregames.net/game/nba-live-2000" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://screens.16bit.pl/nba-live-2000/13.jpg" alt="NBA Live 2000 actual in-game gameplay screenshot on Windows" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">Windows · early 3D</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 1999 · TITLE 2000</div>
+    <h4>NBA Live 2000</h4>
+    <p>Larger court texture vocabulary and visible lane geometry, with more skeletal animation transitions to manage.</p>
+    <div class="archive-card-foot"><span>Fifth generation</span><a href="https://abandonwaregames.net/game/nba-live-2000" target="_blank" rel="noopener noreferrer" aria-label="Source for NBA Live 2000 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-nba-2001">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamefabrique.com/games/nba-live-2001/" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://gamefabrique.com/storage/screenshots/ps2/nba-live-2001-09.png" alt="NBA Live 2001 actual in-game gameplay screenshot on PlayStation 2" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">PlayStation 2 · 3D</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 2000 · TITLE 2001</div>
+    <h4>NBA Live 2001</h4>
+    <p>PS2 models and crowd detail give broadcast polish; camera cuts must not hide defensive spacing.</p>
+    <div class="archive-card-foot"><span>Sixth generation</span><a href="https://gamefabrique.com/games/nba-live-2001/" target="_blank" rel="noopener noreferrer" aria-label="Source for NBA Live 2001 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-nba-2002">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamesdb.launchbox-app.com/games/images/28602-nba-live-2002" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://images.launchbox-app.com/138a027d-fa9b-4baf-a288-0dd4764394c3.png" alt="NBA Live 2002 actual in-game gameplay screenshot on Xbox" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">Xbox · 3D</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 2001 · TITLE 2002</div>
+    <h4>NBA Live 2002</h4>
+    <p>More detailed court lighting and bodies; believable rebounds and foot planting matter more than facial fidelity.</p>
+    <div class="archive-card-foot"><span>Sixth generation</span><a href="https://gamesdb.launchbox-app.com/games/images/28602-nba-live-2002" target="_blank" rel="noopener noreferrer" aria-label="Source for NBA Live 2002 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-nba-2003">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://www.ps2home.co.uk/nba-live-2003" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://cdn.sanity.io/images/vlhyuihz/production/c4b93051c6fb764ccd104c4b1cf530634afeecbe-640x448.jpg" alt="NBA Live 2003 actual in-game gameplay screenshot on PlayStation 2" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">PlayStation 2 · 3D</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 2002 · TITLE 2003</div>
+    <h4>NBA Live 2003</h4>
+    <p>Body proportions and clothing improve, though low-detail facial models and canned transitions reveal the era.</p>
+    <div class="archive-card-foot"><span>Sixth generation</span><a href="https://www.ps2home.co.uk/nba-live-2003" target="_blank" rel="noopener noreferrer" aria-label="Source for NBA Live 2003 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-nba-2004">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://www.mobygames.com/game/10665/nba-live-2004/screenshots/" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://cdn.mobygames.com/40d4c41c-ac0f-11ed-af3d-02420a00012f.webp" alt="NBA Live 2004 actual in-game gameplay screenshot on Windows" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">Windows · 3D</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 2003 · TITLE 2004</div>
+    <h4>NBA Live 2004</h4>
+    <p>Camera and player indicator readability start to dominate the improvements over early 3D.</p>
+    <div class="archive-card-foot"><span>Sixth generation</span><a href="https://www.mobygames.com/game/10665/nba-live-2004/screenshots/" target="_blank" rel="noopener noreferrer" aria-label="Source for NBA Live 2004 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-nba-2005">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamefabrique.com/games/nba-live-2005/" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://gamefabrique.com/storage/screenshots/xbox/nba-live-2005-11.png" alt="NBA Live 2005 actual in-game gameplay screenshot on Xbox" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">Xbox · 3D</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 2004 · TITLE 2005</div>
+    <h4>NBA Live 2005</h4>
+    <p>Large polygonal players, court branding and broadcast overlays offer a useful ceiling for a low-poly arcade target.</p>
+    <div class="archive-card-foot"><span>Sixth generation</span><a href="https://gamefabrique.com/games/nba-live-2005/" target="_blank" rel="noopener noreferrer" aria-label="Source for NBA Live 2005 gameplay image">Source credit</a></div>
+  </div>
+</article></div>
+  </section>
+<section class="archive-sport" id="home-madden">
+    <div class="archive-section-heading"><div><div class="archive-overline">🏈 MADDEN NFL / 11 ANNUAL EDITIONS</div><h3>Madden NFL</h3></div><p>Readable routes and formations, then stadium-scale 3D</p></div>
+    <div class="archive-grid"><article class="archive-card" id="home-madden-94">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamefabrique.com/screenshots/john-madden-nfl-94/" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://gamefabrique.com/storage/screenshots/snes/madden-nfl-94-08.png" alt="Madden NFL &#39;94 actual in-game gameplay screenshot on SNES" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">SNES · 2D sprites</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 1993 · TITLE 1994</div>
+    <h4>Madden NFL &#39;94</h4>
+    <p>A stable behind-offense camera makes formation spacing and route direction legible with very few frames.</p>
+    <div class="archive-card-foot"><span>Fourth generation</span><a href="https://gamefabrique.com/screenshots/john-madden-nfl-94/" target="_blank" rel="noopener noreferrer" aria-label="Source for Madden NFL &#39;94 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-madden-95">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamesdb.launchbox-app.com/games/images/609-madden-nfl-95" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://images.launchbox-app.com/507ed59b-ac83-4c77-b5f8-48c85986e4c1.png" alt="Madden NFL 95 actual in-game gameplay screenshot on Genesis" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">Genesis · 2D sprites</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 1994 · TITLE 1995</div>
+    <h4>Madden NFL 95</h4>
+    <p>Small sprites and uncluttered yard markers communicate formation much faster than photoreal faces could.</p>
+    <div class="archive-card-foot"><span>Fourth generation</span><a href="https://gamesdb.launchbox-app.com/games/images/609-madden-nfl-95" target="_blank" rel="noopener noreferrer" aria-label="Source for Madden NFL 95 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-madden-96">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://www.vizzed.com/play/madden-nfl-96-gen-sega-genesis-4539-game" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://www.vizzed.com/vizzedboard/retro/user_screenshots/saves45/457478/GENESIS--Madden%20NFL%2096_Jan5%2018_19_04.png" alt="Madden NFL 96 actual in-game gameplay screenshot on Genesis" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">Genesis · 2D sprites</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 1995 · TITLE 1996</div>
+    <h4>Madden NFL 96</h4>
+    <p>Readable contact clusters and controlled player speed; note how helmets distinguish teams at modest scale.</p>
+    <div class="archive-card-foot"><span>Fourth generation</span><a href="https://www.vizzed.com/play/madden-nfl-96-gen-sega-genesis-4539-game" target="_blank" rel="noopener noreferrer" aria-label="Source for Madden NFL 96 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-madden-97">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamefabrique.com/games/madden-nfl-97/" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://www.gamefabrique.com/storage/screenshots/genesis/madden-nfl-97-05.png" alt="Madden NFL 97 actual in-game gameplay screenshot on Genesis" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">Genesis · 2D sprites</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 1996 · TITLE 1997</div>
+    <h4>Madden NFL 97</h4>
+    <p>Late 16-bit sprite handling stays coherent even as PlayStation editions offer different visual systems.</p>
+    <div class="archive-card-foot"><span>Fourth generation</span><a href="https://gamefabrique.com/games/madden-nfl-97/" target="_blank" rel="noopener noreferrer" aria-label="Source for Madden NFL 97 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-madden-98">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamingrespawn.com/retro/20423/retro-respawn-madden-nfl-98-playstation-version/" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://i0.wp.com/gamingrespawn.com/wp-content/uploads/2017/03/Madden-98-III.jpg?ssl=1" alt="Madden NFL 98 actual in-game gameplay screenshot on PlayStation" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">PlayStation · pre-rendered sprites</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 1997 · TITLE 1998</div>
+    <h4>Madden NFL 98</h4>
+    <p>PlayStation still leans on sprites in the play view; never assume platform alone means fully polygonal football.</p>
+    <div class="archive-card-foot"><span>Fifth generation</span><a href="https://gamingrespawn.com/retro/20423/retro-respawn-madden-nfl-98-playstation-version/" target="_blank" rel="noopener noreferrer" aria-label="Source for Madden NFL 98 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-madden-99">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamesdb.launchbox-app.com/games/images/23732-madden-nfl-99" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://images.launchbox-app.com/r2_0f0f3073-46d8-4493-9da0-83571bd3ead1.png" alt="Madden NFL 99 actual in-game gameplay screenshot on PlayStation" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">PlayStation · early 3D</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 1998 · TITLE 1999</div>
+    <h4>Madden NFL 99</h4>
+    <p>Madden NFL 99 marks an important shift to fully polygonal PlayStation players; the freedom brings frame-rate and readability costs.</p>
+    <div class="archive-card-foot"><span>Fifth generation</span><a href="https://gamesdb.launchbox-app.com/games/images/23732-madden-nfl-99" target="_blank" rel="noopener noreferrer" aria-label="Source for Madden NFL 99 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-madden-2000">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamesdb.launchbox-app.com/games/images/13758-madden-nfl-2000" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://images.launchbox-app.com/r2_a0f36ea1-a461-4e44-8bab-6329246814a0.png" alt="Madden NFL 2000 actual in-game gameplay screenshot on PlayStation" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">PlayStation · early 3D</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 1999 · TITLE 2000</div>
+    <h4>Madden NFL 2000</h4>
+    <p>Richer stadium geometry and more body rotation; low-resolution polygons can make tackles hard to parse.</p>
+    <div class="archive-card-foot"><span>Fifth generation</span><a href="https://gamesdb.launchbox-app.com/games/images/13758-madden-nfl-2000" target="_blank" rel="noopener noreferrer" aria-label="Source for Madden NFL 2000 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-madden-2001">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamesdb.launchbox-app.com/games/images/44991-madden-nfl-2001" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://images.launchbox-app.com/r2_27064649-d91d-4e84-80bf-be3179ef1bf4.png" alt="Madden NFL 2001 actual in-game gameplay screenshot on PlayStation" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">PlayStation · 3D</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 2000 · TITLE 2001</div>
+    <h4>Madden NFL 2001</h4>
+    <p>PS2-era camera placement keeps receivers and yard lines in view while polygons and uniforms become more distinct.</p>
+    <div class="archive-card-foot"><span>Sixth generation</span><a href="https://gamesdb.launchbox-app.com/games/images/44991-madden-nfl-2001" target="_blank" rel="noopener noreferrer" aria-label="Source for Madden NFL 2001 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-madden-2002">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamesdb.launchbox-app.com/games/images/13458-madden-nfl-2002" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://images.launchbox-app.com/4ded0489-d66a-4588-9d31-7a4f932c2720.jpg" alt="Madden NFL 2002 actual in-game gameplay screenshot on Windows" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">Windows · 3D</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 2001 · TITLE 2002</div>
+    <h4>Madden NFL 2002</h4>
+    <p>Character proportions and dropback animations become smoother; compare that with the older versions&#39; immediate input response.</p>
+    <div class="archive-card-foot"><span>Sixth generation</span><a href="https://gamesdb.launchbox-app.com/games/images/13458-madden-nfl-2002" target="_blank" rel="noopener noreferrer" aria-label="Source for Madden NFL 2002 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-madden-2003">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://gamesdb.launchbox-app.com/games/images/7051-madden-nfl-2003" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://images.launchbox-app.com/1d559354-613a-4723-97eb-f1edd0e560e0.jpg" alt="Madden NFL 2003 actual in-game gameplay screenshot on PlayStation 2" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">PlayStation 2 · 3D</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 2002 · TITLE 2003</div>
+    <h4>Madden NFL 2003</h4>
+    <p>More contacts and tackle transitions, but canned and abrupt joint motion can become conspicuous.</p>
+    <div class="archive-card-foot"><span>Sixth generation</span><a href="https://gamesdb.launchbox-app.com/games/images/7051-madden-nfl-2003" target="_blank" rel="noopener noreferrer" aria-label="Source for Madden NFL 2003 gameplay image">Source credit</a></div>
+  </div>
+</article>
+<article class="archive-card" id="home-madden-2004">
+  <div class="archive-shot">
+    <div class="archive-shot-backup">Image unavailable in this browser.<br><a href="https://www.wsgf.org/dr/madden-nfl-2004" target="_blank" rel="noopener noreferrer">Image provenance</a></div>
+    <img src="https://www.wsgf.org/f/u/styles/node_gallery_display/public/contrib/dr/578/ingame_16x10.jpg?itok=zx0MdUxX" alt="Madden NFL 2004 actual in-game gameplay screenshot on Windows" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="400" height="250">
+    <span class="archive-image-label">Windows · 3D</span>
+  </div>
+  <div class="archive-card-body">
+    <div class="archive-card-years">RELEASE 2003 · TITLE 2004</div>
+    <h4>Madden NFL 2004</h4>
+    <p>Textured stadiums and larger 3D players improve presence; animation silhouettes and reliable collision states remain the useful lesson.</p>
+    <div class="archive-card-foot"><span>Sixth generation</span><a href="https://www.wsgf.org/dr/madden-nfl-2004" target="_blank" rel="noopener noreferrer" aria-label="Source for Madden NFL 2004 gameplay image">Source credit</a></div>
+  </div>
+</article></div>
+  </section>
+<p class="archive-rights">Gameplay images are displayed directly on this page with attributed source credits. They remain hosted by external archives; if an image is blocked in a browser, the card shows its source reference instead. Reproduction rights are not established by image availability.</p>
+</section>
+<section id="rink-prototype" aria-label="Playable Rink 95 prototype"><div class="rink-heading"><div><div class="archive-overline" style="color:#91f9ca">PLAYABLE GAME / VERTICAL SLICE</div><h2>Rink ’95</h2></div><p>Experiment with game feel after studying the 33 reference games.</p></div>
 <div id="hud"><strong class="home">BLUE <span id="blueScore">0</span></strong><div id="center"><span id="clock">2:00</span><span id="period">PERIOD 1 / 3</span></div><strong class="away"><span id="redScore">0</span> RED</strong></div>
 <div id="arena"><canvas id="rink" width="960" height="560" aria-label="Playable top-down hockey rink"></canvas>
 <div id="overlay"><div class="panel"><h2 id="overlayTitle">RINK '95</h2><p id="overlayText">Three-on-three arcade hockey. Skate, pass, shoot, switch defenders, and win the game. Built around responsive gameplay rather than unverified physical realism.</p><button id="start">DROP THE PUCK</button></div></div></div>
 <div id="controls"><div class="keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move · <kbd>SPACE</kbd> shoot/check · <kbd>J</kbd> pass · <kbd>TAB</kbd> switch · <kbd>P</kbd> pause</div><div>BLUE attacks right → · 3 × 2-minute periods</div></div>
 <div id="mobile"><div id="dpad"><span></span><button data-key="w">▲</button><span></span><button data-key="a">◀</button><span></span><button data-key="s">▼</button><span></span><button data-key="d">▶</button><span></span></div><div id="actions"><button data-key="tab">SWITCH</button><button data-key="j">PASS</button><button data-key=" ">SHOOT</button></div></div>
 <div id="status" aria-live="polite">Ready for faceoff.</div>
+</section>
 </main>
+<script>
+// Keep external screenshots in the actual HTML. Show the fallback if a host blocks embedding.
+document.querySelectorAll('.archive-shot img').forEach(img=>{
+  img.addEventListener('error',()=>{img.hidden=true},{once:true});
+  if(img.complete&&!img.naturalWidth)img.hidden=true;
+});
+</script>
 <script type="module" src="./src/hockey.js"></script>
 </body></html>

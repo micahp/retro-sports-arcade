@@ -114,6 +114,59 @@ Use instant replay's freeze-frame and slow motion, and emulator frame advance. R
 | Camera | How far ahead of the puck it leads; how much ice is visible across and along |
 | AI | Shot distances, pass frequency, forechecking pressure (descriptive; the rules behind them are inference only) |
 
+## 3a. Results: Phases A–C pilot (2026-11-23)
+
+**Setup:**
+- **Game:** BizHawk 2.11.1, the user's ROM (SHA-1 matches NHL95Genesis), Vancouver at the NY Rangers, regular season, both teams CPU, goalies Manual (demo default), line changes Off.
+- **Recorder:** reads RAM only, using addresses from `ram95.asm`, checked against the on-screen score of a full game.
+- **One game per seed:** each starts from one puck-drop save state per configuration, with a recorded seed written into the game's only RNG (32-bit, `$FFCC6A`).
+
+**Pitfalls found on the way:**
+- **Menu delays don't reseed:** varying how long the game waited on a menu gave only 2 distinct games per configuration, because only odd versus even frame mattered.
+- **Self-started games use the demo settings:** the game the emulator starts by itself after a game reverts to penalties Off.
+
+Both were caught by checking the data before analysing it.
+
+**Pilot only: 10 games per period length.**
+- Good enough to validate the pipeline and to read the large effects.
+- **Not** a calibration target.
+
+| | 5-min periods | 10-min periods | 20-min periods |
+|---|---|---|---|
+| goals per game (both teams), mean · range | 2.0 · 1–7 | 3.8 · 1–7 | 6.9 · 2–11 |
+| shots per game (both teams) | 33.8 | 63.2 | 123.8 |
+| save % (goals / shots) | .941 | .940 | .944 |
+| tied after regulation | 2/10 | 3/10 | 4/10 |
+| tie after the 10-min OT | 0/10 | 1/10 | 3/10 |
+| penalties per team per game | 2.9 | 5.0 | 11.3 |
+| power plays per team per game | 2.3 | 3.8 | 7.8 |
+| PP conversion | 7/46 = 15% | 6/76 = 8% | 14/156 = 9% |
+| real minutes per game | 11.8 | 20.9 | 41.3 |
+| **per 60 game-minutes:** goals · shots · penalties | 7.1 · 119 · 20.5 | 6.9 · 115 · 18.2 | 6.5 · 116 · 21.2 |
+
+**Findings:**
+1. **NHL 95 doesn't compress scoring.** Goals, shots and penalties per game-minute are the same at every period length. A 5-minute-period game simply has about a quarter of the goals of a 20-minute one. Only 20-minute periods give NHL-like game totals: 6.9 goals against 6.5 in 1993-94.
+   - **Rink '95 differs:** its 3-minute periods produce 7.3 goals a game, about 48 per 60 minutes of play. That's a design choice to make, not a bug.
+2. **Game clock:** 2.39–2.46 game seconds per real second at every length. The clock stops at whistles: it is stopped 32–45% of the time with penalties on, 22–35% with penalties off.
+3. **A minor penalty is a fixed 2:00 of game clock at every period length.** The median short-handed span is 120 s at 5, 10 and 20 minutes. Shorter spans are power plays ended by a goal and overlapping penalties; longer ones are back-to-back penalties. **It does not scale with period length.**
+4. **The shot and save profile is not NHL-like:**
+   - about 116 shots per 60 minutes, roughly twice the NHL's;
+   - **save % about .94**, against .895 in 1993-94.
+   - Rink '95's .868 is far on the other side.
+5. **Penalties and power plays:**
+   - about 20 penalties per 60 minutes, about 7.6 per team per 60 against 4.85 real;
+   - **power-play conversion about 9–15%**, against 18.6% real.
+6. **Overtime:** regular-season OT is 10 minutes, and **ties happen** (4 of 30 games). Overtime goals came in 6 of the 9 overtimes; OT is too short a sample to rate.
+
+**Not yet measured:**
+- faceoffs, hits and checks (no counters in the team block; need player-level addresses);
+- shot locations;
+- penalty types: the 4-byte penalty summary is recorded but not decoded.
+
+**Raw data:**
+- per-game JSONL in `E:\emu\work\runs\C3\` (not committed: emulator output, kept local);
+- scripts `record.lua`, `aggregate.py` and `summarize.py` alongside.
+
 ## 4. Real-game comparison
 
 *NHL 95* uses 1993-94 player ratings and was sold during the lockout-shortened 1994-95 season. Hockey-Reference league averages (per team per game):

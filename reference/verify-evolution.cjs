@@ -182,11 +182,13 @@ const wait=(ms)=>new Promise(r=>setTimeout(r,ms));
 
  // Images sometimes load locally but fail in the public preview due to hotlink policies.
  // Audit the public page with its actual browser origin, including the eight previous failures.
- const publicUrl='https://raw.githack.com/micahp/retro-sports-arcade/feat/hockey-arcade-vertical-slice/index.html?gallery-audit=20261123b';
+ const publicUrl='https://raw.githack.com/micahp/retro-sports-arcade/dbc657ab53a3fc59a95644f2d5953c1826158900/index.html';
  const live=await browser.newPage({viewport:{width:1440,height:900}});
  const publicErrors=[];live.on('pageerror',e=>publicErrors.push(e.message));
- await live.goto(publicUrl,{waitUntil:'domcontentloaded',timeout:45000});
- assert.equal(await live.locator('.archive-card').count(),33,'public preview contains all 33 cards');
+ const remoteResponse=await live.goto(publicUrl,{waitUntil:'domcontentloaded',timeout:45000});
+ const renderedCards=await live.locator('.archive-card').count();
+ console.log('PUBLIC LOAD '+JSON.stringify({status:remoteResponse?.status(),url:live.url(),title:await live.title(),cards:renderedCards,bodyExcerpt:(await live.locator('body').innerText().catch(()=>'' )).slice(0,350)}));
+ assert.equal(renderedCards,33,'public preview contains all 33 cards');
  const previouslyBroken=['nhl-95','nhl-2001','nhl-2004','nba-98','nba-2001','nba-2005','madden-94','madden-97'];
  const publicStatuses=[];
  for (const id of previouslyBroken){

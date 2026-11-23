@@ -51,11 +51,35 @@ const wait=(ms)=>new Promise(r=>setTimeout(r,ms));
  assert.equal(await page.locator('#compare-grid .compare-unit').count(),2,'comparison selection works');
  await page.locator('#compare-swap').click();
  assert.equal(await page.locator('#compare-left').inputValue(),'nba-2005','comparison swap works');
- // Scroll every image into view so lazy-loaded remote images are requested.
- for (const img of await page.locator('.game-card img').all()){
-   await img.scrollIntoViewIfNeeded();await wait(150);
+
+ // Inspect every screenshot record, including platform variants, through real browser <img> elements.
+ const gameRecords=await page.evaluate(()=>JSON.parse(document.getElementById('manifest').textContent).games);
+ const variantResults=[];
+ const inspect=async(g,index)=>{
+   const img=page.locator('#game-'+g.id+' .shot-frame img');
+   await img.scrollIntoViewIfNeeded();
+   await img.evaluate(el=>new Promise(resolve=>{
+     if(el.complete) return resolve();
+     const finish=()=>{clearTimeout(timer);resolve()};
+     const timer=setTimeout(finish,10000);
+     el.addEventListener('load',finish,{once:true});
+     el.addEventListener('error',finish,{once:true});
+   }));
+   const result=await img.evaluate(el=>({loaded:el.complete&&el.naturalWidth>0,naturalWidth:el.naturalWidth,naturalHeight:el.naturalHeight}));
+   variantResults.push({id:g.id,title:g.title,variant_index:index,platform:g.screenshots[index].platform,image_url:g.screenshots[index].image_url,...result});
+ };
+ for(const g of gameRecords){
+   assert(g.screenshots.length>0,'each annual edition must have at least one screenshot: '+g.id);
+   await inspect(g,0);
+   for(let i=1;i<g.screenshots.length;i++){
+     await page.locator('#game-'+g.id+' [data-variant="'+g.id+'"][data-index="'+i+'"]').click();
+     await inspect(g,i);
+   }
+   if(g.screenshots.length>1){
+     await page.locator('#game-'+g.id+' [data-variant="'+g.id+'"][data-index="0"]').click();
+     await page.locator('#game-'+g.id+' .shot-frame img').scrollIntoViewIfNeeded();
+   }
  }
- await wait(6000);
  const capture=await page.evaluate(()=>{
    const manifest=JSON.parse(document.getElementById('manifest').textContent);
    return manifest.games.map(g=>{
@@ -73,7 +97,10 @@ const wait=(ms)=>new Promise(r=>setTimeout(r,ms));
    total_games:capture.length,source_traced:capture.filter(x=>x.has_source).length,
    browser_loaded:capture.filter(x=>x.loaded).length,
    browser_failed_or_blocked:capture.filter(x=>x.has_source&&!x.loaded).length,
-   unresolved:capture.filter(x=>!x.has_source).length,page_errors:errors,entries:capture};
+   unresolved:capture.filter(x=>!x.has_source).length,
+   all_capture_count:variantResults.length,all_capture_loaded:variantResults.filter(x=>x.loaded).length,
+   all_capture_failed:variantResults.filter(x=>!x.loaded).length,
+   page_errors:errors,entries:capture,variants:variantResults};
  fs.writeFileSync(path.join(out,'browser-report.json'),JSON.stringify(report,null,2)+'\n');
  await page.screenshot({path:path.join(out,'gallery-desktop.png'),fullPage:true});
  await page.locator('#compare').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(out,'comparison-desktop.png')});
@@ -84,8 +111,8 @@ const wait=(ms)=>new Promise(r=>setTimeout(r,ms));
  const mobileOverflow=await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth+1);
  assert.equal(mobileOverflow,false,'no horizontal overflow on mobile');
  assert.equal(errors.length,0,'no JavaScript page errors');
- console.log(JSON.stringify({total:report.total_games,source_traced:report.source_traced,browser_loaded:report.browser_loaded,blocked:report.browser_failed_or_blocked,unresolved:report.unresolved,errors},null,2));
+ console.log(JSON.stringify({total:report.total_games,source_traced:report.source_traced,browser_loaded:report.browser_loaded,blocked:report.browser_failed_or_blocked,all_capture_count:report.all_capture_count,all_capture_loaded:report.all_capture_loaded,all_capture_failed:report.all_capture_failed,unresolved:report.unresolved,errors},null,2));
  await browser.close();
  // Missing sources are documented research gaps, not automatically a test failure.
- if(report.browser_failed_or_blocked) { console.error('Browser failed to render some traced images. See reference/evidence/browser-report.json');process.exitCode=1; }
+ if(report.browser_failed_or_blocked || report.all_capture_failed) { console.error('Browser failed to render some traced images. See reference/evidence/browser-report.json');process.exitCode=1; }
 })().catch(e=>{console.error(e);process.exitCode=1}).finally(()=>server.close());

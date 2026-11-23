@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Retro Sports Arcade | Rink '95</title>
+<style>
+:root{color-scheme:dark;font-family:ui-monospace,Consolas,monospace;background:#090e1b;color:#eaf5f8}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at top,#21304a,#090e1b 70%);display:flex;align-items:center;flex-direction:column}
+header{width:min(1120px,100%);padding:22px 20px 8px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+h1{font-size:clamp(17px,3vw,27px);letter-spacing:.12em;margin:0}h1 span{color:#66e3b5}header small{color:#9eb3c5}
+main{width:min(1120px,100%);padding:0 12px 22px}
+#hud{display:flex;justify-content:space-between;align-items:center;background:#101a2d;border:1px solid #30475d;padding:12px 18px;border-radius:12px 12px 0 0;gap:8px}
+#hud strong{font-size:clamp(17px,3vw,25px)}#hud .home{color:#76c5ff}#hud .away{color:#ff9a88}#center{display:flex;flex-direction:column;align-items:center;gap:3px}#clock{font-size:24px;font-weight:bold;font-variant-numeric:tabular-nums}#period{font-size:12px;color:#b7cbdc}
+#arena{position:relative;background:#b5e0ec;border:3px solid #3e5a70;overflow:hidden;border-radius:0 0 12px 12px;touch-action:none}
+canvas{width:100%;height:auto;display:block;image-rendering:pixelated}
+#overlay{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;background:#07121dbb;z-index:3}
+#overlay.hidden{display:none}.panel{max-width:480px;text-align:center;background:#0c1a2df5;border:2px solid #66e3b5;border-radius:10px;padding:24px;margin:12px;box-shadow:0 15px 55px #0009}.panel h2{font-size:27px;margin:0 0 10px}.panel p{color:#b8cfdd;line-height:1.5}
+button{cursor:pointer;background:#66e3b5;border:0;border-radius:7px;color:#09151b;font:700 15px ui-monospace,monospace;padding:11px 18px}button:hover{filter:brightness(1.1)}
+#controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;margin-top:12px;color:#b9cddc;font-size:13px}
+#controls kbd{border:1px solid #60758a;border-radius:4px;padding:3px 6px;background:#17283a;color:#fff}
+#mobile{display:none;justify-content:space-between;margin-top:10px;gap:16px;touch-action:none}#dpad{display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(3,46px)}#mobile button{padding:0;min-width:48px;user-select:none}#actions{display:flex;align-items:center;gap:10px}
+#status{font-size:13px;color:#93b4c7;min-height:20px;margin-top:12px}
+@media(pointer:coarse){#mobile{display:flex}#controls .keys{display:none}}
+</style>
+</head>
+<body>
+<header><h1>RETRO <span>SPORTS</span> ARCADE</h1><small>RINK '95 · VERTICAL SLICE 0.1</small></header>
+<main>
+<div id="hud"><strong class="home">BLUE <span id="blueScore">0</span></strong><div id="center"><span id="clock">2:00</span><span id="period">PERIOD 1 / 3</span></div><strong class="away"><span id="redScore">0</span> RED</strong></div>
+<div id="arena"><canvas id="rink" width="960" height="560" aria-label="Playable top-down hockey rink"></canvas>
+<div id="overlay"><div class="panel"><h2 id="overlayTitle">RINK '95</h2><p id="overlayText">Three-on-three arcade hockey. Skate, pass, shoot, switch defenders, and win the game. Built around responsive gameplay rather than unverified physical realism.</p><button id="start">DROP THE PUCK</button></div></div></div>
+<div id="controls"><div class="keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move · <kbd>SPACE</kbd> shoot/check · <kbd>J</kbd> pass · <kbd>TAB</kbd> switch · <kbd>P</kbd> pause</div><div>BLUE attacks right → · 3 × 2-minute periods</div></div>
+<div id="mobile"><div id="dpad"><span></span><button data-key="w">▲</button><span></span><button data-key="a">◀</button><span></span><button data-key="s">▼</button><span></span><button data-key="d">▶</button><span></span></div><div id="actions"><button data-key="tab">SWITCH</button><button data-key="j">PASS</button><button data-key=" ">SHOOT</button></div></div>
+<div id="status" aria-live="polite">Ready for faceoff.</div>
+</main>
+<script type="module" src="./src/hockey.js"></script>
+</body></html>

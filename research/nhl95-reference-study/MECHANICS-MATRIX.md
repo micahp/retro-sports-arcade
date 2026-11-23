@@ -27,7 +27,7 @@
 | 12 | **Penalties** | Infraction list including tripping with a penalty-shot variant (`penalty95`, not yet read) | Manual: On / On except offsides / Off; PP goal releases a player. Community: on the penalty kill, the RW leaves first, the LW on a second penalty. | 4 infractions, placeholder odds, proportional length | Penalty shots, who leaves the ice, real length | **Phase C running**: penalty length in game seconds at 5/10/20 min |
 | 13 | **Icing / offsides** | Checked on the puck itself (`pucknorm`, `a2offsides`, label) | Manual: icing always called | None (10 faceoffs a game) | Both | Emulator: whistles per game; Rink '95 faceoff count |
 | 14 | **Pulled goalie** | Pull when trailing by 2 late in the 3rd, or on a delayed penalty (`CPgoalie`, label) | — | Empty-net mode only, by hand | Automatic pull | Read `CPgoalie` |
-| 15 | **Game clock** | Period length in seconds (`PerTimeTotal`) | **Emulator:** about 2.45 game seconds per real second; stopped 21–30% of the time; OT counts up | Clock runs at real speed during play | Choice of a clock-speed policy | Phase B: same ratio at 5 and 20 min? |
+| 15 | **Game clock** | Period length in seconds (`PerTimeTotal`) | **Emulator:** about 2.43 game seconds per real second while running, at every length; stopped 22–35% (penalties off) or 32–45% (on); OT counts down from 10:00 | Clock runs at real speed during play | Choice of a clock-speed policy | Phase B: same ratio at 5 and 20 min? |
 | 16 | **Scoring rate** | — | Emulator, 1 game: 7 goals, 79 shots in 36.5 game-minutes | 7.3 goals in 9 minutes | — | Phase C distributions |
 
 ## Primary next reads in the source

@@ -142,12 +142,27 @@ Both were caught by checking the data before analysing it.
 | power plays per team per game | 2.3 | 3.8 | 7.8 |
 | PP conversion | 7/46 = 15% | 6/76 = 8% | 14/156 = 9% |
 | real minutes per game | 11.8 | 20.9 | 41.3 |
-| **per 60 game-minutes:** goals · shots · penalties | 7.1 · 119 · 20.5 | 6.9 · 115 · 18.2 | 6.5 · 116 · 21.2 |
+| **regulation only, per 60 game-minutes:** goals · shots · penalties | 7.2 · 120 · 22.8 | 7.2 · 122 · 18.8 | 6.8 · 116 · 21.4 |
+| **overtime only:** OTs · OT game-minutes · goals | 2 · 17.4 · 2 | 3 · 13.1 · 2 | 4 · 37.2 · 1 |
+
+The first version of this table mixed regulation and OT, and counted every OT as a full 10 minutes. **The OT clock counts down from 10:00, like other periods**; an earlier note said it counted up, from a single stale sample. Rates above are regulation only. Overtime is reported separately and is too small a sample to rate (9 OTs, 67.7 game-minutes, 5 goals).
+
+**Timing, reconciled.** Two different clocks were reported:
+- **Wall-clock:** how long a run took on the PC at 3–5× emulation speed. Phase A's "282 s" was wall-clock.
+- **Real time:** emulated frames ÷ 59.92, the console experience. Phase A was 18.8 real minutes.
+
+| Real seconds per game-clock second | Value |
+|---|---|
+| while the clock runs (all runs) | ≈ 0.41 (2.43 game-s per real s) |
+| Phase A, penalties off, incl. stoppages | ≈ 0.58 (67,726 frames for 1,965 game-s from the 9:14 save state) |
+| Phase C, penalties on, regulation incl. stoppages | 0.65–0.72 |
+
+So a 10-minute period lasts about 5½ real minutes with penalties off and 6½ with them on.
 
 **Findings:**
 1. **NHL 95 doesn't compress scoring.** Goals, shots and penalties per game-minute are the same at every period length. A 5-minute-period game simply has about a quarter of the goals of a 20-minute one. Only 20-minute periods give NHL-like game totals: 6.9 goals against 6.5 in 1993-94.
    - **Rink '95 differs:** its 3-minute periods produce 7.3 goals a game, about 48 per 60 minutes of play. That's a design choice to make, not a bug.
-2. **Game clock:** 2.39–2.46 game seconds per real second at every length. The clock stops at whistles: it is stopped 32–45% of the time with penalties on, 22–35% with penalties off.
+2. **Game clock:** 2.39–2.46 game seconds per real second at every length while running. The clock stops at whistles: it is stopped 32–45% of the time with penalties on, 22–35% with penalties off.
 3. **A minor penalty is a fixed 2:00 of game clock at every period length.** The median short-handed span is 120 s at 5, 10 and 20 minutes. Shorter spans are power plays ended by a goal and overlapping penalties; longer ones are back-to-back penalties. **It does not scale with period length.**
 4. **The shot and save profile is not NHL-like:**
    - about 116 shots per 60 minutes, roughly twice the NHL's;

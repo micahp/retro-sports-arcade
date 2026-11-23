@@ -445,9 +445,20 @@
       "camera": "Broadcast with camera cuts",
       "visual_notes": "PS2 models and crowd detail give broadcast polish; camera cuts must not hide defensive spacing.",
       "design_takeaway": "Borrow lighting, surface cues, and broadcasts without requiring complex character rigs.",
-      "screenshots": [],
+      "screenshots": [
+        {
+          "platform": "PlayStation 2",
+          "image_url": "https://gamefabrique.com/storage/screenshots/ps2/nba-live-2001-09.png",
+          "source_page": "https://gamefabrique.com/games/nba-live-2001/",
+          "attribution": "GameFabrique — NBA Live 2001 PlayStation 2 gameplay",
+          "rights": "Limited credited MobyGames screenshot reuse is described in their FAQ; original rights remain with copyright holders. GameFabrique reuse terms unconfirmed.",
+          "visual_review": "source_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        }
+      ],
       "source_gallery": "https://gamefabrique.com/games/nba-live-2001/",
-      "screenshot_verification_status": "no_screen_capture_verified"
+      "screenshot_verification_status": "source_checked_not_browser_verified"
     },
     {
       "id": "nba-2002",
@@ -510,9 +521,20 @@
       "camera": "Broadcast court",
       "visual_notes": "Camera and player indicator readability start to dominate the improvements over early 3D.",
       "design_takeaway": "Borrow lighting, surface cues, and broadcasts without requiring complex character rigs.",
-      "screenshots": [],
+      "screenshots": [
+        {
+          "platform": "Windows",
+          "image_url": "https://cdn.mobygames.com/40d4c41c-ac0f-11ed-af3d-02420a00012f.webp",
+          "source_page": "https://www.mobygames.com/game/10665/nba-live-2004/screenshots/",
+          "attribution": "MobyGames — NBA Live 2004 Windows McGrady shot contest",
+          "rights": "Limited credited MobyGames screenshot reuse is described in their FAQ; original rights remain with copyright holders. GameFabrique reuse terms unconfirmed.",
+          "visual_review": "source_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        }
+      ],
       "source_gallery": "https://gamefabrique.com/games/nba-live-2004/",
-      "screenshot_verification_status": "no_screen_capture_verified"
+      "screenshot_verification_status": "source_checked_not_browser_verified"
     },
     {
       "id": "nba-2005",
@@ -774,9 +796,20 @@
       "camera": "Broadcast/behind offense",
       "visual_notes": "More contacts and tackle transitions, but canned and abrupt joint motion can become conspicuous.",
       "design_takeaway": "Borrow lighting, surface cues, and broadcasts without requiring complex character rigs.",
-      "screenshots": [],
+      "screenshots": [
+        {
+          "platform": "Windows",
+          "image_url": "https://cdn.mobygames.com/screenshots/15671018-madden-nfl-2003-windows-marshall-faulk-celebrates-a-touchdown.png",
+          "source_page": "https://www.mobygames.com/game/7770/madden-nfl-2003/screenshots/windows/500259/",
+          "attribution": "MobyGames — Madden NFL 2003 Windows game screenshot",
+          "rights": "Limited credited MobyGames screenshot reuse is described in their FAQ; original rights remain with copyright holders. GameFabrique reuse terms unconfirmed.",
+          "visual_review": "source_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        }
+      ],
       "source_gallery": "https://gamefabrique.com/games/madden-nfl-2003/",
-      "screenshot_verification_status": "no_screen_capture_verified"
+      "screenshot_verification_status": "source_checked_not_browser_verified"
     },
     {
       "id": "madden-2004",

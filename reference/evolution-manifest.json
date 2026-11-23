@@ -2,7 +2,7 @@
   "schema_version": 2,
   "generated": "2026-11-23",
   "project": "Retro Sports Arcade / EA visual evolution",
-  "methodology": "Direct screenshot URLs were traced to their corresponding source gallery by game title, platform, and explicitly labeled gameplay captures, then visually reviewed in image-viewing results where available. Older image references still require retrospective source review. This is source-level verification only; browser hotlink success and rights clearance are distinct and unverified. No screenshots were copied locally.",
+  "methodology": "For all 33 editions a title/platform-labeled original gameplay image URL is traced to its original gallery and visually reviewed where web retrieval succeeds. Two original URLs (NBA Live 2003 Windows and Madden NFL 2002 TechTudo) failed in direct-fetch audit and were replaced with checked images. The image view succeeding through research web retrieval does not establish browser hotlink reliability or license permission. This repository embeds remote images, stores no third-party image files, and provides fallbacks.",
   "rights_notes": "EA and contributors retain rights. Screenshots are used only as attributed critical visual references. Source-site terms vary; MobyGames FAQ permits up to 20 screenshots in a credited project. Some other hosts have no documented reuse license, so conduct rights review before public distribution. A broken remote image must fall back to the source gallery.",
   "games": [
     {
@@ -210,6 +210,16 @@
           "source_page": "https://gamesdb.launchbox-app.com/games/images/30626-nhl-2000",
           "attribution": "LaunchBox Games Database · NHL 2000 · PlayStation · Screenshot – Gameplay",
           "rights": "Community-submitted LaunchBox screenshot. Rights to copy or hotlink have not been independently granted; original source link is provided.",
+          "visual_review": "source_page_and_gameplay_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        },
+        {
+          "platform": "Windows",
+          "image_url": "https://images.launchbox-app.com/2ef2a63d-4a41-400a-9356-f3fd4785a592.jpg",
+          "source_page": "https://gamesdb.launchbox-app.com/games/images/93591-nhl-2000",
+          "attribution": "LaunchBox Games Database · NHL 2000 · Windows gameplay",
+          "rights": "Image copyright and source-site embedding/reproduction permission are not independently established. Critical visual research only; original source linked.",
           "visual_review": "source_page_and_gameplay_image_visually_reviewed",
           "browser_render": "not_tested",
           "verification_status": "source_checked_browser_pending"
@@ -582,12 +592,22 @@
       "design_takeaway": "Borrow lighting, surface cues, and broadcasts without requiring complex character rigs.",
       "screenshots": [
         {
-          "platform": "Windows",
-          "image_url": "https://cdn.mobygames.com/screenshots/12424210-nba-live-2003-windows-14-x-14-and-the-bulls-approach-the-three-p.jpg",
-          "source_page": "https://www.mobygames.com/game/9182/nba-live-2003/screenshots/windows/272250/",
-          "attribution": "Screenshot via MobyGames — NBA Live 2003 Windows",
-          "rights": "Reuse terms not independently confirmed. Link to original is provided; do not redistribute without permission.",
-          "visual_review": "source_image_visually_reviewed",
+          "platform": "PlayStation 2",
+          "image_url": "https://cdn.sanity.io/images/vlhyuihz/production/c4b93051c6fb764ccd104c4b1cf530634afeecbe-640x448.jpg",
+          "source_page": "https://www.ps2home.co.uk/nba-live-2003",
+          "attribution": "PS2Home archive · NBA Live 2003 · PS2 gameplay",
+          "rights": "Image copyright and source-site embedding/reproduction permission are not independently established. Critical visual research only; original source linked.",
+          "visual_review": "source_page_and_gameplay_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        },
+        {
+          "platform": "PlayStation",
+          "image_url": "https://images.launchbox-app.com/8edf6e81-c0d4-4b07-9ea8-af2effe5edab.jpg",
+          "source_page": "https://gamesdb.launchbox-app.com/games/images/30627-nba-live-2003",
+          "attribution": "LaunchBox Games Database · NBA Live 2003 · PlayStation gameplay",
+          "rights": "Image copyright and source-site embedding/reproduction permission are not independently established. Critical visual research only; original source linked.",
+          "visual_review": "source_page_and_gameplay_image_visually_reviewed",
           "browser_render": "not_tested",
           "verification_status": "source_checked_browser_pending"
         }
@@ -901,12 +921,22 @@
       "design_takeaway": "Borrow lighting, surface cues, and broadcasts without requiring complex character rigs.",
       "screenshots": [
         {
+          "platform": "Windows",
+          "image_url": "https://images.launchbox-app.com/4ded0489-d66a-4588-9d31-7a4f932c2720.jpg",
+          "source_page": "https://gamesdb.launchbox-app.com/games/images/13458-madden-nfl-2002",
+          "attribution": "LaunchBox Games Database · Madden NFL 2002 · Windows · Gameplay",
+          "rights": "Image copyright and source-site embedding/reproduction permission are not independently established. Critical visual research only; original source linked.",
+          "visual_review": "source_page_and_gameplay_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        },
+        {
           "platform": "PlayStation 2",
-          "image_url": "https://s2-techtudo.glbimg.com/AZND19YYVSRkrwFkEKnmaudK-Gg%3D/0x0%3A1200x675/1000x0/smart/filters%3Astrip_icc%28%29/i.s3.glbimg.com/v1/AUTH_08fbf48bc0524877943fe86e43087e7a/internal_photos/bs/2025/o/w/JXMA7wTYOyA3ejOBuEsQ/madden-nfl-2002-electronic-arts.jpg",
-          "source_page": "https://www.techtudo.com.br/listas/2025/03/25-anos-de-ps2-veja-os-25-melhores-jogos-da-historia-no-console-da-sony-edjogos.ghtml",
-          "attribution": "TechTudo — Madden NFL 2002 PlayStation 2 feature",
-          "rights": "Reuse terms not independently confirmed. Link to original is provided; do not redistribute without permission.",
-          "visual_review": "source_image_visually_reviewed",
+          "image_url": "https://cdn.sanity.io/images/vlhyuihz/production/0d014b8017ca167ba0e858a9e93aab18fafca8da-636x477.jpg",
+          "source_page": "https://www.ps2home.co.uk/madden-nfl-2002",
+          "attribution": "PS2Home archive · Madden NFL 2002 · PS2 gameplay",
+          "rights": "Image copyright and source-site embedding/reproduction permission are not independently established. Critical visual research only; original source linked.",
+          "visual_review": "source_page_and_gameplay_image_visually_reviewed",
           "browser_render": "not_tested",
           "verification_status": "source_checked_browser_pending"
         }
@@ -929,6 +959,16 @@
       "visual_notes": "More contacts and tackle transitions, but canned and abrupt joint motion can become conspicuous.",
       "design_takeaway": "Borrow lighting, surface cues, and broadcasts without requiring complex character rigs.",
       "screenshots": [
+        {
+          "platform": "PlayStation 2",
+          "image_url": "https://images.launchbox-app.com/1d559354-613a-4723-97eb-f1edd0e560e0.jpg",
+          "source_page": "https://gamesdb.launchbox-app.com/games/images/7051-madden-nfl-2003",
+          "attribution": "LaunchBox Games Database · Madden NFL 2003 · PS2 gameplay",
+          "rights": "Image copyright and source-site embedding/reproduction permission are not independently established. Critical visual research only; original source linked.",
+          "visual_review": "source_page_and_gameplay_image_visually_reviewed",
+          "browser_render": "not_tested",
+          "verification_status": "source_checked_browser_pending"
+        },
         {
           "platform": "Windows",
           "image_url": "https://cdn.mobygames.com/screenshots/15671018-madden-nfl-2003-windows-marshall-faulk-celebrates-a-touchdown.png",
@@ -973,5 +1013,12 @@
       "screenshot_verification_status": "source_checked_not_browser_verified"
     }
   ],
-  "verified_source_reviews": "12 LaunchBox additions checked by opening platform-specific image gallery and direct gameplay image; earlier source records remain pending retrospective audit."
+  "verified_source_reviews": "12 LaunchBox additions checked by opening platform-specific image gallery and direct gameplay image; earlier source records remain pending retrospective audit.",
+  "verification_counts": {
+    "annual_titles": 33,
+    "sourced_annual_titles": 33,
+    "recorded_gameplay_references": 38,
+    "unresolved_source_entries": 0,
+    "browser_verified_references": 0
+  }
 }

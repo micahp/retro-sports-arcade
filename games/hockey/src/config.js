@@ -47,6 +47,16 @@ export const SKATE = {
   checkReach: 1.35, pokeReach: 1.7,
 };
 
+// Penalties. Minor = 2:00 of a 20-minute period. 'proportional' scales it with the period
+// length (18 s in a 3-minute period); 'fixed' keeps 2:00 of game clock whatever the period.
+// The infraction chances are UNTUNED placeholders: they say how often contact of each kind
+// is called, and must be calibrated against power-play opportunities per game, not guessed.
+export const PENALTY = {
+  enabled: true, minorSec: 120, scale: 'proportional', maxServing: 2,
+  chargingSpeed: 7.5,                // closing speed (m/s) above which a hit can be charging
+  chance: { hooking: 0.10, interference: 0.35, charging: 0.25, boarding: 0.30 },
+};
+
 export const GOALIE = { lateral: 4.5, depthMin: 0.5, depthMax: 1.4, body: 0.3, reach: 0.34, react: 0.22, catchSpeed: 27 };
 
 // Game formats. Roles listed per side; 'G' is the goalie.
@@ -58,9 +68,9 @@ export const LINEUPS = {
   6: ['LW', 'C', 'RW', 'LD', 'RD', 'X'],   // extra attacker, goalie pulled
 };
 export const MODES = {
-  regulation: { label: 'Regulation 5 on 5', skaters: [5, 5], periods: 3, periodSec: 180, ot: 'ot3', goalies: [true, true] },
+  regulation: { label: 'Regulation 5 on 5', skaters: [5, 5], periods: 3, periodSec: 180, ot: 'ot3', goalies: [true, true], penalties: true },
   ot3: { label: 'Overtime 3 on 3', skaters: [3, 3], periods: 1, periodSec: 300, suddenDeath: true, then: 'shootout', goalies: [true, true] },
-  pp: { label: 'Power play 5 on 4', skaters: [5, 4], periods: 1, periodSec: 120, goalies: [true, true] },
+  pp: { label: 'Power play 5 on 4', skaters: [5, 4], periods: 1, periodSec: 120, goalies: [true, true], penalties: true },
   en: { label: 'Empty net 6 on 5', skaters: [6, 5], periods: 1, periodSec: 90, goalies: [false, true] },
   shootout: { label: 'Shootout', shootout: true, rounds: 3 },
   lab: { label: 'Puck lab', skaters: [0, 0], periods: 1, periodSec: 9999, goalies: [false, false], lab: true },

@@ -1,0 +1,66 @@
+{
+  "about": "Reference values for calibration. Every number keeps its source, season, game state and unit. Per-game values are for BOTH teams combined unless the field says per_team. NHL values are full-length games (60 min regulation + OT); Rink '95 regulation is 3 x 3 min of running clock. Compare shares and percentages directly; compare counts only after normalising to per-60-minutes-of-play, and treat even that as format-dependent.",
+  "retrieved": "2026-11-23",
+  "sources": {
+    "hr_league": { "url": "https://www.hockey-reference.com/leagues/stats.html", "what": "League averages per team per game: G, SA, SV%. SV% excludes empty-net goals." },
+    "nhl_realtime": { "url": "https://api.nhle.com/stats/rest/en/team/realtime?cayenneExp=gameTypeId=2 and seasonId=<season>", "what": "NHL stats API team realtime report, regular season, summed over 32 teams: hits, blockedShots, giveaways, takeaways, missedShots, shots, totalShotAttempts, shotAttemptsBlocked, emptyNetGoals, gamesPlayed (2624 team-games = 1312 games)." },
+    "nhl_summary": { "url": "https://api.nhle.com/stats/rest/en/team/summary?cayenneExp=gameTypeId=2 and seasonId=<season>", "what": "NHL stats API team summary, summed over 32 teams: wins, otLosses, goalsFor, winsInRegulation, regulationAndOtWins, winsInShootout, teamShutouts." },
+    "nhl_faceoffs": { "url": "https://api.nhle.com/stats/rest/en/team/faceoffwins?cayenneExp=gameTypeId=2 and seasonId=20242025", "what": "NHL stats API faceoff report; faceoffsWon summed over teams = faceoffs in the league." },
+    "edgehalla": { "url": "https://www.edgehalla.com/nhl/data-stories/nhl-shots-on-goal-decline", "what": "Per game, both teams, all situations, regular season, from NHL play-by-play; shootouts excluded. Since 2023-24 blocks by the shooter's own teammate are logged (about 2.8 a game in 2025-26) and included in attempts." },
+    "dailyfaceoff_ot": { "url": "https://www.dailyfaceoff.com/news/5-major-nhl-trends-defined-2025-26-season-loser-point-overtime-save-percentage", "what": "71.6% of 2024-25 overtimes were decided in OT (cross-check of the derived value)." }
+  },
+  "nhl": {
+    "2024-25": {
+      "games": 1312,
+      "goals_per_game": { "value": 6.02, "derivation": "7901 goalsFor / 1312", "source": "nhl_summary", "state": "all situations, includes empty-net goals; NHL goalsFor credits the shootout winner" },
+      "sog_per_game": { "value": 56.5, "derivation": "74179 shots / 1312", "source": "nhl_realtime", "check": "edgehalla 56.6" },
+      "attempts_per_game": { "value": 119.0, "derivation": "156071 totalShotAttempts / 1312", "source": "nhl_realtime", "check": "edgehalla 119.0" },
+      "missed_per_game": { "value": 29.0, "derivation": "38018 / 1312", "source": "nhl_realtime" },
+      "blocked_per_game": { "value": 33.4, "derivation": "43874 shotAttemptsBlocked / 1312", "source": "nhl_realtime", "note": "includes blocks by the shooter's teammate" },
+      "on_goal_share_of_attempts": { "value": 0.475, "derivation": "56.5 / 119.0" },
+      "missed_share_of_attempts": { "value": 0.244 },
+      "blocked_share_of_attempts": { "value": 0.281 },
+      "save_pct": { "value": 0.900, "source": "hr_league", "note": "excludes empty-net goals" },
+      "shooting_pct_on_goal": { "value": 0.0995, "derivation": "(7901 - 524 empty-net) / 74179", "note": "approximate: goalsFor includes shootout winners" },
+      "empty_net_goals_per_game": { "value": 0.40, "derivation": "524 / 1312", "source": "nhl_realtime" },
+      "hits_per_game": { "value": 42.9, "derivation": "56293 / 1312", "source": "nhl_realtime", "reliability": "scorer-recorded; varies by arena" },
+      "giveaways_per_game": { "value": 29.4, "derivation": "38565 / 1312", "source": "nhl_realtime", "reliability": "low: subjective scorer judgement" },
+      "takeaways_per_game": { "value": 9.6, "derivation": "12628 / 1312", "source": "nhl_realtime", "reliability": "low: subjective scorer judgement" },
+      "faceoffs_per_game": { "value": 56.6, "derivation": "74296 faceoffsWon / 1312", "source": "nhl_faceoffs", "neutral_zone_share": 0.303 },
+      "past_regulation_share": { "value": 0.207, "derivation": "1312 - 1041 regulation wins = 271 = otLosses; 271/1312", "source": "nhl_summary" },
+      "decided_in_ot_share": { "value": 0.148, "derivation": "1235 - 1041 = 194 OT wins / 1312" },
+      "shootout_share": { "value": 0.059, "derivation": "77 / 1312" },
+      "ot_decided_given_past_regulation": { "value": 0.716, "check": "dailyfaceoff_ot 71.6%" },
+      "shutout_share_team_games": { "value": 0.059, "derivation": "154 / 2624" },
+      "pp_opportunities_per_team_game": { "value": 2.71, "source": "hr_league", "state": "power-play opportunities per team per game" },
+      "pp_pct": { "value": 0.2164, "source": "hr_league" },
+      "pp_goals_per_team_game": { "value": 0.59, "source": "hr_league" }
+    },
+    "2025-26": {
+      "games": 1312,
+      "goals_per_game": { "value": 6.16, "derivation": "8086 / 1312", "source": "nhl_summary" },
+      "sog_per_game": { "value": 55.7, "derivation": "73022 / 1312", "source": "nhl_realtime", "check": "edgehalla 55.7" },
+      "attempts_per_game": { "value": 116.5, "derivation": "152892 / 1312", "source": "nhl_realtime", "check": "edgehalla 116.6" },
+      "missed_per_game": { "value": 29.7, "derivation": "39017 / 1312" },
+      "blocked_per_game": { "value": 31.1, "derivation": "40853 / 1312" },
+      "on_goal_share_of_attempts": { "value": 0.478 },
+      "missed_share_of_attempts": { "value": 0.255 },
+      "blocked_share_of_attempts": { "value": 0.267 },
+      "save_pct": { "value": 0.896, "source": "hr_league" },
+      "hits_per_game": { "value": 40.9, "derivation": "53658 / 1312" },
+      "past_regulation_share": { "value": 0.248, "derivation": "326 / 1312" },
+      "decided_in_ot_share": { "value": 0.158, "derivation": "(1193 - 986) / 1312" },
+      "shootout_share": { "value": 0.091, "derivation": "119 / 1312" },
+      "pp_opportunities_per_team_game": { "value": 2.88, "source": "hr_league" },
+      "pp_pct": { "value": 0.2111, "source": "hr_league" },
+      "pp_goals_per_team_game": { "value": 0.61, "source": "hr_league" }
+    }
+  },
+  "unavailable": {
+    "per_game_distributions": "SDs, percentiles and histograms of NHL per-game counts need game-level data. The local nhl-dataset repo (MoneyPuck-style DuckDB, 2007-2025, team-by-game and shot-level tables with situation splits) has them, but no DuckDB reader is installed; installing one needs approval.",
+    "conditional_rates": "Shooting % by distance/angle/shot type, rebound rates and score effects come from the same shot table; not yet extracted.",
+    "five_on_five": "Rink '95 has no penalties, so its play is all even strength. NHL 5v5-only rates (Edgehalla reports about 96 attempts a game at 5v5 in 2024-25) are the better comparator for counts; only the all-situations totals above are sourced exactly.",
+    "possession_and_passes": "The NHL does not publish passes, completions or possession time; any reference would come from tracking data (NHL EDGE / Big Data Cup) and is not established here.",
+    "nhl95": "No reliable measured pacing data for NHL 95 (Genesis) was found: no published goals, shots or period-length statistics. Sega Retro documents a hidden 30-second-period option, which says nothing about default pacing. Measuring it would need timestamped event logging from gameplay footage."
+  }
+}

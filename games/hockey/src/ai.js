@@ -73,6 +73,20 @@ export function aiIntent(S, p) {
     }
     return it;
   }
+  // special teams: how many skaters each side has on the ice right now
+  const mine = team.length, theirs = opps.length;
+  const slots = (list) => { const order = team.slice().sort((a, b) => (isD(b.role) - isD(a.role)) || a.id - b.id); const k = order.indexOf(p); return list[Math.min(k, list.length - 1)]; };
+  if (mineHasIt && mine > theirs && P.ax > B) {
+    // power play in the zone: two points, two half-walls, one at the net front
+    const [ax, az] = slots([[B + 1.5, -6], [B + 1.5, 6], [G - 9, -7.5], [G - 9, 7.5], [G - 2.2, 0], [G - 5, 0]]);
+    go(ax, az); return it;
+  }
+  if (!mineHasIt && mine < theirs && P.ax < -B) {
+    // penalty kill in our end: a tight box (a triangle at 5 on 3) between the puck and the net
+    const box = mine >= 4 ? [[-G + 3.5, -2.6], [-G + 3.5, 2.6], [-G + 8.5, -3.3], [-G + 8.5, 3.3]] : [[-G + 3, 0], [-G + 7.5, -3], [-G + 7.5, 3]];
+    const [ax, az] = slots(box);
+    go(ax, clamp(az + P.az * 0.25, -8, 8)); return it;
+  }
   if (mineHasIt) {
     const ozone = P.ax > B;
     if (isD(p.role)) {

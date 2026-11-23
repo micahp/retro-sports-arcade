@@ -26,7 +26,7 @@ async function boot() {
 
 function start(mode) {
   replay = null;
-  S = createGame(mode, 'game-' + Date.now(), { auto: false });
+  S = createGame(mode, 'game-' + Date.now(), { auto: false, penalties: $('penT').checked });
   paused = false; $('menu').hidden = true; $('lab').hidden = true; $('hud').hidden = false; controls(true);
 }
 
@@ -60,7 +60,9 @@ function hud() {
   $('sc0').textContent = S.score[0]; $('sc1').textContent = S.score[1];
   $('clock').textContent = S.mode.shootout || S.shootout ? 'SO' : `${m}:${String(s).padStart(2, '0')}`;
   $('per').textContent = S.shootout ? 'SHOOTOUT' : S.period > 3 ? 'OT' : `P${S.period}`;
-  $('man').textContent = S.shootout ? '' : `${S.manpower[0]} on ${S.manpower[1]}`;
+  const serving = (S.box || []).filter((b) => b.serving), left = serving.length ? Math.min(...serving.map((b) => b.left)) : 0;
+  const pp = serving.length ? ` · ${serving.every((b) => b.team === 1) ? 'PP' : serving.every((b) => b.team === 0) ? 'PK' : ''} 0:${String(Math.ceil(left)).padStart(2, '0')}` : '';
+  $('man').textContent = S.shootout ? '' : `${S.manpower[0]} on ${S.manpower[1]}${pp}`;
   $('banner').textContent = S.banner || ''; $('banner').hidden = !S.banner;
   const has = S.puck.owner && S.puck.owner.team === S.userTeam;
   $('bA').querySelector('span').textContent = has ? 'PASS' : 'SWITCH';

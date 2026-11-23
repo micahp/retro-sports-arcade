@@ -1,7 +1,7 @@
 // Hockey match: lineups, rules flow, possession, shots, passes, checks, goalies.
 // Deterministic: fixed 1/60 s steps, all randomness from the seeded rng.
 import { rng } from './rng.js';
-import { RINK, PUCK, SHOT, SKATE, GOALIE, LINEUPS, MODES } from './config.js';
+import { RINK, PUCK, SHOT, SKATE, GOALIE, LINEUPS, MODES, PENALTY } from './config.js';
 import { makePuck, stepPuck, boards, leadPass } from './puck.js';
 import { HOCKEY, poseAt } from './poses.js';
 import { aiIntent } from './ai.js';
@@ -19,6 +19,7 @@ export function createGame(modeKey = 'regulation', seed = 'rink-95', opts = {}) 
     phase: 'faceoff', phaseT: 0, skaters: [], puck: makePuck(), user: null, userTeam: opts.userTeam ?? 0,
     log: [], events: [], stats: [0, 1].map(() => ({ shots: 0, saves: 0, goals: 0, passes: 0, passesDone: 0, intercepts: 0, hits: 0 })),
     touch: 0, faceSpot: { x: 0, z: 0 }, banner: '', debug: { trails: [], marks: [] }, shootout: null, auto: !!opts.auto,
+    penaltiesOn: PENALTY.enabled && (opts.penalties ?? !!mode.penalties), box: [],
   };
   if (mode.shootout) startShootout(S); else setLineups(S, mode.skaters, mode.goalies);
   if (mode.lab) { S.phase = 'play'; } else if (!mode.shootout) faceoffAt(S, 0, 0);
@@ -48,6 +49,7 @@ function faceoffAt(S, fx, fz) {
   S.phase = 'faceoff'; S.phaseT = 0; S.faceSpot = { x: fx, z: fz };
   const pk = S.puck; Object.assign(pk, { x: fx, z: fz, y: 0, vx: 0, vz: 0, vy: 0, owner: null, settle: 0, lock: 0, shot: null, inNet: 0 });
   for (const p of S.skaters) {
+    if (p.inBox || p.retired) continue;
     const d = attackDir(S, p.team);            // +1 if this team attacks +x
     const back = (dx, dz) => ({ x: fx - d * dx, z: fz + d * dz });
     let at;
@@ -110,6 +112,7 @@ export function step(S, input = {}) {
   collide(S);
   if (live || S.phase === 'whistle') puckStep(S, dt);
   if (live && !S.mode.shootout && !S.mode.lab) {
+    tickPenalties(S, dt);
     S.clock -= dt;
     if (S.clock <= 0) { S.clock = 0; endPeriod(S); }
   }
@@ -144,8 +147,9 @@ function actions(S, p) {
     if ((p.one.name === 'hShoot' || p.one.name === 'hSlap') && !p.one.fired && p.one.t >= a.dur * a.release && pk.owner === p) { p.one.fired = true; releaseShot(S, p, p.one.name === 'hSlap' ? 'slap' : 'wrist'); }
     if (p.one.name === 'hPass' && !p.one.fired && p.one.t >= a.dur * a.release && pk.owner === p) { p.one.fired = true; releasePass(S, p); }
     if (p.one.name === 'hCheck' && !p.one.fired && p.one.t >= a.dur * a.hit) { p.one.fired = true; checkHit(S, p); }
-    if (p.one.t >= a.dur) { if (p.one.name === 'hFall') p.down = 0.5; p.one = null; }
+    if (p.one && p.one.t >= a.dur) { if (p.one.name === 'hFall') p.down = 0.5; p.one = null; }   // a penalty can clear p.one mid-check
   }
+  if (p.benched) return;
   if (p.down > 0 && !p.one) p.down = Math.max(0, p.down - DT);
   if (it.switch && p === S.user) { switchUser(S); return; }
   if (busy(p) || p.one) return;
@@ -205,6 +209,7 @@ function checkHit(S, p) {
   const nx = (best.x - p.x) / (bd || 1), nz = (best.z - p.z) / (bd || 1);
   const closing = Math.max((p.vx - best.vx) * nx + (p.vz - best.vz) * nz, (p.one && p.one.closing) || 0);
   log(S, 'check', { by: p.id, on: best.id, closing: +closing.toFixed(2) });
+  const hadPuck = S.puck.owner === best || dist(S.puck, best) < 2.5;
   if (closing > SKATE.checkMinSpeed) {
     // momentum goes into the hit: the target is knocked along the line of contact
     best.vx = best.vx * 0.3 + nx * closing * 0.8; best.vz = best.vz * 0.3 + nz * closing * 0.8;
@@ -214,6 +219,7 @@ function checkHit(S, p) {
     if (pk.owner === best) { pk.owner = null; pk.vx = best.vx + nx * 2; pk.vz = best.vz + nz * 2; pk.lock = 0.25; S.touch++; }
     S.stats[p.team].hits++;
     S.debug.marks.push({ x: best.x, z: best.z, kind: 'hit', t: S.t });
+    if (S.penaltiesOn) judgeHit(S, p, best, nx, nz, closing, hadPuck);
   } else { best.vx += nx * closing * 0.5; best.vz += nz * closing * 0.5; }
 }
 function bestClosing(S, p) {
@@ -230,7 +236,7 @@ function poke(S, p, carrier) {
   const ok = S.R() < 0.55;
   log(S, 'poke', { by: p.id, on: carrier.id, ok });
   p.cool = 0.7;
-  if (!ok) return;
+  if (!ok) { if (S.penaltiesOn && S.R() < PENALTY.chance.hooking) callPenalty(S, p, 'hooking'); return; }
   const dx = pk.x - p.x, dz = pk.z - p.z, d = Math.hypot(dx, dz) || 1;
   pk.owner = null; pk.vx = carrier.vx * 0.5 + dx / d * 4 + (S.R() - 0.5) * 3; pk.vz = carrier.vz * 0.5 + dz / d * 4 + (S.R() - 0.5) * 3; pk.lock = 0.2; S.touch++;
 }
@@ -421,7 +427,9 @@ function goal(S, end) {
   const team = attackDir(S, 0) === end ? 0 : 1;
   S.score[team]++; S.stats[team].goals++;
   const by = S.puck.lastTouch;
-  log(S, 'goal', { team, by: by ? by.id : null, score: [...S.score] });
+  const strength = strengthOf(S, team);
+  log(S, 'goal', { team, by: by ? by.id : null, score: [...S.score], strength, manpower: [...S.manpower] });
+  if (strength === 'PP') { const pen = S.box.filter((b) => b.team !== team && b.serving).sort((a, b) => a.left - b.left)[0]; if (pen) releasePenalty(S, pen, 'ppGoal'); }
   S.banner = `${TEAMS[team].short} GOAL`;
   S.phase = 'whistle'; S.phaseT = 0; S.whistleFor = { kind: 'goal', team };
   if (S.shootout) S.shootout.scored = true;
@@ -432,10 +440,11 @@ function afterWhistle(S) {
   if (S.mode.lab) { S.phase = 'play'; return; }
   if (w.kind === 'goal' && S.mode.suddenDeath) return endGame(S);
   if (S.phase === 'intermission') {
-    if (S.nextMode) { const m = MODES[S.nextMode]; S.mode = m; S.modeKey = S.nextMode; S.nextMode = null; if (m.shootout) return startShootout(S); setLineups(S, m.skaters, m.goalies); S.clock = m.periodSec; }
+    if (S.nextMode) { const m = MODES[S.nextMode]; S.mode = m; S.modeKey = S.nextMode; S.nextMode = null; clearBox(S, 'format-change'); if (m.shootout) return startShootout(S); setLineups(S, m.skaters, m.goalies); S.clock = m.periodSec; }
     return faceoffAt(S, 0, 0);
   }
   if (w.kind === 'freeze') { const side = Math.sign(w.x) || 1; return faceoffAt(S, side * RINK.dotX, (S.R() < 0.5 ? 1 : -1) * RINK.dotZ); }
+  if (w.kind === 'penalty') { const side = -attackDir(S, w.team); return faceoffAt(S, side * RINK.dotX, (S.R() < 0.5 ? 1 : -1) * RINK.dotZ); }
   faceoffAt(S, 0, 0);
 }
 function endPeriod(S) {
@@ -446,6 +455,68 @@ function endPeriod(S) {
   endGame(S);
 }
 function endGame(S) { S.phase = 'final'; S.phaseT = 0; S.banner = `FINAL ${TEAMS[0].short} ${S.score[0]} – ${S.score[1]} ${TEAMS[1].short}`; log(S, 'final', { score: [...S.score] }); }
+
+// ---------------------------------------------------------------- penalties
+export const penaltySeconds = (S) => PENALTY.minorSec * (PENALTY.scale === 'proportional' ? (S.mode.periodSec || 1200) / 1200 : 1);
+const onIce = (S, team) => S.skaters.filter((p) => p.team === team && !p.isG && !p.benched).length;
+const hasGoalie = (S, team) => S.skaters.some((p) => p.team === team && p.isG);
+function updateManpower(S) { S.manpower = [onIce(S, 0), onIce(S, 1)]; }
+/** 'EV', 'PP', 'SH' or 'EN' (into an empty net) for a goal by `team`, from who was on the ice. */
+export function strengthOf(S, team) {
+  if (!hasGoalie(S, 1 - team)) return 'EN';
+  const a = onIce(S, team), b = onIce(S, 1 - team);
+  return a > b ? 'PP' : a < b ? 'SH' : 'EV';
+}
+function judgeHit(S, p, q, nx, nz, closing, hadPuck) {
+  const C = PENALTY.chance;
+  const behind = Math.cos(q.yaw) * nx + Math.sin(q.yaw) * nz > 0.5;          // he was facing away from the hitter
+  const nearBoards = Math.abs(q.x) > RINK.hx - 1.6 || Math.abs(q.z) > RINK.hz - 1.6;
+  if (behind && nearBoards && S.R() < C.boarding) return callPenalty(S, p, 'boarding');
+  if (closing > PENALTY.chargingSpeed && S.R() < C.charging) return callPenalty(S, p, 'charging');
+  if (!hadPuck && S.R() < C.interference) return callPenalty(S, p, 'interference');
+}
+/** Send p off for a minor. Immediate call (no delayed penalty). Returns true if called. */
+export function callPenalty(S, p, kind) {
+  if (!S.penaltiesOn || S.phase !== 'play' || p.isG || p.benched || S.shootout || S.mode.lab) return false;
+  const len = penaltySeconds(S);
+  const pen = { team: p.team, player: p.id, kind, len, left: len, serving: false, pending: false, t: S.t };
+  S.box.push(pen);
+  log(S, 'penalty', { team: p.team, player: p.id, kind, sec: +len.toFixed(1) });
+  // two already serving: a substitute keeps the team at three skaters and this one waits its turn
+  if (S.box.filter((b) => b.team === p.team && b.serving).length < PENALTY.maxServing) servePenalty(S, pen); else pen.pending = true;
+  S.phase = 'whistle'; S.phaseT = 0; S.banner = `${TEAMS[p.team].short} ${kind.toUpperCase()}`; S.whistleFor = { kind: 'penalty', team: p.team };
+  return true;
+}
+function servePenalty(S, pen) {
+  const p = S.skaters[pen.player];
+  pen.serving = true; pen.pending = false;
+  const wouldBe = onIce(S, p.team) - 1;
+  Object.assign(p, { benched: true, inBox: true, x: (p.team ? 3 : -3), z: -(RINK.hz + 1.6), vx: 0, vz: 0, one: null, down: 0 });
+  if (wouldBe < 3) {
+    // never fewer than three skaters: a substitute comes on, and (as in NHL 3-on-3 overtime)
+    // the other team gets an extra skater instead, so 3 on 3 becomes 4 on 3
+    pen.sub = addSkater(S, p.team, p.role, { x: (p.team ? 3 : -3), z: -(RINK.hz - 1.0) }).id;
+    pen.bonus = addSkater(S, 1 - p.team, 'X', { x: (p.team ? -3 : 3), z: -(RINK.hz - 1.0) }).id;
+  }
+  if (S.puck.owner === p) S.puck.owner = null;
+  if (S.user === p) switchUser(S);
+  updateManpower(S);
+  log(S, 'penaltyServe', { team: pen.team, player: pen.player, manpower: [...S.manpower] });
+}
+function releasePenalty(S, pen, why) {
+  S.box.splice(S.box.indexOf(pen), 1);
+  if (pen.serving) { const p = S.skaters[pen.player]; Object.assign(p, { benched: false, inBox: false, x: (p.team ? 3 : -3), z: -(RINK.hz - 1.0), vx: 0, vz: 3 }); }
+  // temporary skaters leave (kept in the list, retired, so skater ids in the log stay stable)
+  for (const id of [pen.sub, pen.bonus]) if (id != null) { const q = S.skaters[id]; if (S.puck.owner === q) S.puck.owner = null; Object.assign(q, { benched: true, retired: true }); if (S.user === q) switchUser(S); }
+  const next = S.box.find((b) => b.team === pen.team && b.pending);
+  if (next) servePenalty(S, next);
+  updateManpower(S);
+  log(S, 'penaltyEnd', { team: pen.team, player: pen.player, kind: pen.kind, why, manpower: [...S.manpower] });
+}
+function tickPenalties(S, dt) {
+  for (const pen of S.box.slice()) if (pen.serving) { pen.left -= dt; if (pen.left <= 0) releasePenalty(S, pen, 'expired'); }
+}
+function clearBox(S, why) { for (const pen of S.box.slice()) releasePenalty(S, pen, why); }
 
 // ---------------------------------------------------------------- shootout
 function startShootout(S) {

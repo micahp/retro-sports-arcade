@@ -1,0 +1,166 @@
+<title>Rink '95 Renderer Test</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column of three identical rink panels (same sim, same camera), a sticky control dock, then the measured comparison. Single dark "arena at night" look by choice. */
+:root {
+  --night: #10161f;        /* arena dark */
+  --board: #18212d;        /* panel surface */
+  --line: #2a3646;         /* rules */
+  --ice: #e9f1f6;          /* primary text */
+  --frost: #9fb2c4;        /* secondary text */
+  --kick: #f2d24b;         /* kickplate yellow: the one accent */
+  --red: #e2575e;          /* goal light: failures */
+  --green: #6fd39a;        /* passes */
+  --f-display: "Silkscreen", ui-monospace, monospace;
+  --f-body: "IBM Plex Sans", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+html, body { background: var(--night); color: var(--ice); }
+body { font-family: var(--f-body); font-size: 15px; line-height: 1.5; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 24px; }
+.wrap { max-width: 880px; margin: 0 auto; display: grid; gap: 18px; }
+header { padding-top: 18px; display: grid; gap: 6px; }
+.eyebrow { font-family: var(--f-display); font-size: 11px; letter-spacing: 0.12em; color: var(--kick); text-transform: uppercase; }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(24px, 6vw, 36px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-size: 17px; margin: 0; letter-spacing: 0.02em; text-wrap: balance; }
+p { margin: 0; max-width: 65ch; }
+.lede { color: var(--frost); }
+.hud { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; font-family: var(--f-mono); font-size: 13px; color: var(--frost); }
+#score { color: var(--ice); font-weight: 500; }
+#flash { color: var(--kick); font-family: var(--f-display); min-width: 4ch; }
+.panels { display: grid; gap: 14px; }
+@media (min-width: 1100px) { .wrap { max-width: 1180px; } .panels { grid-template-columns: repeat(3, 1fr); } }
+.panel { background: var(--board); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; display: grid; }
+.ptop { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 8px 12px; }
+.tag { font-family: var(--f-display); font-size: 13px; }
+.tag b { color: var(--kick); font-weight: 700; margin-right: 6px; }
+.src { font-size: 12px; color: var(--frost); text-align: right; }
+canvas { display: block; width: 100%; aspect-ratio: 16 / 9; max-width: 100%; background: #1c2533; touch-action: none; }
+#cA { image-rendering: pixelated; image-rendering: crisp-edges; }
+.pstat { font-family: var(--f-mono); font-size: 12px; color: var(--frost); padding: 7px 12px; display: flex; flex-wrap: wrap; gap: 4px 14px; font-variant-numeric: tabular-nums; }
+.pstat span b { color: var(--ice); font-weight: 500; }
+#loading { font-family: var(--f-mono); font-size: 13px; color: var(--kick); padding: 10px 0; }
+.dock { position: sticky; bottom: 0; z-index: 5; background: color-mix(in srgb, var(--night) 94%, transparent); backdrop-filter: blur(6px); border-top: 1px solid var(--line); padding: 8px 0 calc(8px + env(safe-area-inset-bottom, 0px)); display: flex; align-items: center; gap: 10px; }
+#pad { width: 64px; height: 64px; border-radius: 50%; border: 2px solid var(--line); background: var(--board); position: relative; touch-action: none; flex: none; }
+#knob { position: absolute; left: 50%; top: 50%; width: 28px; height: 28px; margin: -14px 0 0 -14px; border-radius: 50%; background: var(--frost); transition: transform 60ms; }
+.btns { display: flex; gap: 10px; flex: none; }
+button { font-family: var(--f-display); font-size: 13px; color: var(--night); background: var(--kick); border: 0; border-radius: 6px; padding: 12px 12px; min-width: 56px; touch-action: none; cursor: pointer; }
+button.ghost { background: var(--board); color: var(--ice); border: 1px solid var(--line); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--kick); outline-offset: 2px; }
+.toggles { display: grid; gap: 4px; font-size: 13px; color: var(--frost); }
+.toggles label { display: flex; gap: 8px; align-items: center; }
+#who { font-size: 12px; color: var(--frost); min-width: 0; }
+.toggles { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+[hidden] { display: none !important; }
+section { display: grid; gap: 10px; }
+.tablebox { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; }
+table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 13px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--f-display); font-weight: 400; font-size: 12px; color: var(--kick); background: var(--board); }
+td.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+.verdict { display: grid; gap: 10px; }
+.v { background: var(--board); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; display: grid; gap: 6px; }
+.v h3 { margin: 0; font-size: 14px; font-weight: 600; }
+.v p, li { color: var(--frost); font-size: 14px; }
+ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 11px; padding: 1px 7px; border-radius: 999px; border: 1px solid currentColor; }
+.ok { color: var(--green); } .bad { color: var(--red); } .mid { color: var(--kick); }
+.foot { font-size: 12px; color: var(--frost); }
+@media (prefers-reduced-motion: reduce) { #knob { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Retro Sports Arcade · experiment R0-1</div>
+    <h1>One skater, three renderers</h1>
+    <p class="lede">The same 3-on-3 hockey sim drawn three ways at once. All three use one body and one set of poses, so the only thing that changes is how the skater gets on screen. It plays itself; touch the pad to skate.</p>
+    <div class="hud"><span id="score">Harbor 0 – 0 Foundry</span><span id="flash"></span><span id="who">Auto-play · touch the pad to take over</span></div>
+    <div class="toggles">
+      <label><input type="checkbox" id="slow"> Slow motion ×¼</label>
+      <label><input type="checkbox" id="crowd"> Crowd test (+24 skaters)</label>
+      <label><input type="checkbox" id="zoom"> Close-up camera ×3</label>
+    </div>
+    <div id="loading">Loading…</div>
+  </header>
+
+  <div class="panels">
+    <div class="panel">
+      <div class="ptop"><span class="tag"><b>A</b>Directional sprites</span><span class="src">pre-rendered 8 facings · 2D canvas</span></div>
+      <canvas id="cA" aria-label="Directional sprite renderer"></canvas>
+      <div class="pstat"><span><b id="msA">–</b> ms/frame</span><span>p95 <b id="pA">–</b></span><span><b id="dcA">–</b> blits</span><span><b id="nA">–</b> skaters</span></div>
+    </div>
+    <div class="panel">
+      <div class="ptop"><span class="tag"><b>B</b>Sprite stack</span><span class="src">Gridiron web/stack, live · WebGL</span></div>
+      <canvas id="cB" aria-label="Sprite stack renderer"></canvas>
+      <div class="pstat"><span><b id="msB">–</b> ms/frame</span><span>p95 <b id="pB">–</b></span><span><b id="dcB">–</b> draw calls</span><span><b id="nB">–</b> skaters</span></div>
+    </div>
+    <div class="panel">
+      <div class="ptop"><span class="tag"><b>C</b>Low-poly 3D</span><span class="src">live FK, flat boxes · WebGL</span></div>
+      <canvas id="cC" aria-label="Low-poly 3D renderer"></canvas>
+      <div class="pstat"><span><b id="msC">–</b> ms/frame</span><span>p95 <b id="pC">–</b></span><span><b id="dcC">–</b> draw calls</span><span><b id="nC">–</b> skaters</span></div>
+    </div>
+  </div>
+
+  <div class="dock">
+    <div id="pad" aria-label="Skate direction pad"><div id="knob"></div></div>
+    <div class="btns"><button id="shoot" type="button">Shoot</button><button id="stop" type="button" class="ghost">Stop</button><button id="pause" type="button" class="ghost" aria-pressed="false">Freeze</button></div>
+  </div>
+
+  <section>
+    <h2>Measured on this device</h2>
+    <p class="lede">CPU time per frame for each renderer's own work (preparing and submitting the frame), averaged over the last 2 seconds. GPU time is not included. Turn on the crowd test to see how each one scales.</p>
+    <div class="tablebox"><table>
+      <thead><tr><th></th><th>A · Sprites</th><th>B · Stack</th><th>C · Low-poly</th></tr></thead>
+      <tbody>
+        <tr><td>Load-time bake</td><td class="num"><span id="bakeA">–</span> ms</td><td class="num"><span id="bakeB">–</span> ms</td><td class="num"><span id="bakeC">–</span> ms</td></tr>
+        <tr><td>Baked memory</td><td class="num"><span id="memA">–</span> MB sheet + rink</td><td class="num"><span id="memB">–</span> MB voxel atlas</td><td class="num"><span id="memC">–</span> MB</td></tr>
+        <tr><td>What is baked</td><td><span id="sheet">–</span></td><td><span id="frames">–</span> voxel frames, any facing</td><td>nothing: poses solved live</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section id="findings">
+    <h2>What the test shows</h2>
+    <div class="verdict" id="verdict">
+      <div class="tablebox"><table>
+        <thead><tr><th></th><th>A · Sprites</th><th>B · Stack</th><th>C · Low-poly</th></tr></thead>
+        <tbody>
+          <tr><td>Facings</td><td><span class="pill mid">8, snapped</span> turns step every 45°</td><td><span class="pill ok">any</span> smooth turns</td><td><span class="pill ok">any</span> smooth turns</td></tr>
+          <tr><td>New renderer code</td><td class="num">94 lines</td><td class="num">50 lines, plus 1,172 reused from Gridiron unchanged</td><td class="num">87 lines</td></tr>
+          <tr><td>Cost of one more action</td><td>re-bake it ×8 facings ×2 teams: about 0.3 MB and 25–45 ms per frame</td><td>re-bake its voxels: about 0.17 MB and 18 ms per frame</td><td>none: write the pose and it draws</td></tr>
+          <tr><td>Draws per frame</td><td class="num">2 blits per skater</td><td class="num">all skaters in 1 call</td><td class="num">all skaters in 1 call</td></tr>
+          <tr><td>CPU per frame on the test PC</td><td class="num">0.12 ms at 8 skaters, 0.15 ms at 32</td><td colspan="2">Not comparable there. The test PC had no GPU, so WebGL timings swung between 0.4 and 4 ms run to run. Use the live numbers above on a real device.</td></tr>
+          <tr><td>Look</td><td>The most 16-bit. Same silhouettes as B, pixelated.</td><td>The most detail: jersey numbers, stick tape, shading.</td><td>Readable but blocky. Looks like a 3D prototype, not retro.</td></tr>
+        </tbody>
+      </table></div>
+      <div class="v"><h3>Result</h3><p>I read the shot, check and skating stride frame by frame, two sim steps apart, in each view. All three drew every action the same way, frame for frame, because they share one body and one set of poses. Wind-up, release, follow-through, check, stop and fall read clearly in A, B and C. None of them needed a 3D rig, skinning or retargeting.</p></div>
+      <div class="v"><h3>Recommendation</h3>
+        <ul>
+          <li><b>Use the Gridiron sprite stack (B) as the main arcade renderer.</b> It ran unchanged from Gridiron, turns smoothly at any angle and draws every player in one call.</li>
+          <li><b>Treat directional sprites (A) as an export of B, not a separate art pipeline.</b> A is literally B baked into 8 facings. Use it where pure 2D or a strict pixel look matters more than smooth turns. Its memory grows fastest per action.</li>
+          <li><b>Keep low-poly 3D (C) as the pose-authoring and debug view.</b> It needs no bake, so a new pose shows at once, and it's the bridge to R3 if that ever happens. It is the least retro of the three.</li>
+          <li>This picks a renderer, not a final look. Your eyes on the live panels are the real check.</li>
+        </ul>
+      </div>
+      <div class="v"><h3>Problems the frames showed</h3>
+        <ul>
+          <li><span class="pill ok">fixed</span> During the wind-up the puck followed the raised blade off the ice. It now stays where the blade left it until release, as the arcade spec's possession rule requires. Re-checked frame by frame.</li>
+          <li><span class="pill ok">fixed</span> A dropped stick sat at hand height during a fall, hidden by the body. It now lies on the ice.</li>
+          <li><span class="pill ok">fixed</span> Skaters passed through each other at faceoffs. They now push apart.</li>
+          <li><span class="pill mid">open</span> The reused Gridiron fall is a football fall. Its first half is upright with arms flung out, so a falling skater looks like he's standing without a stick. Hockey needs its own fall.</li>
+          <li><span class="pill mid">open</span> Gridiron's body has no slot for a held prop except its football, so the stick needed an adapter hook (<code>lab/hockey-adapter.js</code>). Generalising that hook is the first change if the stack becomes shared studio tech.</li>
+          <li><span class="pill mid">open</span> In A, turning steps every 45°. 16 facings would halve the step and double A's memory.</li>
+          <li><span class="pill mid">open</span> No passing yet, and the nets draw as solid blocks.</li>
+        </ul>
+      </div>
+      <div class="v"><h3>Not measured</h3><p>GPU time, battery and frame pacing on a real phone, and whether the motion feels right at full speed. The live numbers at the top of this page come from the device you are on.</p></div>
+    </div>
+  </section>
+
+  <p class="foot">Sources: sprite stack, skeleton, voxel body and fall animation from gridiron-physics <code>feat/basketball-action-library</code> @ 49c4000 (unmodified), seeded RNG from gridiron <code>engine/rng.js</code>. Hockey stick, skates, skating, shot, check and stop are new, in <code>lab/hockey-adapter.js</code>. Original teams and art; no league marks.</p>
+</div>
+
+<script type="module" src="lab/main.js"></script>

@@ -12,7 +12,13 @@ This is the first pass of the **Reuse audit** work package in `CROSS-PROJECT-INT
 
 ## Answers first
 
-1. **The biggest reuse is in Gridiron Physics, not The U, because it's the same stack.** `feat/basketball-action-library` has a browser-JS constrained action library (`web/basketball/`) and a contact, foot-lock, IK and tackle layer (`web/mesh/`). Their tests pass. It already fits the `action.v1` idea: the caller names an action and a time, and the library owns the joints and the contact timing.
+1. **Gridiron's existing sprite stacking, contact and action infrastructure is the strongest candidate for shared arcade technology.** It lives on `feat/basketball-action-library` and covers three layers:
+   - the sprite stack (`web/stack/`);
+   - contact, foot lock, IK and tackles (`web/mesh/`);
+   - the constrained action library (`web/basketball/`).
+
+   **Individual basketball animations from Gridiron and The U must be evaluated separately.** Being a reuse candidate says nothing about whether a given animation looks right; none has passed a rendered-character review.
+   - **Evidence, 2026-11-23:** `experiments/r0-renderer-test/` ran Gridiron's `web/stack/` unchanged for a hockey skater. It turned smoothly at any angle and drew every player in one call. Directional sprites baked from it, and a low-poly 3D view on the same skeleton, drew the same poses frame for frame.
    - The U's equivalent is Godot GDScript. It's only directly useful at R3.
    - The branch is unmerged: 94 commits ahead of Gridiron `main`.
 2. **The best hockey reuse is in Legendary Picks:**

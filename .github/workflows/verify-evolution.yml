@@ -1,0 +1,28 @@
+name: Verify EA evolution exhibit
+on:
+  push:
+    branches: [feat/hockey-arcade-vertical-slice]
+    paths: ['reference/evolution.html', 'reference/evolution-manifest.json', 'reference/verify-evolution.cjs', '.github/workflows/verify-evolution.yml']
+  workflow_dispatch:
+jobs:
+  browser-verify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - name: Test exhibit and capture screenshots
+        run: node reference/verify-evolution.cjs
+      - name: Upload desktop/mobile screenshots and source audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ea-evolution-browser-evidence
+          path: reference/evidence/
+          if-no-files-found: warn

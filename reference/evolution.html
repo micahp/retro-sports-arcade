@@ -72,7 +72,8 @@ function matches(g){
  return true;
 }
 function wireImages(scope){
- scope.querySelectorAll(".shot-frame img").forEach(img=>{\n   if(img.dataset.wired==="1")return;img.dataset.wired="1";
+ scope.querySelectorAll(".shot-frame img").forEach(img=>{
+   if(img.dataset.wired==="1")return;img.dataset.wired="1";
    const wrap=img.closest(".shot-frame"),fallback=wrap.querySelector(".shot-fallback");
    const fail=()=>{img.hidden=true;fallback.hidden=false;wrap.dataset.load="failed";};
    const ok=()=>{if(img.naturalWidth>0){fallback.hidden=true;wrap.dataset.load="loaded"}else fail();};

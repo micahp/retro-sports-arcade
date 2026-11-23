@@ -183,9 +183,19 @@ const wait=(ms)=>new Promise(r=>setTimeout(r,ms));
  // Images sometimes load locally but fail in the public preview due to hotlink policies.
  // Audit the public page with its actual browser origin, including the eight previous failures.
  const publicUrl='https://raw.githack.com/micahp/retro-sports-arcade/dbc657ab53a3fc59a95644f2d5953c1826158900/index.html';
- const live=await browser.newPage({viewport:{width:1440,height:900}});
+ let live=await browser.newPage({viewport:{width:1440,height:900}});
  const publicErrors=[];live.on('pageerror',e=>publicErrors.push(e.message));
  const remoteResponse=await live.goto(publicUrl,{waitUntil:'domcontentloaded',timeout:45000});
+ if((await live.title()).includes('External Content Notice')){
+   const consent=live.getByText('Open the page',{exact:true});
+   const href=await consent.evaluate(el=>el.closest('a')?.href||el.getAttribute('href')||null);
+   console.log('GITHACK INTERSTITIAL '+JSON.stringify({href,links:await live.locator('a').evaluateAll(xs=>xs.map(x=>({text:x.innerText,href:x.href})).slice(0,8))}));
+   const popupPromise=live.waitForEvent('popup',{timeout:2500}).catch(()=>null);
+   await consent.click();
+   const nextTab=await popupPromise;
+   if(nextTab){live=nextTab;live.on('pageerror',e=>publicErrors.push(e.message))}
+   await live.waitForLoadState('domcontentloaded',{timeout:30000});
+ }
  const renderedCards=await live.locator('.archive-card').count();
  console.log('PUBLIC LOAD '+JSON.stringify({status:remoteResponse?.status(),url:live.url(),title:await live.title(),cards:renderedCards,bodyExcerpt:(await live.locator('body').innerText().catch(()=>'' )).slice(0,350)}));
  assert.equal(renderedCards,33,'public preview contains all 33 cards');

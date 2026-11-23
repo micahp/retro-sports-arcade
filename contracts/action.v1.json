@@ -1,0 +1,46 @@
+{
+  "schema_version": "action.v1",
+  "description": "Minimal cross-sport action adapter contract. Example, not a claim of an implemented runtime.",
+  "required": [
+    "sport",
+    "action",
+    "source",
+    "phases",
+    "ownership",
+    "object_events"
+  ],
+  "properties": {
+    "sport": "hockey | basketball | football | wrestling",
+    "action": "sport-specific action name",
+    "source": {
+      "repository": "owner/repo",
+      "commit": "immutable commit SHA",
+      "path": "source path",
+      "status": "reference | candidate | imported | validated | rejected"
+    },
+    "phases": [
+      {
+        "name": "anticipate | execute | contact | recover",
+        "duration_seconds": 0.1,
+        "interruptible": false
+      }
+    ],
+    "ownership": {
+      "root": "controller | clip | physics",
+      "bones": [],
+      "overrides": []
+    },
+    "object_events": [
+      {
+        "phase": "contact",
+        "type": "pickup | release | strike | collision",
+        "time_seconds": 0
+      }
+    ],
+    "units": {
+      "position": "meters",
+      "time": "seconds",
+      "angles": "radians"
+    }
+  }
+}

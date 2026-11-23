@@ -173,10 +173,37 @@ So a 10-minute period lasts about 5½ real minutes with penalties off and 6½ wi
    - **power-play conversion about 9–15%**, against 18.6% real.
 6. **Overtime:** regular-season OT is 10 minutes, and **ties happen** (4 of 30 games). Overtime goals came in 5 of the 9 overtimes; OT is too short a sample to rate.
 
+**Penalty and goal logs, decoded** (`decode_pen.py`). Formats come from the log writes in penalty95.asm and goal95.asm:
+- **Time word:** period in bits 14–15, then seconds elapsed in the period.
+- **Penalty entry:** code, a visitors bit, and the player's roster index.
+- **Goal entry:** a strength byte (2 + scorer's players − opponent's), the scorer, and two assists.
+
+**Checked three ways** (`check_strength.py`):
+- the goal log's team flag matches the score change for all 127 goals;
+- logged power-play goals equal the team PP-goal counter in all 60 team-games;
+- the strength byte matches the players on the ice just before each goal.
+
+| Penalty type (384 in 30 games) | Share |
+|---|---|
+| charging | 28.6% |
+| slashing | 26.0% |
+| hooking | 13.3% |
+| interference | 9.4% |
+| roughing (both variants) | 9.9% |
+| cross-checking | 6.8% |
+| tripping | 4.2% |
+| holding | 1.8% |
+
+No fighting, majors or penalty shots appeared in the 30 games.
+
+7. **Short-handed goals: 31 of 127 goals (24%) were scored short-handed, more than the 27 power-play goals.** In the NHL this is about 3%. Together with the 9–15% power-play conversion, it says NHL 95's special-teams AI favours the short-handed team.
+   - **For Rink '95:** don't reproduce this. Trace its cause in the source (PK bonus, pressure response, PP positioning) to understand it.
+
 **Not yet measured:**
-- faceoffs, hits and checks (no counters in the team block; need player-level addresses);
-- shot locations;
-- penalty types: the 4-byte penalty summary is recorded but not decoded.
+- faceoffs, hits and checks (no counters in the team block; need player-level addresses or code hooks);
+- shot locations.
+
+Icing, offside and goalie-hold whistles go through the same stoppage routine as penalties, but aren't logged (0 minutes). Counting them needs a hook on that routine; see the capture notes.
 
 **Raw data:**
 - per-game JSONL in `E:\emu\work\runs\C3\` (not committed: emulator output, kept local);

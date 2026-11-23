@@ -2,7 +2,7 @@
   "schema_version": 2,
   "generated": "2026-11-23",
   "project": "Retro Sports Arcade / EA visual evolution",
-  "methodology": "For all 33 editions a title/platform-labeled original gameplay image URL is traced to its original gallery and visually reviewed where web retrieval succeeds. Two original URLs (NBA Live 2003 Windows and Madden NFL 2002 TechTudo) failed in direct-fetch audit and were replaced with checked images. The image view succeeding through research web retrieval does not establish browser hotlink reliability or license permission. This repository embeds remote images, stores no third-party image files, and provides fallbacks.",
+  "methodology": "All 38 screenshot URLs were traced to identified game/platform source pages and visually reviewed during research. Chromium/Playwright loaded each actual image inside reference/evolution.html (including five alternate-platform images), verified all 33 game cards, sport/era/platform/image filters and comparison controls, and captured desktop/mobile evidence on 2026-11-23. Images are remote and may be removed or block hotlinks later. Copyright and redistribution permissions are not granted by browser success.",
   "rights_notes": "EA and contributors retain rights. Screenshots are used only as attributed critical visual references. Source-site terms vary; MobyGames FAQ permits up to 20 screenshots in a credited project. Some other hosts have no documented reuse license, so conduct rights review before public distribution. A broken remote image must fall back to the source gallery.",
   "games": [
     {
@@ -27,12 +27,14 @@
           "attribution": "NHL94.com — Genesis gameplay gallery",
           "rights": "third-party rights not documented",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://www.nhl94.com/html/multimedia/screenshots.php",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "nhl-95",
@@ -56,8 +58,10 @@
           "attribution": "GameFabrique — NHL 95 Genesis gallery",
           "rights": "third-party rights not documented",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         },
         {
           "platform": "SNES",
@@ -66,12 +70,14 @@
           "attribution": "OpenRetro — NHL 95 SNES entry",
           "rights": "third-party rights not documented",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/nhl-95/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "nhl-96",
@@ -95,12 +101,14 @@
           "attribution": "LaunchBox Games Database · NHL 96 · Genesis · Screenshot – Gameplay",
           "rights": "Community-submitted LaunchBox screenshot. Rights to copy or hotlink have not been independently granted; original source link is provided.",
           "visual_review": "source_page_and_gameplay_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/nhl-96/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "nhl-97",
@@ -124,12 +132,14 @@
           "attribution": "Vocal — NHL 97 Genesis feature",
           "rights": "third-party rights not documented",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/nhl-97/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "nhl-98",
@@ -153,12 +163,14 @@
           "attribution": "LaunchBox Games Database · NHL 98 · PlayStation · Screenshot – Gameplay",
           "rights": "Community-submitted LaunchBox screenshot. Rights to copy or hotlink have not been independently granted; original source link is provided.",
           "visual_review": "source_page_and_gameplay_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/nhl-98/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "nhl-99",
@@ -182,12 +194,14 @@
           "attribution": "LaunchBox Games Database · NHL 99 · Nintendo 64 · Screenshot – Gameplay",
           "rights": "Community-submitted LaunchBox screenshot. Rights to copy or hotlink have not been independently granted; original source link is provided.",
           "visual_review": "source_page_and_gameplay_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/nhl-99/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "nhl-2000",
@@ -211,8 +225,10 @@
           "attribution": "LaunchBox Games Database · NHL 2000 · PlayStation · Screenshot – Gameplay",
           "rights": "Community-submitted LaunchBox screenshot. Rights to copy or hotlink have not been independently granted; original source link is provided.",
           "visual_review": "source_page_and_gameplay_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         },
         {
           "platform": "Windows",
@@ -221,12 +237,14 @@
           "attribution": "LaunchBox Games Database · NHL 2000 · Windows gameplay",
           "rights": "Image copyright and source-site embedding/reproduction permission are not independently established. Critical visual research only; original source linked.",
           "visual_review": "source_page_and_gameplay_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/nhl-2000/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "nhl-2001",
@@ -250,12 +268,14 @@
           "attribution": "GameFabrique — NHL 2001 PS2 gameplay",
           "rights": "Reuse terms not independently confirmed. Link to original is provided; do not redistribute without permission.",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/nhl-2001/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "nhl-2002",
@@ -279,12 +299,14 @@
           "attribution": "GameStar — NHL 2002 PC review",
           "rights": "Reuse terms not independently confirmed. Link to original is provided; do not redistribute without permission.",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/nhl-2002/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "nhl-2003",
@@ -308,12 +330,14 @@
           "attribution": "Screenshot via MobyGames — NHL 2003 Windows",
           "rights": "Reuse terms not independently confirmed. Link to original is provided; do not redistribute without permission.",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/nhl-2003/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "nhl-2004",
@@ -337,12 +361,14 @@
           "attribution": "GameFabrique — NHL 2004 PS2 gameplay",
           "rights": "Reuse terms not independently confirmed. Link to original is provided; do not redistribute without permission.",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/nhl-2004/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "nba-95",
@@ -366,12 +392,14 @@
           "attribution": "LaunchBox Games Database · NBA Live 95 · Genesis · Screenshot – Gameplay",
           "rights": "Community-submitted LaunchBox screenshot. Rights to copy or hotlink have not been independently granted; original source link is provided.",
           "visual_review": "source_page_and_gameplay_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/nba-live-95/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "nba-96",
@@ -395,12 +423,14 @@
           "attribution": "ModDB — NBA Live 96 gameplay",
           "rights": "ModDB provides embed/share controls; third-party game copyright remains",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/nba-live-96/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "nba-97",
@@ -424,12 +454,14 @@
           "attribution": "LaunchBox Games Database · NBA Live 97 · SNES · Screenshot – Gameplay",
           "rights": "Community-submitted LaunchBox screenshot. Rights to copy or hotlink have not been independently granted; original source link is provided.",
           "visual_review": "source_page_and_gameplay_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/nba-live-97/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "nba-98",
@@ -453,12 +485,14 @@
           "attribution": "GameFabrique — NBA Live 98 SNES gameplay",
           "rights": "third-party rights not documented",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/nba-live-98/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "nba-99",
@@ -482,12 +516,14 @@
           "attribution": "LaunchBox Games Database · NBA Live 99 · PlayStation · Screenshot – Gameplay",
           "rights": "Community-submitted LaunchBox screenshot. Rights to copy or hotlink have not been independently granted; original source link is provided.",
           "visual_review": "source_page_and_gameplay_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/nba-live-99/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "nba-2000",
@@ -511,12 +547,14 @@
           "attribution": "16bit.pl screenshot via AbandonwareGames — NBA Live 2000",
           "rights": "Reuse terms not independently confirmed. Link to original is provided; do not redistribute without permission.",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/nba-live-2000/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "nba-2001",
@@ -540,12 +578,14 @@
           "attribution": "GameFabrique — NBA Live 2001 PlayStation 2 gameplay",
           "rights": "Limited credited MobyGames screenshot reuse is described in their FAQ; original rights remain with copyright holders. GameFabrique reuse terms unconfirmed.",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/nba-live-2001/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "nba-2002",
@@ -569,12 +609,14 @@
           "attribution": "LaunchBox Games Database · NBA Live 2002 · Xbox · Screenshot – Gameplay",
           "rights": "Community-submitted LaunchBox screenshot. Rights to copy or hotlink have not been independently granted; original source link is provided.",
           "visual_review": "source_page_and_gameplay_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/nba-live-2002/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "nba-2003",
@@ -598,8 +640,10 @@
           "attribution": "PS2Home archive · NBA Live 2003 · PS2 gameplay",
           "rights": "Image copyright and source-site embedding/reproduction permission are not independently established. Critical visual research only; original source linked.",
           "visual_review": "source_page_and_gameplay_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         },
         {
           "platform": "PlayStation",
@@ -608,12 +652,14 @@
           "attribution": "LaunchBox Games Database · NBA Live 2003 · PlayStation gameplay",
           "rights": "Image copyright and source-site embedding/reproduction permission are not independently established. Critical visual research only; original source linked.",
           "visual_review": "source_page_and_gameplay_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/nba-live-2003/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "nba-2004",
@@ -637,12 +683,14 @@
           "attribution": "MobyGames — NBA Live 2004 Windows McGrady shot contest",
           "rights": "Limited credited MobyGames screenshot reuse is described in their FAQ; original rights remain with copyright holders. GameFabrique reuse terms unconfirmed.",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/nba-live-2004/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "nba-2005",
@@ -666,12 +714,14 @@
           "attribution": "GameFabrique — NBA Live 2005 Xbox gameplay",
           "rights": "Reuse terms not independently confirmed. Link to original is provided; do not redistribute without permission.",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/nba-live-2005/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "madden-94",
@@ -695,12 +745,14 @@
           "attribution": "GameFabrique — Madden NFL '94 SNES gameplay",
           "rights": "third-party rights not documented",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/madden-nfl-94/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "madden-95",
@@ -724,12 +776,14 @@
           "attribution": "LaunchBox Games Database · Madden NFL 95 · Genesis · Screenshot – Gameplay",
           "rights": "Community-submitted LaunchBox screenshot. Rights to copy or hotlink have not been independently granted; original source link is provided.",
           "visual_review": "source_page_and_gameplay_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/madden-nfl-95/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "madden-96",
@@ -753,12 +807,14 @@
           "attribution": "Vizzed — Madden NFL 96 Genesis gameplay",
           "rights": "third-party rights not documented",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/madden-nfl-96/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "madden-97",
@@ -782,12 +838,14 @@
           "attribution": "GameFabrique — Madden NFL 97 Genesis gameplay",
           "rights": "third-party rights not documented",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/madden-nfl-97/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "madden-98",
@@ -811,12 +869,14 @@
           "attribution": "Gaming Respawn — Madden NFL 98 PlayStation review",
           "rights": "third-party rights not documented",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/madden-nfl-98/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "madden-99",
@@ -840,12 +900,14 @@
           "attribution": "LaunchBox Games Database · Madden NFL 99 · PlayStation · Screenshot – Gameplay",
           "rights": "Community-submitted LaunchBox screenshot. Rights to copy or hotlink have not been independently granted; original source link is provided.",
           "visual_review": "source_page_and_gameplay_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/madden-nfl-99/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "madden-2000",
@@ -869,12 +931,14 @@
           "attribution": "LaunchBox Games Database · Madden NFL 2000 · PlayStation · Screenshot – Gameplay",
           "rights": "Community-submitted LaunchBox screenshot. Rights to copy or hotlink have not been independently granted; original source link is provided.",
           "visual_review": "source_page_and_gameplay_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/madden-nfl-2000/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "madden-2001",
@@ -898,12 +962,14 @@
           "attribution": "LaunchBox Games Database · Madden NFL 2001 · PlayStation · Screenshot – Gameplay",
           "rights": "Community-submitted LaunchBox screenshot. Rights to copy or hotlink have not been independently granted; original source link is provided.",
           "visual_review": "source_page_and_gameplay_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/madden-nfl-2001/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "madden-2002",
@@ -927,8 +993,10 @@
           "attribution": "LaunchBox Games Database · Madden NFL 2002 · Windows · Gameplay",
           "rights": "Image copyright and source-site embedding/reproduction permission are not independently established. Critical visual research only; original source linked.",
           "visual_review": "source_page_and_gameplay_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         },
         {
           "platform": "PlayStation 2",
@@ -937,12 +1005,14 @@
           "attribution": "PS2Home archive · Madden NFL 2002 · PS2 gameplay",
           "rights": "Image copyright and source-site embedding/reproduction permission are not independently established. Critical visual research only; original source linked.",
           "visual_review": "source_page_and_gameplay_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/madden-nfl-2002/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "madden-2003",
@@ -966,8 +1036,10 @@
           "attribution": "LaunchBox Games Database · Madden NFL 2003 · PS2 gameplay",
           "rights": "Image copyright and source-site embedding/reproduction permission are not independently established. Critical visual research only; original source linked.",
           "visual_review": "source_page_and_gameplay_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         },
         {
           "platform": "Windows",
@@ -976,12 +1048,14 @@
           "attribution": "MobyGames — Madden NFL 2003 Windows game screenshot",
           "rights": "Limited credited MobyGames screenshot reuse is described in their FAQ; original rights remain with copyright holders. GameFabrique reuse terms unconfirmed.",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/madden-nfl-2003/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     },
     {
       "id": "madden-2004",
@@ -1005,12 +1079,14 @@
           "attribution": "WSGF — Madden NFL 2004 PC gameplay",
           "rights": "Reuse terms not independently confirmed. Link to original is provided; do not redistribute without permission.",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "not_tested",
-          "verification_status": "source_checked_browser_pending"
+          "browser_render": "loaded_chromium_2026-11-23",
+          "verification_status": "source_and_browser_checked",
+          "verified_at_utc": "2026-11-23",
+          "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
         }
       ],
       "source_gallery": "https://gamefabrique.com/games/madden-nfl-2004/",
-      "screenshot_verification_status": "source_checked_not_browser_verified"
+      "screenshot_verification_status": "source_and_browser_checked"
     }
   ],
   "verified_source_reviews": "12 LaunchBox additions checked by opening platform-specific image gallery and direct gameplay image; earlier source records remain pending retrospective audit.",
@@ -1019,6 +1095,25 @@
     "sourced_annual_titles": 33,
     "recorded_gameplay_references": 38,
     "unresolved_source_entries": 0,
-    "browser_verified_references": 0
+    "browser_verified_references": 38,
+    "browser_broken_references": 0
+  },
+  "browser_verification": {
+    "date": "2026-11-23",
+    "engine": "Playwright Chromium on ubuntu-24.04",
+    "run_id": 45246934268,
+    "run_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268",
+    "artifact_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268/artifacts/14853508431",
+    "tested_primary_images": 33,
+    "tested_platform_variants": 5,
+    "tested_images_total": 38,
+    "loaded_images": 38,
+    "browser_js_errors": 0,
+    "desktop_viewport": "1440x900",
+    "mobile_viewport": "390x844",
+    "all_game_cards_present": true,
+    "all_filters_passed": true,
+    "comparison_passed": true,
+    "mobile_overflow": false
   }
 }

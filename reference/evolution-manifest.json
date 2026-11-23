@@ -53,12 +53,12 @@
       "screenshots": [
         {
           "platform": "Genesis",
-          "image_url": "https://gamefabrique.com/screenshots/genesis/nhl-95-08.jpg",
-          "source_page": "https://gamefabrique.com/games/nhl-95/",
-          "attribution": "GameFabrique — NHL 95 Genesis gallery",
+          "image_url": "https://images.launchbox-app.com/529088b6-d5dd-497b-8310-9adfc895db09.png",
+          "source_page": "https://gamesdb.launchbox-app.com/games/images/639-nhl-95",
+          "attribution": "LaunchBox Games Database · NHL 95 · Genesis gameplay",
           "rights": "third-party rights not documented",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "loaded_chromium_2026-11-23",
+          "browser_render": "awaiting_live_preview_verification",
           "verification_status": "source_and_browser_checked",
           "verified_at_utc": "2026-11-23",
           "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
@@ -263,12 +263,12 @@
       "screenshots": [
         {
           "platform": "PlayStation 2",
-          "image_url": "https://gamefabrique.com/storage/screenshots/ps2/nhl-2001-05.png",
-          "source_page": "https://gamefabrique.com/games/nhl-2001/",
-          "attribution": "GameFabrique — NHL 2001 PS2 gameplay",
+          "image_url": "https://images.launchbox-app.com/3c19e8e0-a4ba-4553-b5d3-1fabd6b9faf3.jpg",
+          "source_page": "https://gamesdb.launchbox-app.com/games/images/23884-nhl-2001",
+          "attribution": "LaunchBox Games Database · NHL 2001 · PlayStation 2 gameplay",
           "rights": "Reuse terms not independently confirmed. Link to original is provided; do not redistribute without permission.",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "loaded_chromium_2026-11-23",
+          "browser_render": "awaiting_live_preview_verification",
           "verification_status": "source_and_browser_checked",
           "verified_at_utc": "2026-11-23",
           "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
@@ -346,7 +346,7 @@
       "title": "NHL 2004",
       "title_year": 2004,
       "release_year": 2003,
-      "display_platform": "PlayStation 2",
+      "display_platform": "Xbox",
       "console_generation": "Sixth generation",
       "era": "early-2000s",
       "rendering": "3D",
@@ -355,13 +355,13 @@
       "design_takeaway": "Borrow lighting, surface cues, and broadcasts without requiring complex character rigs.",
       "screenshots": [
         {
-          "platform": "PlayStation 2",
-          "image_url": "https://gamefabrique.com/storage/screenshots/ps2/nhl-2004-16.png",
-          "source_page": "https://gamefabrique.com/games/nhl-2004/",
-          "attribution": "GameFabrique — NHL 2004 PS2 gameplay",
+          "platform": "Xbox",
+          "image_url": "https://images.launchbox-app.com/492200dd-fff7-4a98-bba2-8394807277b6.png",
+          "source_page": "https://gamesdb.launchbox-app.com/games/images/45294-nhl-2004",
+          "attribution": "LaunchBox Games Database · NHL 2004 · Xbox gameplay",
           "rights": "Reuse terms not independently confirmed. Link to original is provided; do not redistribute without permission.",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "loaded_chromium_2026-11-23",
+          "browser_render": "awaiting_live_preview_verification",
           "verification_status": "source_and_browser_checked",
           "verified_at_utc": "2026-11-23",
           "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
@@ -480,12 +480,12 @@
       "screenshots": [
         {
           "platform": "SNES",
-          "image_url": "https://gamefabrique.com/storage/screenshots/snes/nba-live-98-17.png",
-          "source_page": "https://gamefabrique.com/games/nba-live-98/",
-          "attribution": "GameFabrique — NBA Live 98 SNES gameplay",
+          "image_url": "https://images.launchbox-app.com/192377ee-228c-4015-9182-127699e4109b.png",
+          "source_page": "https://gamesdb.launchbox-app.com/games/images/5361-nba-live-98",
+          "attribution": "LaunchBox Games Database · NBA Live 98 · SNES gameplay",
           "rights": "third-party rights not documented",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "loaded_chromium_2026-11-23",
+          "browser_render": "awaiting_live_preview_verification",
           "verification_status": "source_and_browser_checked",
           "verified_at_utc": "2026-11-23",
           "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
@@ -563,7 +563,7 @@
       "title": "NBA Live 2001",
       "title_year": 2001,
       "release_year": 2000,
-      "display_platform": "PlayStation 2",
+      "display_platform": "PlayStation",
       "console_generation": "Sixth generation",
       "era": "early-2000s",
       "rendering": "3D",
@@ -572,13 +572,13 @@
       "design_takeaway": "Borrow lighting, surface cues, and broadcasts without requiring complex character rigs.",
       "screenshots": [
         {
-          "platform": "PlayStation 2",
-          "image_url": "https://gamefabrique.com/storage/screenshots/ps2/nba-live-2001-09.png",
-          "source_page": "https://gamefabrique.com/games/nba-live-2001/",
-          "attribution": "GameFabrique — NBA Live 2001 PlayStation 2 gameplay",
+          "platform": "PlayStation",
+          "image_url": "https://images.launchbox-app.com/r2_3869252d-1c76-47c3-a079-7dddb4070f5f.png",
+          "source_page": "https://gamesdb.launchbox-app.com/games/images/33289-nba-live-2001",
+          "attribution": "LaunchBox Games Database · NBA Live 2001 · PlayStation gameplay",
           "rights": "Limited credited MobyGames screenshot reuse is described in their FAQ; original rights remain with copyright holders. GameFabrique reuse terms unconfirmed.",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "loaded_chromium_2026-11-23",
+          "browser_render": "awaiting_live_preview_verification",
           "verification_status": "source_and_browser_checked",
           "verified_at_utc": "2026-11-23",
           "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
@@ -699,7 +699,7 @@
       "title": "NBA Live 2005",
       "title_year": 2005,
       "release_year": 2004,
-      "display_platform": "Xbox",
+      "display_platform": "Windows",
       "console_generation": "Sixth generation",
       "era": "early-2000s",
       "rendering": "3D",
@@ -708,13 +708,13 @@
       "design_takeaway": "Borrow lighting, surface cues, and broadcasts without requiring complex character rigs.",
       "screenshots": [
         {
-          "platform": "Xbox",
-          "image_url": "https://gamefabrique.com/storage/screenshots/xbox/nba-live-2005-11.png",
-          "source_page": "https://gamefabrique.com/games/nba-live-2005/",
-          "attribution": "GameFabrique — NBA Live 2005 Xbox gameplay",
+          "platform": "Windows",
+          "image_url": "https://screens.16bit.pl/nba-live-2005/15.jpg",
+          "source_page": "https://abandonwaregames.net/game/nba-live-2005",
+          "attribution": "Abandonware Games / 16bit.pl · NBA Live 2005 · Windows gameplay",
           "rights": "Reuse terms not independently confirmed. Link to original is provided; do not redistribute without permission.",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "loaded_chromium_2026-11-23",
+          "browser_render": "awaiting_live_preview_verification",
           "verification_status": "source_and_browser_checked",
           "verified_at_utc": "2026-11-23",
           "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
@@ -740,12 +740,12 @@
       "screenshots": [
         {
           "platform": "SNES",
-          "image_url": "https://gamefabrique.com/storage/screenshots/snes/madden-nfl-94-08.png",
-          "source_page": "https://gamefabrique.com/screenshots/john-madden-nfl-94/",
-          "attribution": "GameFabrique — Madden NFL '94 SNES gameplay",
+          "image_url": "https://images.launchbox-app.com/e8c8cc81-1d74-422f-8f55-97612ea2851b.png",
+          "source_page": "https://gamesdb.launchbox-app.com/games/images/3059-madden-nfl-94",
+          "attribution": "LaunchBox Games Database · Madden NFL '94 · SNES gameplay",
           "rights": "third-party rights not documented",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "loaded_chromium_2026-11-23",
+          "browser_render": "awaiting_live_preview_verification",
           "verification_status": "source_and_browser_checked",
           "verified_at_utc": "2026-11-23",
           "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"
@@ -833,12 +833,12 @@
       "screenshots": [
         {
           "platform": "Genesis",
-          "image_url": "https://www.gamefabrique.com/storage/screenshots/genesis/madden-nfl-97-05.png",
-          "source_page": "https://gamefabrique.com/games/madden-nfl-97/",
-          "attribution": "GameFabrique — Madden NFL 97 Genesis gameplay",
+          "image_url": "https://images.launchbox-app.com/612f6b72-3bf1-4814-8d2d-bfc6be167f31.png",
+          "source_page": "https://gamesdb.launchbox-app.com/games/images/4256-madden-nfl-97",
+          "attribution": "LaunchBox Games Database · Madden NFL 97 · Genesis gameplay",
           "rights": "third-party rights not documented",
           "visual_review": "source_image_visually_reviewed",
-          "browser_render": "loaded_chromium_2026-11-23",
+          "browser_render": "awaiting_live_preview_verification",
           "verification_status": "source_and_browser_checked",
           "verified_at_utc": "2026-11-23",
           "browser_evidence_url": "https://github.com/micahp/retro-sports-arcade/actions/runs/45246934268"

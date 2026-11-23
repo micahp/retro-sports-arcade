@@ -2,7 +2,7 @@ name: Verify EA evolution exhibit
 on:
   push:
     branches: [feat/hockey-arcade-vertical-slice]
-    paths: ['reference/evolution.html', 'reference/evolution-manifest.json', 'reference/verify-evolution.cjs', '.github/workflows/verify-evolution.yml']
+    paths: ['index.html', 'reference/evolution.html', 'reference/evolution-manifest.json', 'reference/verify-evolution.cjs', '.github/workflows/verify-evolution.yml']
   workflow_dispatch:
 concurrency:
   group: ea-evolution-browser-${{ github.ref }}
@@ -31,6 +31,11 @@ jobs:
           echo "Preview URL $url returned HTTP $status"
           test "$status" = "200"
           grep -q "From" /tmp/public-gallery.html
+          homepage="https://raw.githack.com/micahp/retro-sports-arcade/feat/hockey-arcade-vertical-slice/index.html"
+          status=$(curl --connect-timeout 10 --max-time 30 -sS -L -o /tmp/public-home.html -w "%{http_code}" "$homepage")
+          echo "Main page $homepage returned HTTP $status"
+          test "$status" = "200"
+          grep -q "33 games" /tmp/public-home.html
       - name: Upload desktop/mobile screenshots and source audit
         if: always()
         uses: actions/upload-artifact@v4
@@ -38,6 +43,7 @@ jobs:
           name: ea-evolution-browser-evidence
           path: |
             reference/evidence/
+            index.html
             reference/evolution.html
             reference/evolution-manifest.json
           if-no-files-found: warn

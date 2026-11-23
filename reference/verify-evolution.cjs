@@ -257,4 +257,4 @@ const wait=(ms)=>new Promise(r=>setTimeout(r,ms));
  await browser.close();
  // Missing sources are documented research gaps, not automatically a test failure.
  if(report.browser_failed_or_blocked || report.all_capture_failed) { console.error('Browser failed to render some traced images. See reference/evidence/browser-report.json');process.exitCode=1; }
-})().catch(e=>{console.error(e);process.exitCode=1}).finally(()=>server.close());
+})().catch(e=>{console.error(e);server.close();process.exit(1)}).finally(()=>server.close());

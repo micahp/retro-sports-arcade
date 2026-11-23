@@ -1,0 +1,85 @@
+{
+  "schema_version": "reuse-manifest.v1",
+  "entry": "the-u-basketball-motion-reference",
+  "recorded": "2026-11-23",
+  "status": "reference",
+  "status_note": "Reference evidence only. Nothing here is a validated runtime animation. Do not promote to imported/validated without the integration gate (docs/CROSS-PROJECT-INTEGRATION.md).",
+  "source": {
+    "repository": "micahp/college-sports-rpg",
+    "branch": "docs/basketball-motion-library",
+    "commit": "03439a99bde9f6e7cf8c4742c8a5b4caddb5c4d9",
+    "merged_into_dev": false,
+    "paths": {
+      "action_map": "docs/animation/BASKETBALL_LIBRARY.md",
+      "joint_ownership": "docs/animation/OWNERSHIP.md",
+      "reference_registry": "data/animation/basketball_references.json",
+      "pose_sample_readme": "docs/animation/samples/real-clip-pose/README.md",
+      "pose_sample_video": "docs/animation/samples/real-clip-pose/pose_skeleton_sample.mp4",
+      "pose_sample_json": [
+        "docs/animation/samples/real-clip-pose/booker_0000_jump_shot_pose.json",
+        "docs/animation/samples/real-clip-pose/outlet_pass_G2LZwYgZMZo_147_pose.json"
+      ],
+      "clip_sources": "docs/animation/samples/real-clip-pose/CLIP_SOURCES.json",
+      "tools": [
+        "tools/reference/time_index.py",
+        "tools/reference/cut_refs.py",
+        "tools/reference/batch_pose.py",
+        "tools/reference/noise_stats.py",
+        "tools/reference/skeleton_reel.py",
+        "tools/reference/clip_sources.py"
+      ]
+    }
+  },
+  "what_is_in_git": "Taxonomy, registry (97 timestamped segments with phase notes), source links for all 201 clips, two raw pose JSONs, a footage-free stick-figure video, noise report, scripts.",
+  "what_is_not_in_git": "The 201 video clips and 199 of the 201 pose JSONs. They are local only (E:/motion-reference/basketball/clips/<action>/) because the footage is third-party broadcast video. Regenerate from CLIP_SOURCES.json plus the tools.",
+  "coverage": {
+    "sport": "basketball",
+    "actions": 33,
+    "clips": 201,
+    "thin_actions_one_clip": ["contest", "dribble_run", "free_throw", "high_five", "post_defense", "rebound_offensive", "triple_threat_jab"],
+    "not_covered": ["foul_reaction"]
+  },
+  "data_format": {
+    "pose_model": "Ultralytics YOLO11s-pose + ByteTrack, conf 0.3, CPU",
+    "keypoints": "COCO-17 [x, y, conf]",
+    "dimensionality": "2D image space only, no depth",
+    "units": {
+      "position": "pixels in the source video frame (NOT meters; contract units do not apply without a camera model)",
+      "time": "seconds from clip start; fps stored per file (clips above 45 fps are halved)"
+    },
+    "people_per_frame": "all detections, sorted by box area; track id -1 means detected but not tracked"
+  },
+  "measured_quality": {
+    "method": "tools/reference/noise_stats.py on all 201 clips; main player = largest box per frame",
+    "main_player_id_switch_rate": "0.1%-20.6% of frames by action, ~10% typical (inflated by camera cuts and the largest player changing)",
+    "wrist_jitter_pct_body_height_per_frame": "1.0 (steady free throw, the floor) to 6.5 (hook shot)",
+    "low_confidence_keypoints": "18%-54% by action; worst on catch, dribble_stationary, post_defense, celebration (occlusion)",
+    "frames_with_no_detection": "0%-19% by action",
+    "slow_motion_sources": "Phantom replays (~0.28x, see registry playback_speed) give pose order but NOT timing"
+  },
+  "fit_for_arcade_use": {
+    "yes": [
+      "action taxonomy and phase names (anticipate/execute/contact/recover mapping)",
+      "phase timing and object-event timing (release frame, plant frame, catch) from real-speed clips, with frame-read confirmation",
+      "acceptance references: the rendered action should be compared against the linked real clip"
+    ],
+    "no": [
+      "driving a rig directly (2D, noisy, identity switches)",
+      "durations from slow-motion sources without the playback_speed correction",
+      "any redistribution of the footage"
+    ]
+  },
+  "rights": "Footage: third-party (YouTube standard licence, one Wikimedia Commons source). Links and timestamps only; never commit or ship clips or frames. Pose keypoints are derived measurements kept for internal research; do not ship them as game assets without review.",
+  "known_failures_to_carry_over": [
+    "The U OWNERSHIP.md: four layers rewrite the shooter's arms on the jump shot (arm IK, hand_aim, elbow_hinge, arm_clearance).",
+    "torso_posture fixes some folded retargets and damages others.",
+    "Rebound: no verified load/jump/land/box-out sequence.",
+    "Validation lesson: judge poses on the rendered mesh, never on the stick figure or joint numbers; judge motion from consecutive frames, never sampled stills."
+  ],
+  "regenerate": [
+    "for each clip in CLIP_SOURCES.json: fetch the source, cut at the timestamp (tools/reference/cut_refs.py for registry segments)",
+    "python tools/reference/batch_pose.py",
+    "python tools/reference/noise_stats.py",
+    "python tools/reference/skeleton_reel.py out.mp4 <clip>_pose.json ..."
+  ]
+}

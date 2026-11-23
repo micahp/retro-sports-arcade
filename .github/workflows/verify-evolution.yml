@@ -4,9 +4,14 @@ on:
     branches: [feat/hockey-arcade-vertical-slice]
     paths: ['reference/evolution.html', 'reference/evolution-manifest.json', 'reference/verify-evolution.cjs', '.github/workflows/verify-evolution.yml']
   workflow_dispatch:
+concurrency:
+  group: ea-evolution-browser-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   browser-verify:
     runs-on: ubuntu-24.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.56.1-noble
     permissions:
       contents: read
     timeout-minutes: 20
@@ -16,7 +21,6 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-save playwright@1.56.1
-      - run: npx playwright install --with-deps chromium webkit
       - name: Test exhibit and capture screenshots
         run: node reference/verify-evolution.cjs
       - name: Check shareable preview URL

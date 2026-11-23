@@ -11,7 +11,13 @@ const $ = (id) => document.getElementById(id);
 const status = (s) => { $('loading').textContent = s; };
 const nextFrame = () => new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
 
+// show any failure on the page itself, so a phone user can read it
+const showErr = (msg) => { const el = $('loading'); el.hidden = false; el.textContent = 'Error: ' + msg; };
+addEventListener('error', (e) => showErr(e.message + (e.lineno ? ` (line ${e.lineno})` : '')));
+addEventListener('unhandledrejection', (e) => showErr(String((e.reason && e.reason.message) || e.reason)));
+
 async function boot() {
+  if (!document.createElement('canvas').getContext('webgl2')) { showErr('this browser has no WebGL 2, which renderers B and C need.'); return; }
   status('Voxelising the skater: 6 hockey actions…'); await nextFrame();
   const VOX = 0.03;
   const bake = bakeAll(VOX, HOCKEY_KEYS);

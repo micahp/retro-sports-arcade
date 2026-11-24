@@ -68,8 +68,14 @@ export const LINEUPS = {
   6: ['LW', 'C', 'RW', 'LD', 'RD', 'X'],   // extra attacker, goalie pulled
 };
 export const MODES = {
+  // NHL 95 rules profile (manual p. 6-7; emulator pilot, research/nhl95-reference-study/STUDY.md §3a):
+  // period length is only the clock, so events accumulate with play (no compression); a minor is a fixed
+  // 2:00 of game clock at any period length; regular-season OT is one 10-minute 5-on-5 sudden-death
+  // period, and a game still tied after it is a tie (no shootout).
+  nhl95: { label: 'NHL 95 rules', skaters: [5, 5], periods: 3, periodSec: 600, periodOptions: [300, 600, 1200], ot: 'ot95', goalies: [true, true], penalties: true, penaltyScale: 'fixed' },
+  ot95: { label: 'Overtime 5 on 5', banner: 'OVERTIME', skaters: [5, 5], periods: 1, periodSec: 600, suddenDeath: true, goalies: [true, true], penaltyScale: 'fixed', keepBox: true },   // same 5 on 5: penalties carry into OT
   regulation: { label: 'Regulation 5 on 5', skaters: [5, 5], periods: 3, periodSec: 180, ot: 'ot3', goalies: [true, true], penalties: true },
-  ot3: { label: 'Overtime 3 on 3', skaters: [3, 3], periods: 1, periodSec: 300, suddenDeath: true, then: 'shootout', goalies: [true, true] },
+  ot3: { label: 'Overtime 3 on 3', banner: 'OVERTIME 3 ON 3', skaters: [3, 3], periods: 1, periodSec: 300, suddenDeath: true, then: 'shootout', goalies: [true, true] },
   pp: { label: 'Power play 5 on 4', skaters: [5, 4], periods: 1, periodSec: 120, goalies: [true, true], penalties: true },
   en: { label: 'Empty net 6 on 5', skaters: [6, 5], periods: 1, periodSec: 90, goalies: [false, true] },
   shootout: { label: 'Shootout', shootout: true, rounds: 3 },

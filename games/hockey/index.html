@@ -74,14 +74,15 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--kick); outl
     <h1>RINK <b>'95</b></h1>
     <p>Arcade hockey, five on five. You play the blue Harbor skater with the yellow ring; control follows the puck.</p>
     <div class="modes">
-      <button type="button" class="main" data-mode="regulation">Regulation<small>5 on 5 · three 3-minute periods · 3-on-3 overtime, then a shootout</small></button>
+      <button type="button" class="main" data-mode="nhl95">NHL 95 rules<small>5 on 5 · three periods (length below) · 2:00 minors · 10-minute 5-on-5 overtime, then a tie</small></button>
+      <button type="button" data-mode="regulation">Quick game<small>5 on 5 · three 3-minute periods · 3-on-3 overtime, then a shootout</small></button>
       <button type="button" data-mode="ot3">Overtime<small>3 on 3 · sudden death · then a shootout</small></button>
       <button type="button" data-mode="pp">Power play<small>5 on 4 for two minutes</small></button>
       <button type="button" data-mode="en">Empty net<small>6 on 5 · your goalie pulled</small></button>
       <button type="button" data-mode="shootout">Shootout<small>best of three</small></button>
       <button type="button" id="openLab">Puck lab<small>nine puck tests, run on this phone, with replays</small></button>
     </div>
-    <div class="row"><label><input type="checkbox" id="penT" checked> Penalties</label><label><input type="checkbox" id="dbgT"> Debug view: puck trail, shots, saves, hits, posts</label></div>
+    <div class="row"><label>Periods <select id="perSel"><option value="300">5 min</option><option value="600" selected>10 min</option><option value="1200">20 min</option></select></label><label><input type="checkbox" id="penT" checked> Penalties</label><label><input type="checkbox" id="dbgT"> Debug view: puck trail, shots, saves, hits, posts</label></div>
     <p class="keys">With the puck: PASS, SHOOT (tap for a wrist shot, hold for a slap shot). Without it: SWITCH to the skater nearest the puck, CHECK (skate into him for a hit; slow and close is a poke check). Push the stick hard against your direction to stop. Keyboard: WASD, J, K.</p>
   </div>
 

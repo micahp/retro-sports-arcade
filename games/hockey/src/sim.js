@@ -14,8 +14,11 @@ const NUMS = { LW: 19, C: 9, RW: 27, LD: 4, RD: 44, X: 14, G: 31 };
 
 export function createGame(modeKey = 'regulation', seed = 'rink-95', opts = {}) {
   const mode = MODES[modeKey];
+  // opts.periodSec picks one of the mode's periodOptions (NHL 95 rules: 5, 10 or 20 minutes)
+  if (opts.periodSec != null && !(mode.periodOptions || []).includes(opts.periodSec)) throw new Error(`period length ${opts.periodSec} s is not an option of ${modeKey}`);
+  const periodSec = opts.periodSec ?? mode.periodSec;
   const S = {
-    R: rng(seed), mode, modeKey, t: 0, period: 1, clock: mode.periodSec || 0, score: [0, 0],
+    R: rng(seed), mode, modeKey, t: 0, period: 1, clock: periodSec || 0, periodSec, score: [0, 0],
     phase: 'faceoff', phaseT: 0, skaters: [], puck: makePuck(), user: null, userTeam: opts.userTeam ?? 0,
     log: [], events: [], stats: [0, 1].map(() => ({ shots: 0, saves: 0, goals: 0, passes: 0, passesDone: 0, intercepts: 0, hits: 0 })),
     touch: 0, faceSpot: { x: 0, z: 0 }, banner: '', debug: { trails: [], marks: [] }, shootout: null, auto: !!opts.auto,
@@ -440,7 +443,7 @@ function afterWhistle(S) {
   if (S.mode.lab) { S.phase = 'play'; return; }
   if (w.kind === 'goal' && S.mode.suddenDeath) return endGame(S);
   if (S.phase === 'intermission') {
-    if (S.nextMode) { const m = MODES[S.nextMode]; S.mode = m; S.modeKey = S.nextMode; S.nextMode = null; clearBox(S, 'format-change'); if (m.shootout) return startShootout(S); setLineups(S, m.skaters, m.goalies); S.clock = m.periodSec; }
+    if (S.nextMode) { const m = MODES[S.nextMode]; S.mode = m; S.modeKey = S.nextMode; S.nextMode = null; if (!m.keepBox) clearBox(S, 'format-change'); if (m.shootout) return startShootout(S); if (!m.keepBox) setLineups(S, m.skaters, m.goalies); S.clock = m.periodSec; }
     return faceoffAt(S, 0, 0);
   }
   if (w.kind === 'freeze') { const side = Math.sign(w.x) || 1; return faceoffAt(S, side * RINK.dotX, (S.R() < 0.5 ? 1 : -1) * RINK.dotZ); }
@@ -449,15 +452,15 @@ function afterWhistle(S) {
 }
 function endPeriod(S) {
   log(S, 'periodEnd', { period: S.period, score: [...S.score] });
-  if (S.period < S.mode.periods) { S.period++; S.clock = S.mode.periodSec; S.phase = 'intermission'; S.phaseT = 0; S.banner = `END OF PERIOD ${S.period - 1}`; S.whistleFor = {}; return; }
-  if (S.score[0] === S.score[1] && S.mode.ot) { S.nextMode = S.mode.ot; S.period++; S.phase = 'intermission'; S.phaseT = 0; S.banner = 'OVERTIME 3 ON 3'; S.whistleFor = {}; return; }
+  if (S.period < S.mode.periods) { S.period++; S.clock = S.periodSec; S.phase = 'intermission'; S.phaseT = 0; S.banner = `END OF PERIOD ${S.period - 1}`; S.whistleFor = {}; return; }
+  if (S.score[0] === S.score[1] && S.mode.ot) { S.nextMode = S.mode.ot; S.period++; S.phase = 'intermission'; S.phaseT = 0; S.banner = MODES[S.mode.ot].banner; S.whistleFor = {}; return; }
   if (S.score[0] === S.score[1] && S.mode.then) { S.nextMode = S.mode.then; S.phase = 'intermission'; S.phaseT = 0; S.banner = 'SHOOTOUT'; S.whistleFor = {}; return; }
   endGame(S);
 }
-function endGame(S) { S.phase = 'final'; S.phaseT = 0; S.banner = `FINAL ${TEAMS[0].short} ${S.score[0]} – ${S.score[1]} ${TEAMS[1].short}`; log(S, 'final', { score: [...S.score] }); }
+function endGame(S) { S.phase = 'final'; S.phaseT = 0; S.banner = `FINAL${S.score[0] === S.score[1] ? ' · TIE' : ''} ${TEAMS[0].short} ${S.score[0]} – ${S.score[1]} ${TEAMS[1].short}`; log(S, 'final', { score: [...S.score] }); }
 
 // ---------------------------------------------------------------- penalties
-export const penaltySeconds = (S) => PENALTY.minorSec * (PENALTY.scale === 'proportional' ? (S.mode.periodSec || 1200) / 1200 : 1);
+export const penaltySeconds = (S) => PENALTY.minorSec * ((S.mode.penaltyScale || PENALTY.scale) === 'proportional' ? (S.mode.periodSec || 1200) / 1200 : 1);
 const onIce = (S, team) => S.skaters.filter((p) => p.team === team && !p.isG && !p.benched).length;
 const hasGoalie = (S, team) => S.skaters.some((p) => p.team === team && p.isG);
 function updateManpower(S) { S.manpower = [onIce(S, 0), onIce(S, 1)]; }

@@ -26,7 +26,9 @@ async function boot() {
 
 function start(mode) {
   replay = null;
-  S = createGame(mode, 'game-' + Date.now(), { auto: false, penalties: $('penT').checked });
+  const opts = { auto: false, penalties: $('penT').checked };
+  if (MODES[mode].periodOptions) opts.periodSec = Number($('perSel').value);
+  S = createGame(mode, 'game-' + Date.now(), opts);
   paused = false; $('menu').hidden = true; $('lab').hidden = true; $('hud').hidden = false; controls(true);
 }
 

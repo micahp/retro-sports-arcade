@@ -117,18 +117,20 @@ function pause() {
   paused = true; controls(false);
   $('pausedScore').textContent = `${TEAMS[0].short} ${S.score[0]} – ${S.score[1]} ${TEAMS[1].short} · ${$('per').textContent} ${$('clock').textContent}`;
   $('paused').hidden = false;
+  $('pause').textContent = '▶ Play'; $('pause').setAttribute('aria-label', 'Play');
 }
 function resume() {
   if (!S || $('paused').hidden) return;
   $('paused').hidden = true; controls(true); last = performance.now(); acc = 0; paused = false;
+  $('pause').textContent = '❚❚ Pause'; $('pause').setAttribute('aria-label', 'Pause');
 }
 const controls = (on) => { $('stick').hidden = !on; document.querySelector('.acts').hidden = !on; };
 function wire() {
   controls(false);
   for (const b of document.querySelectorAll('[data-mode]')) b.onclick = () => start(b.dataset.mode);
-  $('pause').onclick = pause;
+  $('pause').onclick = () => ($('paused').hidden ? pause() : resume());   // one button: Pause / Play
   $('resume').onclick = resume;
-  $('quit').onclick = () => { $('paused').hidden = true; $('hud').hidden = true; $('menu').hidden = false; S.auto = true; };
+  $('quit').onclick = () => { $('paused').hidden = true; $('hud').hidden = true; $('menu').hidden = false; S.auto = true; $('pause').textContent = '❚❚ Pause'; };
   document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });   // switching apps on a phone pauses
   $('again').onclick = () => { $('again').hidden = true; paused = true; $('menu').hidden = false; S.auto = true; };
   $('dbgT').onchange = (e) => { debug = e.target.checked; $('dbg').hidden = !debug; };

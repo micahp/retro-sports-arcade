@@ -205,6 +205,25 @@ No fighting, majors or penalty shots appeared in the 30 games.
 
 Icing, offside and goalie-hold whistles go through the same stoppage routine as penalties, but aren't logged (0 minutes). Counting them needs a hook on that routine; see the capture notes.
 
+## 3b. What else the emulator can capture (2026-11-23)
+
+`tools/record2.lua` reads RAM only. It was tested on one seeded 5-minute game (seed for k = 1), which reproduced the pilot result exactly (VAN 1–0, shots 17–10).
+
+| Measure | How | Status |
+|---|---|---|
+| **Player and puck trajectories** | 16 objects of 128 bytes at `$FFAC62` (home 0–5, away 6–11, puck 14); x at +0, y at +$14. Sampled every 6 frames (10 Hz): 6,567 samples, about 0.9 MB per 5-minute-period game | ✅ works |
+| **Possession changes** | puck carrier `$FFB3C2` (negative = loose), every change, with puck position | ✅ works: 414 changes in the test game |
+| **Faceoffs** | clock restart (bit 0 of the high byte of `gmode`, `$FFBEF0`), with the drop position | ✅ works: 20 in a 15-minute game (about 80 per 60 game-min; NHL 56.6) |
+| **Stoppages** | clock stop, same bit | ✅ count works |
+| **Stoppage cause** (icing, offside, goalie hold, penalty) | `RefPen` read at the stop | ⚠️ **unreliable**: most stops read the generic whistle code. Needs an execute hook on the stoppage routine (BizHawk `event.onmemoryexecute`) with its ROM address from the project's build map |
+| **Shot release location** | on each shots-counter increase, the newest frame in the previous 2 s where the loose puck's speed jumped: position, velocity, carrier just before | ✅ found for 26/27 shots. 23/26 head toward the attacked goal (the other 3 to check frame by frame); median about 26 ft |
+| **Shot type, shooter, outcome** | carrier before release gives the shooter; outcome from goal log, goalie contact or freeze | partly: shooter yes; outcome needs linking to the goal log and freeze events |
+| **Hits and checks** | animation id per player (`SPA` at +$58) | not yet: possible from the trajectory sampler by logging animation changes |
+
+**Data sizes:** about 1 MB per 5-minute-period game and about 4 MB per 20-minute one. Fine for hundreds of games on E:.
+
+**Scripts:** `tools/` (recorders, driver, state builder, batch runner, analysis). These are our code only; the ROM, save states and run data stay local in `E:\emu\`.
+
 **Raw data:**
 - per-game JSONL in `E:\emu\work\runs\C3\` (not committed: emulator output, kept local);
 - scripts `record.lua`, `aggregate.py` and `summarize.py` alongside.

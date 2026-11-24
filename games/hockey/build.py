@@ -15,6 +15,7 @@ ORDER = [
     ('stackr', 'vendor/stack/stack-renderer.js'),
     ('rng', 'src/rng.js'),
     ('config', 'src/config.js'),
+    ('ratings', 'src/ratings.js'),
     ('puck', 'src/puck.js'),
     ('poses', 'src/poses.js'),
     ('helpers', 'src/helpers.js'),

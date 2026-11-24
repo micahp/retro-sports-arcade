@@ -5,6 +5,7 @@ import { RINK, PUCK, SHOT, SKATE, GOALIE, LINEUPS, MODES, PENALTY } from './conf
 import { makePuck, stepPuck, boards, leadPass } from './puck.js';
 import { HOCKEY, poseAt } from './poses.js';
 import { aiIntent } from './ai.js';
+import { rosterRatings } from './ratings.js';
 import { attackDir, choosePassTarget, laneOpen } from './helpers.js';
 export { attackDir, choosePassTarget, laneOpen };
 
@@ -17,7 +18,13 @@ export function createGame(modeKey = 'regulation', seed = 'rink-95', opts = {}) 
   // opts.periodSec picks one of the mode's periodOptions (NHL 95 rules: 5, 10 or 20 minutes)
   if (opts.periodSec != null && !(mode.periodOptions || []).includes(opts.periodSec)) throw new Error(`period length ${opts.periodSec} s is not an option of ${modeKey}`);
   const periodSec = opts.periodSec ?? mode.periodSec;
+  // Engine configuration. LEGACY (the defaults) reproduces the engine as it was before M1-M3.
+  //   skating: 'legacy' | 'rated'  (M2: speed, acceleration, edges and turning from ratings)
+  //   cadence: 'legacy' | 'rated'  (M3: AI decisions on per-player intervals from awareness)
+  //   roster:  'neutral' | 'spread' (M1: who gets which ratings)
+  const engine = { skating: 'legacy', cadence: 'legacy', roster: 'neutral', ...(opts.engine || {}) };
   const S = {
+    engine, seedStr: String(seed),
     R: rng(seed), mode, modeKey, t: 0, period: 1, clock: periodSec || 0, periodSec, score: [0, 0],
     phase: 'faceoff', phaseT: 0, skaters: [], puck: makePuck(), user: null, userTeam: opts.userTeam ?? 0,
     log: [], events: [], stats: [0, 1].map(() => ({ shots: 0, saves: 0, goals: 0, passes: 0, passesDone: 0, intercepts: 0, hits: 0 })),
@@ -33,7 +40,8 @@ export function createGame(modeKey = 'regulation', seed = 'rink-95', opts = {}) 
 function makeSkater(S, team, role) {
   const isG = role === 'G';
   return { id: S.skaters.length, team, role, isG, x: 0, z: 0, vx: 0, vz: 0, yaw: 0, act: isG ? 'gStance' : 'hGlide', ph: S.R(), one: null, down: 0, cool: 0,
-    number: NUMS[role] + (team ? 1 : 0), skin: S.R(), intent: null, tried: -1, charge: 0, hold: null };
+    number: NUMS[role] + (team ? 1 : 0), skin: S.R(), intent: null, tried: -1, charge: 0, hold: null,
+    r: rosterRatings(S.engine ? S.engine.roster : 'neutral', S.seedStr, team, role, isG) };
 }
 export function addSkater(S, team, role, at = {}) { const p = makeSkater(S, team, role); Object.assign(p, at); S.skaters.push(p); p.id = S.skaters.length - 1; return p; }
 export function setLineups(S, skaters, goalies = [true, true]) {

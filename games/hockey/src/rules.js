@@ -17,7 +17,7 @@ import { attackDir } from './helpers.js';
 export const RULE_BLUE = (82 / 3) * 0.3048;
 
 export function newRules() {
-  return { off: [false, false], px: null, touch: null, owner: null, origin: null, iceFlag: null };
+  return { off: [false, false], px: null, seq: null, owner: null, origin: null, iceFlag: null };
 }
 
 const onIce = (p) => !p.isG && !p.benched && !p.inBox && !p.retired;
@@ -25,9 +25,11 @@ const onIce = (p) => !p.isG && !p.benched && !p.inBox && !p.retired;
 // One step of the rules. Returns a whistle { kind, team } when a rule fires, else null.
 export function rulesStep(S) {
   const R = S.rules, pk = S.puck;
+  // A new touch is a change in the engine's touch counter (passes, shots, tips, saves all bump it), or a pickup
+  // (a new owner; pickups do not bump the counter). The same skater touching again is a new touch.
   const touched = pk.lastTouch;
-  const newTouch = !!touched && touched !== R.touch;
-  if (newTouch) R.touch = touched;
+  const newTouch = !!touched && (S.touch !== R.seq || (!!pk.owner && pk.owner !== R.owner));
+  R.seq = S.touch;
 
   // release: the puck leaves a skater's stick. Its origin decides whether a later crossing is icing.
   if (R.owner && !pk.owner) {

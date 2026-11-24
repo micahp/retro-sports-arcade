@@ -11,6 +11,8 @@ function fresh() {
   S.rules.px = -5; S.puck.x = -5;
   return S;
 }
+// a touch as the engine makes one: the skater becomes the last toucher and the touch counter moves
+const touch = (S, p) => { S.puck.lastTouch = p; S.touch++; };
 const att = (S) => S.skaters.find((p) => p.team === 0 && !p.isG);
 const def = (S) => S.skaters.find((p) => p.team === 1 && !p.isG);
 const gk1 = (S) => S.skaters.find((p) => p.team === 1 && p.isG);
@@ -21,7 +23,7 @@ const cross = (S, from, to) => { S.rules.px = from; S.puck.x = to; return rulesS
   a.x = 9.0; S.puck.lastTouch = null;
   const r1 = cross(S, 8.0, 8.6);
   check(S.rules.off[0] === true && r1 === null, 'A: puck crosses the line with an attacker ahead: team 0 flagged, no whistle yet');
-  S.puck.lastTouch = a;
+  touch(S, a);
   const r2 = rulesStep(S);
   check(r2 && r2.kind === 'offside' && r2.team === 0, 'A: touch by the flagged attacker calls offside against team 0');
 }
@@ -32,7 +34,7 @@ const cross = (S, from, to) => { S.rules.px = from; S.puck.x = to; return rulesS
   cross(S, 8.6, 6.0);                      // puck out, attacker still ahead
   check(S.rules.off[0] === true, 'B: puck leaves the zone with an attacker still in: flag stays set');
   cross(S, 6.0, 8.6);                      // puck back in
-  S.puck.lastTouch = a;
+  touch(S, a);
   const r = rulesStep(S);
   check(r && r.kind === 'offside', 'B: puck re-enters with the attacker still in the zone, touch calls offside');
 }
@@ -45,44 +47,52 @@ const cross = (S, from, to) => { S.rules.px = from; S.puck.x = to; return rulesS
   check(S.rules.off[0] === false, 'C: all attackers back behind the line: flag cleared');
   a.x = 5.0; cross(S, 6.0, 8.6);           // puck re-enters with nobody ahead
   check(S.rules.off[0] === false, 'C: puck re-enters with nobody ahead: no flag');
-  S.puck.lastTouch = a;
+  touch(S, a);
   check(rulesStep(S) === null, 'C: a later touch is not offside');
 }
 { // D. the touching team is not flagged: a defender touching the puck in the zone is not offside
   const S = fresh(), a = att(S), dd = def(S);
   a.x = 9.0; cross(S, 8.0, 8.6);
-  S.puck.lastTouch = dd; dd.x = 9.5;
+  touch(S, dd); dd.x = 9.5;
   check(rulesStep(S) === null, 'D: a defender touch while team 0 is flagged is not offside');
 }
 { // E. icing: shot from own half, far line crossed untouched, then a non-goalie touch calls it
   const S = fresh(), sh = att(S), q = def(S);
   sh.x = -10; S.puck.owner = sh; rulesStep(S);
-  S.puck.owner = null; S.puck.x = -10; S.puck.lastTouch = sh;
+  S.puck.owner = null; S.puck.x = -10; touch(S, sh);
   rulesStep(S);                             // the release (the shooter's own touch) must not call icing
   S.rules.px = -10; S.puck.x = 28;          // crosses the far goal line (27.1 m), no touch
   rulesStep(S);
   check(S.rules.iceFlag && S.rules.iceFlag.team === 0, 'E: untouched crossing of the far line flags icing for team 0');
-  S.puck.lastTouch = q;
+  touch(S, q);
   const r = rulesStep(S);
   check(r && r.kind === 'icing' && r.team === 0, 'E: a non-goalie touch then calls icing against team 0');
 }
 { // F. a goalie touch cancels icing
   const S = fresh(), sh = att(S), q = def(S), g = gk1(S);
   sh.x = -10; S.puck.owner = sh; rulesStep(S);
-  S.puck.owner = null; S.puck.x = -10; S.puck.lastTouch = sh; rulesStep(S);
+  S.puck.owner = null; S.puck.x = -10; touch(S, sh); rulesStep(S);
   S.rules.px = -10; S.puck.x = 28; rulesStep(S);
-  S.puck.lastTouch = g;
+  touch(S, g);
   check(rulesStep(S) === null && S.rules.iceFlag === null, 'F: a goalie touch cancels the icing flag');
-  S.puck.lastTouch = q;
+  touch(S, q);
   check(rulesStep(S) === null, 'F: a later skater touch does not call icing');
 }
 { // G. no icing from the neutral zone: the release was not from the shooter's own half
   const S = fresh(), sh = att(S), q = def(S);
   sh.x = 10; S.puck.owner = sh; rulesStep(S);
-  S.puck.owner = null; S.puck.x = 10; S.puck.lastTouch = sh; rulesStep(S);
+  S.puck.owner = null; S.puck.x = 10; touch(S, sh); rulesStep(S);
   S.rules.px = 10; S.puck.x = 28; rulesStep(S);
-  S.puck.lastTouch = q;
+  touch(S, q);
   check(rulesStep(S) === null, 'G: release from the attacking half: no icing');
+}
+{ // K. the same skater touching again is a new touch (the identity-based check missed it)
+  const S = fresh(), a = att(S);
+  touch(S, a); rulesStep(S);            // a touches before any flag
+  a.x = 9.0; S.rules.px = 8.0; S.puck.x = 8.6; rulesStep(S); // puck crosses with a ahead: flagged
+  touch(S, a);                          // a touches again (same object)
+  const r = rulesStep(S);
+  check(r && r.kind === 'offside', 'K: a second touch by the same flagged skater calls offside');
 }
 { // H. the blue line: 27.3 ft (82 units), not the 25 ft Rink '95 uses
   check(Math.abs(RULE_BLUE / 0.3048 - 27.33) < 0.01, `H: rule blue line ${(RULE_BLUE / 0.3048).toFixed(2)} ft (reference 82 units = 27.3 ft)`);

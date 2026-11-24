@@ -1,5 +1,5 @@
 // Offside and icing paired-seed experiment: the same seeds with rules 'none' (A) and 'nhl95' (B).
-// Rates are per 60 game-minutes (regulation game time, from the game clock). Reference rates come from the
+// Rates are per 60 game-minutes of all game time (regulation, overtime, shootouts are included in the denominator). Reference rates come from the
 // NHL 95 logs (G100v4 stoppage counts, see research/nhl95-reference-study/analysis).
 //   node calibration/rules-paired.mjs --n 100 [--start 1] [--out file.md]
 import { createGame, step } from '../src/sim.js';
@@ -12,7 +12,7 @@ function game(seed, rules) {
     step(S, {});
     for (const e of S.events) { if (e.type === 'offside') offsideN++; else if (e.type === 'icing') icingN++; }
   }
-  const mins = (S.periodSec * S.mode.periods) / 60;   // regulation game-minutes (the clock counts game seconds)
+  const mins = S.t / 60;   // all game time, regulation and overtime (the sim clock runs in game seconds)
   const [h, a] = S.stats;
   return { mins, goals: S.score[0] + S.score[1], shots: h.shots + a.shots, offside: offsideN, icing: icingN };
 }
@@ -27,7 +27,7 @@ function boot(xs, B = 2000) {
 }
 const rate = (rs, k, side) => rs.reduce((s, r) => s + r[side][k], 0) / rs.reduce((s, r) => s + r[side].mins, 0) * 60;
 const out = [`# Offside and icing, paired seeds (preliminary)\n`,
-  `Seeds ${START}–${START + N - 1}, regulation (3 x 10 min), penalties off, auto AI. A = rules none, B = rules nhl95. Runtime ${secs.toFixed(0)} s.\n`,
+  `Seeds ${START}–${START + N - 1}, regulation (the mode: 3 x 3 min periods), penalties off, auto AI. A = rules none, B = rules nhl95. Runtime ${secs.toFixed(0)} s.\n`,
   `| per 60 game-minutes | A (no rules) | B (nhl95) | B − A |`, `|---|---|---|---|`];
 for (const k of ['goals', 'shots', 'offside', 'icing']) {
   const pairs = rows.map((r) => (r.B[k] / r.B.mins * 60) - (r.A[k] / r.A.mins * 60));

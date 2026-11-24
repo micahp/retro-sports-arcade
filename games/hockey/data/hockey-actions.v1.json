@@ -1,0 +1,230 @@
+{
+  "schema_version": "hockey-actions.v1",
+  "extends": "action.v1",
+  "sport": "hockey",
+  "reference": {
+    "game": "NHL 95 (Genesis)",
+    "rom": "NHL 95 (USA, Europe).md, SHA-1 09e87b07...09b44",
+    "decompilation": "abdulahmad/NHL95Genesis (no licence; behaviour reference only, nothing copied)",
+    "audited": "2026-11-23",
+    "audit_files": [
+      "frames95.asm", "display95.asm", "middle95.asm", "skate95.asm",
+      "input95.asm", "collide95.asm", "logic95.asm"
+    ],
+    "method": "Animation tables extracted from the ROM image at SPAlist=$5A34 (9-word header per table: 8 direction offsets + attribute; then (frame,time) pairs). Timing is 60 Hz frames. Trigger conditions come from the instruction-level audit; each is marked verified or inferred in `confidence`.",
+    "units": {
+      "animation_time": "frames at 60 Hz (frame/60 seconds)",
+      "position": "pixels, 16.16 fixed point",
+      "velocity": "16-bit; pos += vel*17*33/32 per frame (NTSC). Exact m/s conversion unresolved: the stop constants and this scale disagree, so no metre conversion is claimed.",
+      "rink": "goal lines +-267, blue lines +-86; ~3.25 px/ft on x"
+    },
+    "not_copied": "No sprites, graphics, assembly listings, hotspot tables or other game assets are reproduced here. Frame indices and frame durations are behavioural timing facts; the ROM captures stay local."
+  },
+  "confidence_policy": {
+    "verified": "read directly from instructions and/or measured from the ROM/emulator",
+    "inferred": "depends on the decompilation project's naming or comments, or on a contradiction between two instructions",
+    "validated": "requires BOTH a visual reference comparison and a playable gameplay test; nothing in this file is validated yet"
+  },
+  "actions": [
+    {
+      "id": "ready",
+      "name": "Ready stance",
+      "slice": true,
+      "spa": { "goalie_ready": 7034, "goalie_ready2": 7252, "skater": null },
+      "timing": { "cycle_frames": 580, "unit": "idle loop", "pairs": [[606, 180], [904, 10], [905, 10], [906, 10], [606, 340], [906, 10], [905, 10], [904, -10]], "seconds": 9.67 },
+      "directions": 8,
+      "loop": true,
+      "trigger": { "routine": "GoalieReadySPA (skate95:378), assgoaliecpu (logic95)", "condition": "goalie has no save and no skate order; skater ready posture is SPA=0 (no animation, default glide frame)", "confidence": "verified" },
+      "transition_to": { "glide": "puck far / no input", "stop": "dostop", "gready2": "lateral shuffle" },
+      "contact": "none",
+      "gameplay_dependencies": ["assgoaliecpu assignment", "puck proximity"],
+      "evidence": ["frames95 SPAgready table", "display95 updateanim loop flag bit0 set (attr=1)"]
+    },
+    {
+      "id": "forward_skate",
+      "name": "Forward skating without the puck",
+      "slice": true,
+      "spa": { "skate": 1062, "burst": 788, "glide": 2908 },
+      "timing": { "cycle_frames": 168, "rows": ["8 frames/sprite, 8 sprites", "7 frames/sprite, 8 sprites", "6 frames/sprite, 8 sprites"], "seconds": 2.8 },
+      "directions": 8,
+      "loop": false,
+      "trigger": { "routine": "playeracc (skate95:907) / doplayeracc (skate95:641)", "condition": "input direction differs from facing and speed above the turn threshold, or speed builds; SPAskate/SPAskateburst chosen by sflags bit 7", "confidence": "verified" },
+      "transition_to": { "turnl/turnr": "facedir != inputdir and speed^2>>16 > $14", "stop": "dostop on opposite input", "glide": "speed below the glide threshold" },
+      "contact": "none",
+      "gameplay_dependencies": ["input 8-way direction", "legspd/legstr ratings", "weight"],
+      "velocity_model": "accel = dirtab[dir] * ((($60-(weight>>2))+legstr)>>1) >> 5 * framesElapsed; dirtab straight 240 / diagonal 169; top speed cap = ((rating+20)*325)^2",
+      "evidence": ["frames95 SPAskate 24 pairs x 8 dirs", "skate95 doplayeracc 641-800", "playeracc 907"]
+    },
+    {
+      "id": "forward_skate_puck",
+      "name": "Forward skating with the puck",
+      "slice": true,
+      "spa": { "skatewp": 1848, "skatewp2": 2634, "glidewp": 2958, "burst": 788 },
+      "timing": { "cycle_frames": 168, "loop_target_pair": 16, "seconds": 2.8 },
+      "directions": 8,
+      "loop": true,
+      "trigger": { "routine": "playeracc carrier branch (skate95:652,655)", "condition": "puckc == SCnum; the *wp tables replace every locomotion table", "confidence": "verified" },
+      "transition_to": { "turnlwp/turnrwp": "same turn gate, carrier variant", "stopwp": "dostop", "shotf/passf": "input" },
+      "contact": "stick blade carries the puck (see contact_geometry)",
+      "gameplay_dependencies": ["puck ownership (puckc)", "stickhand rating"],
+      "note": "attribute $1003 (bits 0+1) loops back to pair 16, so after the first two stride rows the carrier stays in the fast 6-frame row",
+      "evidence": ["frames95 SPAskatewp", "skate95 652/655", "display95 .again loop path"]
+    },
+    {
+      "id": "backward_skate",
+      "name": "Backward skating",
+      "slice": true,
+      "spa": { "skateback": 6610, "glideback": 9572 },
+      "timing": { "cycle_frames": 48, "pairs": [[496, 8], [497, 8], [498, 8], [499, 8], [500, 8], [501, -8]], "seconds": 0.8 },
+      "directions": 8,
+      "loop": false,
+      "trigger": { "routine": "noturn (skate95:905) hands playeracc facedir^4", "condition": "pfrev (pflags bit 4) set: skating backwards", "confidence": "verified" },
+      "transition_to": { "glideback": "no acceleration", "skateback": "accelerating" },
+      "contact": "none",
+      "gameplay_dependencies": ["pfrev flag"],
+      "note": "travel direction opposes facing; the defender keeps facing the play",
+      "evidence": ["frames95 SPAskateback / SPAglideback (ROM offsets 6610 / 9572)", "skate95 905", "equals.inc pfrev equ 4"]
+    },
+    {
+      "id": "turn",
+      "name": "Turning",
+      "slice": true,
+      "spa": { "turnl": 3008, "turnr": 3090, "turnlwp": 3172, "turnrwp": 3254 },
+      "timing": { "cycle_frames": 8, "pairs": [[97, 4], [97, -4]], "seconds": 0.133 },
+      "directions": 8,
+      "loop": false,
+      "trigger": { "routine": "noturn (skate95:902) / noturn0 (836)", "condition": "facedir != input dir AND speed^2>>16 > $14; side from turnstep = [0,$10,$10,$10,0,-$10,-$10,-$10] sign XOR attribute bit 3", "confidence": "inferred" },
+      "transition_to": { "skate": "facedir catches up with input", "stop": "dostop" },
+      "contact": "none",
+      "gameplay_dependencies": ["turnstep table", "facedir", "agility"],
+      "open_issue": "The audit found contradictory gates: the turn SPA needs d3>$14 at skate95:807 but needs d3<=2 at 830, which would make the turn animation unreachable as written. Emulator capture SHOULD show SPAturnl/turnr; it did (3008 n=1168, 3090 n=1009), so the gates are reachable in practice and one of the two readings is wrong. Resolve before relying on the turn threshold.",
+      "evidence": ["frames95 SPAturnl/r (2 pairs)", "skate95 787-830", "emulator: SPA 3008/3090 observed 1168/1009 frames"]
+    },
+    {
+      "id": "stop",
+      "name": "Stopping",
+      "slice": true,
+      "spa": { "stop": 3336, "stopwp": 3418 },
+      "timing": { "cycle_frames": 8, "pairs": [[73, 4], [74, -4]], "seconds": 0.133, "loop_target_pair": 1 },
+      "directions": 8,
+      "loop": true,
+      "trigger": { "routine": "dostop (skate95:429), stopna (485), stopna2 (618)", "condition": "input code d0==9 (no direction) while moving, or travel direction within +2 of facing; both velocity components inside +-$1000 uses stopna (no animation change), otherwise SPAstop", "confidence": "verified" },
+      "transition_to": { "glide": "velocity bled to zero", "skate": "new input" },
+      "contact": "none (stopping sprays ice, no contact in the slice)",
+      "gameplay_dependencies": ["Xvel/Yvel", "pf2aip animation-in-progress gate"],
+      "velocity_model": "velocity bled at V/64 per frame in the turn drag, stopna at $96/frame per axis",
+      "evidence": ["frames95 SPAstop attr $103 loops to pair 1", "skate95 429-620"]
+    },
+    {
+      "id": "pass",
+      "name": "Passing",
+      "slice": true,
+      "spa": { "passf": 4962, "passb": 5158, "droppass": 5076 },
+      "timing": { "passf": { "pairs": [[451, 4], [452, 4], [453, -20]], "cycle_frames": 28, "seconds": 0.467 }, "droppass": { "pairs": [[450, 4], [451, -20]], "cycle_frames": 24 } },
+      "directions": 8,
+      "loop": false,
+      "trigger": { "routine": "doinput B press = pass mode, dpad aims, release launches (input95); dopass", "condition": "carrier presses B; passdir = facedir at press; release fires; SPAdroppass when GameFlags bit 1 set (A with dpad back); SPApassb when Findhittype says the backhand cone", "confidence": "verified" },
+      "object_events": [
+        { "phase": "release", "type": "release", "time_frames": 0, "note": "the puck leaves on button release; `st (puckc)` clears the carrier at input95:479" }
+      ],
+      "transition_to": { "passb/passb2": "backhand cone", "glidewp": "after release" },
+      "contact": "blade strikes the puck at release",
+      "gameplay_dependencies": ["passacc rating", "lane test", "offside test"],
+      "evidence": ["frames95 SPApassf/b/droppass (ROM-verified offsets)", "input95 shot/pass section", "logic95 chk4pass"]
+    },
+    {
+      "id": "receive",
+      "name": "Receiving a pass",
+      "slice": true,
+      "spa": { "catch": 9218, "passrec_assignment": "$D asspassrec" },
+      "timing": { "cycle_frames": 12, "pairs": [[816, 6], [817, -6]], "seconds": 0.2 },
+      "directions": 8,
+      "loop": false,
+      "trigger": { "routine": "asspassrec (logic95), puckbody (collide95)", "condition": "assignment $D while the puck is in flight toward the receiver; SPAcatch is the body-caught-puck animation, not the stick reception", "confidence": "verified" },
+      "object_events": [
+        { "phase": "contact", "type": "pickup", "note": "possession changes via puckc, not by sprite overlap" }
+      ],
+      "transition_to": { "shotf": "CPU one-timer path", "glidewp": "possession taken" },
+      "contact": "stick blade or body; catch threshold ((Stk*$15E)+$32C8)^2",
+      "gameplay_dependencies": ["stickhand", "pf3onetimer"],
+      "evidence": ["frames95 SPAcatch (ROM offset 9218)", "input95 one-timer window", "collide95 catch threshold"]
+    },
+    {
+      "id": "wrist_shot",
+      "name": "Wrist shot",
+      "slice": true,
+      "spa": { "shotf": 5386, "shotb": 5998, "fakeshotf": 5692, "fakeshotb": 6304 },
+      "timing": { "pairs": [[450, 4], [449, 4], [448, 4], [448, 4], [449, 4], [450, 4], [451, 4], [452, 4], [453, -20]], "cycle_frames": 52, "seconds": 0.867, "charge_frames": 16, "earliest_release_frames": 8, "auto_release_frames": 28 },
+      "directions": 8,
+      "loop": false,
+      "phases": [
+        { "name": "anticipate", "start_frame": 0, "end_frame": 8, "note": "wind-up; sprite frames walk 450->448; charge accumulates from 8" },
+        { "name": "execute", "start_frame": 8, "end_frame": 20, "note": "earliest legal release at frame 8; sprite continues 448->451" },
+        { "name": "contact", "start_frame": 20, "end_frame": 24, "note": "puck release; doshot/prepshot; nopuck=$10, ShotTimer=$1E" },
+        { "name": "recover", "start_frame": 24, "end_frame": 52, "note": "follow-through 452-453 then 20-frame hold" }
+      ],
+      "trigger": { "routine": "SetShotMode / ShotMode (input95), doshot (collide95)", "condition": "C pressed with the puck; charge = passspeed += d7 while SPAnum<$10; release allowed at SPAnum>8 (or shotspd>=$14); forced at SPAnum>=$1C", "confidence": "verified" },
+      "object_events": [
+        { "phase": "contact", "type": "strike", "time_frames": 20, "note": "blade strikes the puck; puck velocity set from shot power and accuracy" }
+      ],
+      "transition_to": { "glidewp": "release", "fakeshotf": "release deep (|pucky|>=$56) instead of shooting" },
+      "contact": "stick blade sweet spot; original game uses a per-sprite-frame hotspot box of +-14 units (+-18 during a one-timer)",
+      "gameplay_dependencies": ["shotspd", "shotacc", "handedness", "z position of the puck"],
+      "evidence": ["frames95 SPAshotf 9 pairs + 20 hold (ROM offset 5386)", "input95 16-frame charge, 8/28-frame gates", "collide95 ChkStickP 14/18"]
+    },
+    {
+      "id": "one_timer",
+      "name": "One-timer",
+      "slice": false,
+      "spa": { "shotf": 5386, "shotb": 5998 },
+      "trigger": { "routine": "assonetimer (logic95), onetimershot", "condition": "B pass released then C pressed on the passer's or receiver's pad while the puck is loose in the attacking half and closing; wind-up freezes at SPAnum=$18 with SPAcnt += $30 (48 frames) until the shot", "confidence": "verified" },
+      "contact": "hotspot halved, box widens to +-18",
+      "evidence": ["input95 one-timer window", "logic95 assonetimer", "collide95 ChkStickP $12"]
+    },
+    {
+      "id": "check",
+      "name": "Body check",
+      "slice": false,
+      "spa": { "checker": 4526, "victim_fall": [4010, 4252], "victim_stumble": 6820 },
+      "timing": { "burst2_frames": 24, "fallfwd_frames": 144, "fallback_frames": 152 },
+      "trigger": { "routine": "CCStart (collide95:510)", "condition": "only a checker currently in SPAburst2 resolves a check; contact radius 8 -> 16x16 box + radius 16; impulse d4 >= $14; victim not a goalie, not pfalock", "confidence": "verified" },
+      "contact_events": ["collision"],
+      "fall_selection": "randomd0(120 - Chk(checker) - impact(victim)) against Chk/2 -> SPAflip (Chk>=$14, facedir&3==0), SPAstumble (Stk>=$10 weak hit), SPAfallback (front) / SPAfallfwd (back) by facing",
+      "evidence": ["collide95 510-1014", "frames95 SPAburst2/fallfwd/fallback"]
+    },
+    {
+      "id": "stick_work",
+      "name": "Hold / hook / sweep check",
+      "slice": false,
+      "spa": { "hold": 3600, "hold2": 3650, "hook": 3700, "hook2": 3750, "sweepchk": 3896 },
+      "timing": { "hold_frames": 30, "hold2_frames": 55, "hook_frames": 30, "hook2_frames": 48, "sweep_frames": 16 },
+      "directions": 8,
+      "trigger": { "routine": "Holdplayer / doinput A without the puck (input95); check4check2 (logic95)", "condition": "A with no puck; no rectangle test: reuses the 16-radius player circle plus a +-1-of-8 facing test", "confidence": "verified" },
+      "note": "the audit found check4check always bursts because vtoa overwrites d1, so the hook/hold branch there is dead code; hook/hold only come from check4check2",
+      "evidence": ["input95 A button", "collide95 $E42/$EA6", "frames95 SPAHold/Hold2/hook/hook2"]
+    }
+  ],
+  "contact_geometry": {
+    "model": "rigid stick, blade segment used for puck contact",
+    "shared_module": "games/shared/stick/stick.js",
+    "blade_heel_to_toe_m": 0.30,
+    "blade_thickness_m": 0.011,
+    "shaft_radius_m": 0.017,
+    "grip_top_from_butt_m": 0.06,
+    "grip_bottom_from_butt_m": 0.36,
+    "puck_radius_m": 0.0381,
+    "sweet_spot": 0.62,
+    "original_game_comparison": {
+      "contact_point": "(Xpos + hotx, Ypos + hoty) from HotList indexed by the sprite frame field ($6), x negated by attribute bit 3, y by bit 4, no facedir rotation",
+      "tolerance_box_units": 14,
+      "tolerance_box_one_timer_units": 18,
+      "why_we_differ": "The original indexes a hand-authored hotspot per sprite frame and uses an axis-aligned box. Our renderer is 3D and has no hotspot table, so contact is derived from the rigid blade segment. The box tolerance is kept as the contact radius."
+    }
+  },
+  "open_issues": [
+    "velocity units unresolved: pos += vel*17*33/32 versus the $1000/$7D0/$96 stop constants; no m/s claim is made",
+    "turn SPA gates contradict each other in skate95 but the animation is observed running, so one reading is wrong",
+    "collide95:1182 uses move.w where cmp.w was intended, making puckbody unreachable: body-caught puck contact does not exist in the shipped game",
+    "SPApump/2/3 are goal celebrations, not dekes (earlier note corrected)"
+  ]
+}

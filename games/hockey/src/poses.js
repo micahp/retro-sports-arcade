@@ -10,6 +10,7 @@
 // handed to the part through a module variable. That hook is the main adapter
 // cost and the first thing to generalise if the stack becomes shared tech.
 import { PARTS, PAL, sdRoundBox, sdCone } from '../vendor/stack/body.js';
+import { holdStick, checkStick, STICK_SPEC } from '../../shared/stick/stick.js';
 import { ACTIONS } from '../vendor/stack/actions.js';
 import { fk, D, sampleKeys, apply, applyT } from '../vendor/stack/skeleton.js';
 
@@ -27,65 +28,43 @@ export function groundY(J) {
   return y;
 }
 
-// Stick geometry per pose, in body space: top hand T, blade heel B, blade toe E.
+// Stick geometry per pose. ONE rigid stick, solved by the shared model: the blade
+// heel is the authored target, the shaft length is fixed, and the toe continues the
+// shaft's ground direction (it cannot point back at the body). The hands are then
+// IK'd onto the shaft, so `T` is the real top-hand grip rather than a made-up point.
+//
+// This replaces the old two-stick arrangement: a drawn stick with shrinking
+// heuristics plus a separate "physics" blade (H0/E0) that jutted sideways. The
+// measured defect was a contact point 0.15-0.43 m from the drawn blade and a bottom
+// hand 0.47-0.81 m off the shaft.
 export function stickOf(J, s) {
-  const T = at(J, 'wrL', [0.02, -0.07, 0]);
   const g = groundY(J);
-  let B;
-  if (s.blade === 'drop') {
-    // dropped stick lies on the real floor (the lowest body point), not at skate height
-    let floor = 1e9; for (const k in J) if (k[0] !== '_') floor = Math.min(floor, J[k].p[1] - 0.1);
-    B = [T[0] + 0.9, floor + 0.02, T[2] + 0.7];
+  const r = solveStickFor(J, s, g);
+  return { T: r.stick.butt, H: r.stick.heel, E: r.stick.toe, H0: r.stick.heel, E0: r.stick.toe, g, _solved: r };
+}
+
+// Solve the stick + arms for an already-posed body. Kept separate so withStick can
+// reuse the FK it needs.
+function solveStickFor(J, s, g) {
+  const heel = s.blade === 'drop'
+    ? (() => { let floor = 1e9; for (const k in J) if (k[0] !== '_') floor = Math.min(floor, J[k].p[1] - 0.1); return [0.55, floor + 0.02, 0.55]; })()
+    : [s.blade[0], s.blade[1] === 'ice' ? g + 0.03 : s.blade[1], s.blade[2]];
+  // keep the whole drawn stick inside the voxel bake footprint: pull the authored
+  // heel target toward the pelvis until the toe fits (the blade stays on the ice)
+  const pelvis = J.pelvis.p;
+  let target = heel.slice();
+  for (let i = 0; i < 24; i++) {
+    const r = holdStick(J._pose, target, {
+      handed: s.handed || 'R',
+      reach: s.reach ?? 0.62,
+      tolerance: 0.04,
+      spec: s.spec || STICK_SPEC,
+    });
+    const reachOut = Math.max(Math.abs(r.stick.toe[0]), Math.abs(r.stick.toe[2]), Math.abs(r.stick.butt[0]), Math.abs(r.stick.butt[2]));
+    if (reachOut <= REACH_LIMIT) return r;
+    target = [target[0] + (pelvis[0] - target[0]) * 0.06, target[1], target[2] + (pelvis[2] - target[2]) * 0.06];
   }
-  else B = [s.blade[0], g + (s.blade[1] === 'ice' ? 0.03 : s.blade[1]), s.blade[2]];
-  // shaft length is fixed: slide the heel along the hand-to-target line
-  const L = 1.5;
-  const heel = (B) => {
-    const d = [B[0] - T[0], B[1] - T[1], B[2] - T[2]], dl = Math.hypot(...d) || 1;
-    return { H: s.blade === 'drop' ? B : [T[0] + d[0] / dl * Math.min(L, dl), T[1] + d[1] / dl * Math.min(L, dl), T[2] + d[2] / dl * Math.min(L, dl)], hx: d[0] / dl, hz: d[2] / dl };
-  };
-  // PHYSICS stick (H0, E0): the original geometry. The sim's puck-contact point (bladeOf) uses it, so
-  // physics and every baseline are unchanged by the visual fixes below; moving contact to the drawn
-  // blade is a separate, tested change.
-  const p0 = heel(B), H0 = p0.H, side = [p0.hz, 0, -p0.hx], sl = Math.hypot(side[0], side[2]) || 1;
-  const E0 = [H0[0] - side[0] / sl * 0.3, H0[1] + 0.01, H0[2] - side[2] / sl * 0.3];
-  // DRAWN stick (H, E). Two fixes for "the sticks look backwards":
-  //  1. reach: the original carry target put the blade only ~0.1 m ahead of the top hand, so with the
-  //     58-degree camera the shaft drew straight down the screen and skaters facing up-screen seemed to
-  //     drag it behind them. Skaters carry the blade further out: +0.55 m forward, +0.1 m to the
-  //     forehand side, blended out as the blade lifts (wind-ups unchanged). Goalies keep theirs.
-  //  2. blade direction: a stick is planar, so seen from above the blade continues the shaft's line,
-  //     toe away from the player. The original bent the blade sideways off the shaft.
-  //  The whole drawn stick must stay inside the voxel bake footprint (vendor/stack/body.js voxelize:
-  //  +-1.15 m around the pelvis), or the blade is cut off and the stick never reaches the ice. The
-  //  first try pushed the toe to ~1.7 m and lost the blade; the reach is now shrunk until the toe fits.
-  let toe = 0.27; const LIM = REACH_LIMIT;
-  // k scales the extra reach; toe shortens the drawn blade; f pulls the blade target in toward the hands
-  // (some original targets, e.g. the fall's stick laid out at 1.6 m, never fitted either). In that order.
-  const solve = (k, f) => {
-    let BV = B;
-    if (!s.goalie && s.blade !== 'drop') {
-      const w = Math.max(0, Math.min(1, 1 - (B[1] - g - 0.03) / 0.3)) * k;
-      BV = [B[0] + 0.3 * w, B[1], B[2] + 0.12 * w];
-    }
-    BV = [T[0] + (BV[0] - T[0]) * f, BV[1], T[2] + (BV[2] - T[2]) * f];
-    const pv = heel(BV), H = pv.H, hl = Math.hypot(pv.hx, pv.hz) || 1;
-    return { H, E: [H[0] + pv.hx / hl * toe, H[1] + 0.01, H[2] + pv.hz / hl * toe] };
-  };
-  const over = (st) => Math.max(Math.abs(st.E[0]), Math.abs(st.E[2]), Math.abs(st.H[0]), Math.abs(st.H[2])) > LIM;
-  let k = 1, f = 1, st = solve(k, f);
-  while (over(st) && k > 0) { k = Math.max(0, k - 0.1); st = solve(k, f); }
-  while (over(st) && toe > 0.12) { toe -= 0.03; st = solve(k, f); }
-  while (over(st) && f > 0.6) { f -= 0.05; st = solve(k, f); }
-  if (over(st)) {
-    // last resort (falls, arms stretched to the edge of the footprint): the drawn stick lies on the
-    // ice alongside the player, blade beside the hip
-    const side = T[2] >= 0 ? 1 : -1, BV = [0.15, g + 0.03, 0.8 * side];
-    const pv = heel(BV), hl = Math.hypot(pv.hx, pv.hz) || 1;
-    st = { H: pv.H, E: [pv.H[0] + pv.hx / hl * toe, pv.H[1] + 0.01, pv.H[2] + pv.hz / hl * toe] };
-    if (over(st)) st = { H: [0.15, BV[1], 0.8 * side], E: [0.15 - toe, BV[1] + 0.01, 0.8 * side] };
-  }
-  return { T, H: st.H, E: st.E, H0, E0, g };
+  return holdStick(J._pose, target, { handed: s.handed || 'R', reach: 0.45, tolerance: 0.05, spec: s.spec || STICK_SPEC });
 }
 
 // the current pose's stick, read by the stick part while that pose voxelises
@@ -111,16 +90,17 @@ for (const an of ['anR', 'anL']) {
   });
 }
 
-/** Attach the stick for one pose and return the pose (called inside each action fn). */
+/** Attach the stick for one pose and return the pose with the hands solved onto it. */
 function withStick(pose, s) {
-  const J = fk(pose);
-  const st = stickOf(J, s);
-  const t = local(J, st.T), h = local(J, st.H), e = local(J, st.E);
+  const J0 = fk(pose);
+  const g = groundY(J0);
+  const r = solveStickFor(J0, s, g);
+  const J = fk(r.pose);
+  const t = local(J, r.stick.butt), h = local(J, r.stick.heel), e = local(J, r.stick.toe);
   CUR = { t, h, e };
   const mn = [0, 1, 2].map((i) => Math.min(t[i], h[i], e[i]) - 0.06), mx = [0, 1, 2].map((i) => Math.max(t[i], h[i], e[i]) + 0.06);
   stickPart.bounds = [mn, mx];
-  pose._stick = s;
-  return pose;
+  return { ...r.pose, _stick: r.stick, _stickOk: r.ok, _reach: r.reach };
 }
 
 // ---------------------------------------------------------------- poses
@@ -237,6 +217,18 @@ export const HOCKEY = {
   gGlove: { dur: 0.45, frames: 6, fn: G_GLOVE },
   gBlocker: { dur: 0.45, frames: 6, fn: G_BLOCKER },
 };
+// Stick+IK solving is far too expensive to redo every physics frame, and the game
+// asks for a pose by (action, phase) many times per frame. Memoise on a 1/240 phase
+// grid: the same solved pose is reused by the bake, the sim's bladeOf and the lab.
+for (const a of Object.values(HOCKEY)) {
+  const raw = a.fn, memo = new Map();
+  a.fn = (u) => {
+    const q = a.loop ? Math.round((((u % 1) + 1) % 1) * 240) % 240 : Math.round(Math.min(1, Math.max(0, u)) * 240);
+    let v = memo.get(q);
+    if (!v) { v = raw(a.loop ? q / 240 : q / 240); memo.set(q, v); }
+    return v;
+  };
+}
 Object.assign(ACTIONS, HOCKEY);
 export const HOCKEY_KEYS = Object.keys(HOCKEY);
 
@@ -244,8 +236,10 @@ export const HOCKEY_KEYS = Object.keys(HOCKEY);
 export function poseAt(name, t) {
   const a = HOCKEY[name];
   const u = a.loop ? (((t / a.dur) % 1) + 1) % 1 : Math.min(1, t / a.dur);
-  const pose = a.fn(u);
+  const pose = a.fn(u);           // already carries the solved stick + IK'd arms
   const J = fk(pose);
-  return { J, stick: stickOf(J, pose._stick), g: groundY(J) };
+  const st = pose._stick;
+  const stick = st ? { ...st, T: st.butt, H: st.heel, E: st.toe, H0: st.heel, E0: st.toe } : st;
+  return { J, stick, g: groundY(J), stickOk: pose._stickOk };
 }
 export { at as jointPoint };

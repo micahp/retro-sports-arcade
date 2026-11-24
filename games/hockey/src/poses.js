@@ -49,6 +49,11 @@ export function stickOf(J, s) {
   // blade is a separate, tested change.
   const p0 = heel(B), H0 = p0.H, side = [p0.hz, 0, -p0.hx], sl = Math.hypot(side[0], side[2]) || 1;
   const E0 = [H0[0] - side[0] / sl * 0.3, H0[1] + 0.01, H0[2] - side[2] / sl * 0.3];
+  // PLANAR blade (correctness fix, engine.blade = 'planar'): a stick is planar, so the blade continues the
+  // shaft line from the heel, toe away from the player, 0.27 m long. The legacy E0 above points back
+  // toward the player (about -0.29 m along the facing in every action); see tests/blade.test.mjs.
+  const sh = [H0[0] - T[0], H0[2] - T[2]], shl = Math.hypot(sh[0], sh[1]) || 1;
+  const Ep0 = [H0[0] + sh[0] / shl * 0.27, H0[1] + 0.01, H0[2] + sh[1] / shl * 0.27];
   // DRAWN stick (H, E). Two fixes for "the sticks look backwards":
   //  1. reach: the original carry target put the blade only ~0.1 m ahead of the top hand, so with the
   //     58-degree camera the shaft drew straight down the screen and skaters facing up-screen seemed to
@@ -85,7 +90,7 @@ export function stickOf(J, s) {
     st = { H: pv.H, E: [pv.H[0] + pv.hx / hl * toe, pv.H[1] + 0.01, pv.H[2] + pv.hz / hl * toe] };
     if (over(st)) st = { H: [0.15, BV[1], 0.8 * side], E: [0.15 - toe, BV[1] + 0.01, 0.8 * side] };
   }
-  return { T, H: st.H, E: st.E, H0, E0, g };
+  return { T, H: st.H, E: st.E, H0, E0, Ep0, g };
 }
 
 // the current pose's stick, read by the stick part while that pose voxelises

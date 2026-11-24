@@ -7,6 +7,7 @@ import { HOCKEY, poseAt } from './poses.js';
 import { aiIntent } from './ai.js';
 import { rosterRatings } from './ratings.js';
 import { skateFactors } from './skating.js';
+import { newRules, rulesStep } from './rules.js';
 const NO_SKATE = { top: 1, accel: 1, edges: 1, turn: 1 };   // legacy skating: every factor exactly 1
 import { attackDir, choosePassTarget, laneOpen } from './helpers.js';
 export { attackDir, choosePassTarget, laneOpen };
@@ -24,7 +25,9 @@ export function createGame(modeKey = 'regulation', seed = 'rink-95', opts = {}) 
   //   skating: 'legacy' | 'rated'  (M2: speed, acceleration, edges and turning from ratings)
   //   cadence: 'legacy' | 'rated'  (M3: AI decisions on per-player intervals from awareness)
   //   roster:  'neutral' | 'spread' (M1: who gets which ratings)
-  const engine = { skating: 'legacy', cadence: 'legacy', roster: 'neutral', ...(opts.engine || {}) };
+  // blade: 'legacy' (contact on the sideways blade, the baseline) | 'planar' (the blade continues the shaft, M-blade fix)
+  // rules: 'none' | 'nhl95' (offside and icing, src/rules.js)
+  const engine = { skating: 'legacy', cadence: 'legacy', roster: 'neutral', blade: 'legacy', rules: 'none', ...(opts.engine || {}) };
   const S = {
     engine, seedStr: String(seed),
     R: rng(seed), mode, modeKey, t: 0, period: 1, clock: periodSec || 0, periodSec, score: [0, 0],
@@ -32,6 +35,7 @@ export function createGame(modeKey = 'regulation', seed = 'rink-95', opts = {}) 
     log: [], events: [], stats: [0, 1].map(() => ({ shots: 0, saves: 0, goals: 0, passes: 0, passesDone: 0, intercepts: 0, hits: 0 })),
     touch: 0, faceSpot: { x: 0, z: 0 }, banner: '', debug: { trails: [], marks: [] }, shootout: null, auto: !!opts.auto,
     penaltiesOn: PENALTY.enabled && (opts.penalties ?? !!mode.penalties), box: [],
+    rules: engine.rules === 'nhl95' ? newRules() : null,
   };
   if (mode.shootout) startShootout(S); else setLineups(S, mode.skaters, mode.goalies);
   if (mode.lab) { S.phase = 'play'; } else if (!mode.shootout) faceoffAt(S, 0, 0);
@@ -43,6 +47,7 @@ function makeSkater(S, team, role) {
   const isG = role === 'G';
   return { id: S.skaters.length, team, role, isG, x: 0, z: 0, vx: 0, vz: 0, yaw: 0, act: isG ? 'gStance' : 'hGlide', ph: S.R(), one: null, down: 0, cool: 0,
     number: NUMS[role] + (team ? 1 : 0), skin: S.R(), intent: null, tried: -1, charge: 0, hold: null,
+    bladeMode: S.engine ? S.engine.blade : 'legacy',
     r: rosterRatings(S.engine ? S.engine.roster : 'neutral', S.seedStr, team, role, isG) };
 }
 export function addSkater(S, team, role, at = {}) { const p = makeSkater(S, team, role); Object.assign(p, at); S.skaters.push(p); p.id = S.skaters.length - 1; return p; }
@@ -59,6 +64,7 @@ export function setLineups(S, skaters, goalies = [true, true]) {
 
 // ---------------------------------------------------------------- faceoffs
 function faceoffAt(S, fx, fz) {
+  if (S.rules) S.rules = newRules();          // a new faceoff clears the offside flags and any icing state
   S.phase = 'faceoff'; S.phaseT = 0; S.faceSpot = { x: fx, z: fz };
   const pk = S.puck; Object.assign(pk, { x: fx, z: fz, y: 0, vx: 0, vz: 0, vy: 0, owner: null, settle: 0, lock: 0, shot: null, inNet: 0 });
   for (const p of S.skaters) {
@@ -96,7 +102,8 @@ export function bladeOf(p) {
   const { stick, g } = poseAt(name, tt);
   const c = Math.cos(p.yaw), s = Math.sin(p.yaw);
   // contact point: the legacy blade (E0), so the poses.js visual fix leaves physics unchanged
-  const m = [(stick.H0[0] + stick.E0[0]) / 2, (stick.H0[1] + stick.E0[1]) / 2 - g, (stick.H0[2] + stick.E0[2]) / 2];
+  const E = p.bladeMode === 'planar' ? stick.Ep0 : stick.E0;   // engine.blade: legacy (default) or planar
+  const m = [(stick.H0[0] + E[0]) / 2, (stick.H0[1] + E[1]) / 2 - g, (stick.H0[2] + E[2]) / 2];
   return { x: p.x + m[0] * c - m[2] * s, y: m[1], z: p.z + m[0] * s + m[2] * c };
 }
 const start = (p, name) => { p.one = { name, t: 0, fired: false }; };
@@ -125,6 +132,10 @@ export function step(S, input = {}) {
   for (const p of S.skaters) move(S, p, dt);
   collide(S);
   if (live || S.phase === 'whistle') puckStep(S, dt);
+  if (live && S.rules && !S.mode.shootout && !S.mode.lab) {
+    const w = rulesStep(S);
+    if (w) { S.phase = 'whistle'; S.phaseT = 0; S.banner = `${TEAMS[w.team].short} ${w.kind.toUpperCase()}`; S.whistleFor = { kind: w.kind, team: w.team }; log(S, w.kind, { team: w.team }); }
+  }
   if (live && !S.mode.shootout && !S.mode.lab) {
     tickPenalties(S, dt);
     S.clock -= dt;
@@ -458,6 +469,8 @@ function afterWhistle(S) {
     if (S.nextMode) { const m = MODES[S.nextMode]; S.mode = m; S.modeKey = S.nextMode; S.nextMode = null; if (!m.keepBox) clearBox(S, 'format-change'); if (m.shootout) return startShootout(S); if (!m.keepBox) setLineups(S, m.skaters, m.goalies); S.clock = m.periodSec; }
     return faceoffAt(S, 0, 0);
   }
+  if (w.kind === 'offside') { const d = attackDir(S, w.team); return faceoffAt(S, -d * RINK.nzDotX, (S.R() < 0.5 ? 1 : -1) * RINK.dotZ); }
+  if (w.kind === 'icing') { const d = attackDir(S, w.team); return faceoffAt(S, -d * RINK.dotX, (S.R() < 0.5 ? 1 : -1) * RINK.dotZ); }
   if (w.kind === 'freeze') { const side = Math.sign(w.x) || 1; return faceoffAt(S, side * RINK.dotX, (S.R() < 0.5 ? 1 : -1) * RINK.dotZ); }
   if (w.kind === 'penalty') { const side = -attackDir(S, w.team); return faceoffAt(S, side * RINK.dotX, (S.R() < 0.5 ? 1 : -1) * RINK.dotZ); }
   faceoffAt(S, 0, 0);

@@ -196,8 +196,11 @@ def derive(g, A_is_home):
             if s.get('outcome') == 'goal':
                 s['outcome'] = None
         goals = []
+        spurious = sum(1 for r in v4 if r['team'] not in ('home', 'away'))   # Goal entered, score did not change
         for r in v4:
             team = r['team'] if r['team'] in ('home', 'away') else None
+            if team is None:
+                continue
             st = None
             if team == 'home':
                 st = state_of(r['hAp'], r['aAp'])
@@ -270,7 +273,7 @@ def derive(g, A_is_home):
                 gsp_periods=len(per), ot=len(per) > 3,
                 goals=goals, shots=shots, touches=touches, expo=expo, poss=poss_segs, stops=stop_counts,
                 final=fin, pgoals=pgoals, pens_by_period=pens_by_period, mismatch=mismatch,
-                source=source, pp_ok=pp_ok,
+                source=source, pp_ok=pp_ok, spurious=spurious if v4 else 0,
                 frames=fin['frames'], opts=opts,
                 team_of=team_of)
 
@@ -444,10 +447,17 @@ def main():
     pp_counter = sum(r['final']['home']['ppGoals'] + r['final']['away']['ppGoals'] for r in res)
     L.append(f"- Stoppage code 14 (AddPenalty2 call) occurs {code14} times for {tot_goals} goals: it is the goal stoppage. "
              f"Its puck position is where the goal went in.")
-    L.append('- **Scoring team and manpower state at a goal: UNVERIFIED.** Goals attributed to power-play state total '
-             f"{pp_attrib} against the game's own power-play goal counter total of {pp_counter}. "
-             'Neither index-to-team mapping reproduces the counter. The manpower-specific scoring table below is '
-             'therefore not a finding yet.')
+    v4_res = [r for r in res if r['source'] == 'v4']
+    if v4_res and len(v4_res) == len(res):
+        ok = sum(1 for r in res if r['pp_ok'])
+        spur = sum(r['spurious'] for r in res)
+        L.append(f"- Scoring team and power-play flag come from the recorder v4 goal lines. Power-play goals per team match "
+                 f"the game's own counter in {ok}/{len(res)} games. Goal calls with no score change (ignored): {spur}.")
+    else:
+        L.append('- **Scoring team and manpower state at a goal: UNVERIFIED.** Goals attributed to power-play state total '
+                 f"{pp_attrib} against the game's own power-play goal counter total of {pp_counter}. "
+                 'Neither index-to-team mapping reproduces the counter. The manpower-specific scoring table below is '
+                 'therefore not a finding yet.')
     L.append('- Rink zone boundary (blue line at 225 units) and attacking direction are assumptions, not yet verified in the render.')
     L.append('- Goalie object indices assumed to be 5 and 11 (observed as the save/contact targets).')
     L.append('')
@@ -518,8 +528,11 @@ def main():
                 L.append(f"| {cfg} | {owner} | {len(d)} | {pct(d, .5):.2f} | {pct(d, .1):.2f} | {pct(d, .9):.2f} | "
                          f"{sum(d) / len(d):.2f} |")
     L.append('')
-    L.append('## Manpower: goals and shots per 60 manpower minutes (scoring team\'s own state) — UNVERIFIED goal attribution\n')
-    L.append('Shot rates are usable with the caveats above. Goal rates by state are NOT, until the goal-to-team attribution matches the game\'s power-play counter.\n')
+    if v4_res and len(v4_res) == len(res):
+        L.append("## Manpower: goals and shots per 60 manpower minutes (scoring team's own state)\n")
+    else:
+        L.append("## Manpower: goals and shots per 60 manpower minutes (scoring team's own state) — UNVERIFIED goal attribution\n")
+        L.append("Shot rates are usable with the caveats above. Goal rates by state are NOT, until the goal-to-team attribution matches the game's power-play counter.\n")
     L.append('| config | state | game-minutes exposed (sum) | goals / 60 min [95% CI] | shots / 60 min [95% CI] |')
     L.append('|---|---|---|---|---|')
     for cfg in sorted({r['cfg'] for r in res}):

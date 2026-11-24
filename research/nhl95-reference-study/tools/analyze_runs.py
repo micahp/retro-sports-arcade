@@ -186,6 +186,46 @@ def derive(g, A_is_home):
     pcum = [(0, 0)] + [(q['home']['pen'], q['away']['pen']) for q in per]
     pens_by_period = [(pcum[i + 1][0] - pcum[i][0]) + (pcum[i + 1][1] - pcum[i][1]) for i in range(len(per))]
 
+    # Recorder v4: goal lines come from the Goal routine and read the scoring team and PP flag from the game's
+    # team blocks. When present they replace the inferred attribution above (record3 games keep it).
+    v4 = [r for r in recs if r['type'] == 'goal']
+    source = 'v4' if v4 else 'v3-inferred'
+    pp_ok = None
+    if v4:
+        for s in shots:
+            if s.get('outcome') == 'goal':
+                s['outcome'] = None
+        goals = []
+        for r in v4:
+            team = r['team'] if r['team'] in ('home', 'away') else None
+            st = None
+            if team == 'home':
+                st = state_of(r['hAp'], r['aAp'])
+            elif team == 'away':
+                st = state_of(r['aAp'], r['hAp'])
+            goals.append(dict(gsp=r['gsp'], rem=r['clock'], team=team, state=st, pp=r['pp'], x=r['x'], y=r['y'],
+                              matched=False, shot=None))
+        goals.sort(key=lambda x: (x['gsp'], -x['rem']))
+        used = set()
+        for gl in goals:
+            if gl['team'] is None:
+                continue
+            cands = [(s['clock'] - gl['rem'], si) for si, s in enumerate(shots)
+                     if si not in used and s['gsp'] == gl['gsp'] and s['team'] == gl['team']
+                     and 0 <= s['clock'] - gl['rem'] <= 120]
+            if cands:
+                d, si = min(cands)
+                used.add(si)
+                shots[si]['outcome'] = 'goal'
+                gl.update(matched=True, shot=si)
+        mismatch = 0
+        for k, (gh, ga) in enumerate(pgoals):
+            mh = sum(1 for x in goals if x['gsp'] == k and x['team'] == 'home')
+            ma = sum(1 for x in goals if x['gsp'] == k and x['team'] == 'away')
+            if (mh, ma) != (gh, ga):
+                mismatch += 1
+        pp_ok = (sum(x['pp'] for x in goals if x['team'] == 'home') == fin['home']['ppGoals'] and
+                 sum(x['pp'] for x in goals if x['team'] == 'away') == fin['away']['ppGoals'])
     # save outcomes and rebound outcomes for shots not goals
     for si, s in enumerate(shots):
         if s.get('outcome') == 'goal':
@@ -230,6 +270,7 @@ def derive(g, A_is_home):
                 gsp_periods=len(per), ot=len(per) > 3,
                 goals=goals, shots=shots, touches=touches, expo=expo, poss=poss_segs, stops=stop_counts,
                 final=fin, pgoals=pgoals, pens_by_period=pens_by_period, mismatch=mismatch,
+                source=source, pp_ok=pp_ok,
                 frames=fin['frames'], opts=opts,
                 team_of=team_of)
 

@@ -166,6 +166,7 @@ function userIntent(S, p, inp) {
 // ---------------------------------------------------------------- actions
 function actions(S, p) {
   const it = p.intent, pk = S.puck;
+  if (!it) return;   // a skater added during this step (a penalty substitute) acts from the next step's intents
   if (p.one) {
     const a = HOCKEY[p.one.name];
     p.one.t += DT;

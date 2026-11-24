@@ -62,9 +62,15 @@ function hud() {
   $('sc0').textContent = S.score[0]; $('sc1').textContent = S.score[1];
   $('clock').textContent = S.mode.shootout || S.shootout ? 'SO' : `${m}:${String(s).padStart(2, '0')}`;
   $('per').textContent = S.shootout ? 'SHOOTOUT' : S.period > 3 ? 'OT' : `P${S.period}`;
-  const serving = (S.box || []).filter((b) => b.serving), left = serving.length ? Math.min(...serving.map((b) => b.left)) : 0;
-  const pp = serving.length ? ` · ${serving.every((b) => b.team === 1) ? 'PP' : serving.every((b) => b.team === 0) ? 'PK' : ''} 0:${String(Math.ceil(left)).padStart(2, '0')}` : '';
-  $('man').textContent = S.shootout ? '' : `${S.manpower[0]} on ${S.manpower[1]}${pp}`;
+  // manpower badge: only when it isn't even strength. Names the team on the power play and the time
+  // left on the soonest-ending penalty, as m:ss (minors are 2:00 in NHL 95 rules).
+  const serving = (S.box || []).filter((b) => b.serving), left = serving.length ? Math.max(0, Math.min(...serving.map((b) => b.left))) : 0;
+  const mss = (s) => `${Math.floor(Math.ceil(s) / 60)}:${String(Math.ceil(s) % 60).padStart(2, '0')}`;
+  const [m0, m1] = S.manpower || [5, 5];
+  let man = '';
+  if (!S.shootout && m0 !== m1) man = `${TEAMS[m0 > m1 ? 0 : 1].short} POWER PLAY ${serving.length ? mss(left) + ' · ' : ''}${Math.max(m0, m1)} on ${Math.min(m0, m1)}`;
+  else if (!S.shootout && serving.length) man = `${m0} on ${m1} · ${mss(left)}`;
+  $('man').textContent = man; $('man').hidden = !man;
   $('banner').textContent = S.banner || ''; $('banner').hidden = !S.banner;
   const has = S.puck.owner && S.puck.owner.team === S.userTeam;
   $('bA').querySelector('span').textContent = has ? 'PASS' : 'SWITCH';

@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/poses.test.mjs && node tests/puck.test.mjs && node tests/match.test.mjs && node tests/controls.test.mjs && node tests/penalties.test.mjs && node tests/nhl95.test.mjs && node tests/ratings.test.mjs",
+    "test": "node tests/poses.test.mjs && node tests/puck.test.mjs && node tests/match.test.mjs && node tests/controls.test.mjs && node tests/penalties.test.mjs && node tests/nhl95.test.mjs && node tests/ratings.test.mjs && node tests/skating.test.mjs",
     "season": "node tests/season.mjs 10",
     "build": "python build.py index.html dist/rink95.html"
   }

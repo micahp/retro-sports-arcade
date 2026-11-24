@@ -6,6 +6,8 @@ import { makePuck, stepPuck, boards, leadPass } from './puck.js';
 import { HOCKEY, poseAt } from './poses.js';
 import { aiIntent } from './ai.js';
 import { rosterRatings } from './ratings.js';
+import { skateFactors } from './skating.js';
+const NO_SKATE = { top: 1, accel: 1, edges: 1, turn: 1 };   // legacy skating: every factor exactly 1
 import { attackDir, choosePassTarget, laneOpen } from './helpers.js';
 export { attackDir, choosePassTarget, laneOpen };
 
@@ -267,7 +269,8 @@ function move(S, p, dt) {
   const ml = Math.hypot(wx, wz);
   const sp = Math.hypot(p.vx, p.vz);
   const carrying = S.puck.owner === p;
-  const top = SKATE.max * (carrying ? SKATE.carryFactor : 1) * Math.min(1, ml);
+  const F = S.engine.skating === 'rated' ? skateFactors(p.r) : NO_SKATE;   // M2
+  const top = SKATE.max * F.top * (carrying ? SKATE.carryFactor : 1) * Math.min(1, ml);
   const braking = p.one && p.one.name === 'hBrake';
   const shooting = p.one && (p.one.name === 'hShoot' || p.one.name === 'hSlap');
   let ax = 0, az = 0;
@@ -282,11 +285,11 @@ function move(S, p, dt) {
       // split into along-track and lateral parts with separate limits (edges give lateral grip)
       const ux = p.vx / sp, uz = p.vz / sp;
       let al = dvx * ux + dvz * uz, la = -dvx * uz + dvz * ux;
-      const amax = (al > 0 ? SKATE.accel : SKATE.brake * 0.5) * (shooting ? 0.3 : 1) * dt, lmax = SKATE.lateral * dt;
+      const amax = (al > 0 ? SKATE.accel * F.accel : SKATE.brake * 0.5) * (shooting ? 0.3 : 1) * dt, lmax = SKATE.lateral * F.edges * dt;
       al = Math.max(-amax, Math.min(amax, al)); la = Math.max(-lmax, Math.min(lmax, la));
       ax = al * ux - la * uz; az = al * uz + la * ux;
     } else {
-      const dl = Math.hypot(dvx, dvz), a = SKATE.accel * dt;
+      const dl = Math.hypot(dvx, dvz), a = SKATE.accel * F.accel * dt;
       if (dl > a) { ax = dvx / dl * a; az = dvz / dl * a; } else { ax = dvx; az = dvz; }
     }
     p.vx += ax; p.vz += az;
@@ -298,7 +301,7 @@ function move(S, p, dt) {
   if (sp2 > 0.6 && !braking) {
     const target = Math.atan2(p.vz, p.vx);
     const d = ((target - p.yaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
-    p.yaw += Math.sign(d) * Math.min(Math.abs(d), SKATE.turnRate / (1 + sp2 * 0.08) * dt);
+    p.yaw += Math.sign(d) * Math.min(Math.abs(d), SKATE.turnRate * F.turn / (1 + sp2 * 0.08) * dt);
   } else if (ml > 0.2 && !p.one) {
     const target = Math.atan2(wz, wx), d = ((target - p.yaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
     p.yaw += Math.sign(d) * Math.min(Math.abs(d), 4 * dt);

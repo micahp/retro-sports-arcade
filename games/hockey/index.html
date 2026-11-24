@@ -89,14 +89,37 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--kick); outl
       <button type="button" data-mode="en">Empty net<small>6 on 5 · your goalie pulled</small></button>
       <button type="button" data-mode="shootout">Shootout<small>best of three</small></button>
       <button type="button" id="openLab">Puck lab<small>nine puck tests, run on this phone, with replays</small></button>
+      <button type="button" id="openPlab">Player lab<small>one skater: every action, any facing, scrub the animation, stick contact points</small></button>
     </div>
     <div class="row"><label>Periods <select id="perSel"><option value="300">5 min</option><option value="600" selected>10 min</option><option value="1200">20 min</option></select></label><label><input type="checkbox" id="penT" checked> Penalties</label><label><input type="checkbox" id="dbgT"> Debug view: puck trail, shots, saves, hits, posts</label></div>
+    <div class="row"><label>Camera <select class="pitchSel"><option value="58">58°</option><option value="72" selected>72°</option><option value="80">80°</option></select></label><label><input type="checkbox" class="ctT"> Stick contact points</label></div>
     <p class="keys">With the puck: PASS, SHOOT (tap for a wrist shot, hold for a slap shot). Without it: SWITCH to the skater nearest the puck, CHECK (skate into him for a hit; slow and close is a poke check). Push the stick hard against your direction to stop. Keyboard: WASD, J, K.</p>
   </div>
 
   <div id="lab" class="sheet" hidden>
     <div class="row"><button id="labBack" type="button" class="ghost">Back</button><span id="labNow">Tap Replay to watch a test on the rink</span></div>
     <div id="labList"></div>
+  </div>
+  <div id="plab" class="sheet" hidden>
+    <div class="row"><button id="plabBack" type="button" class="ghost">Back</button><b id="plabNow" style="font-family:var(--f-mono);font-size:12px"></b></div>
+    <div class="row">
+      <label>Action <select id="plAct">
+        <option value="hGlide">Idle (glide)</option><option value="hSkate">Skate</option><option value="carry" selected>Carry the puck</option>
+        <option value="hPass">Pass</option><option value="hShoot">Wrist shot</option><option value="hSlap">Slap shot</option>
+        <option value="hCheck">Check</option><option value="hBrake">Hockey stop</option><option value="hFall">Fall</option>
+        <option value="gStance">Goalie stance</option><option value="gButterfly">Goalie butterfly</option><option value="gGlove">Goalie glove</option><option value="gBlocker">Goalie blocker</option>
+      </select></label>
+      <label><input type="checkbox" id="plPlay" checked> Play</label>
+    </div>
+    <div class="row"><label style="flex:1">Time <input type="range" id="plT" min="0" max="1000" value="0" style="width:100%"></label></div>
+    <div class="row"><button type="button" class="ghost" id="plL">⟲ 45°</button><label style="flex:1">Facing <input type="range" id="plYaw" min="0" max="359" value="0" style="width:100%"></label><button type="button" class="ghost" id="plR">45° ⟳</button></div>
+    <div class="row">
+      <label>Camera <select class="pitchSel"><option value="58">58°</option><option value="72" selected>72°</option><option value="80">80°</option></select></label>
+      <label>Zoom <input type="range" id="plZoom" min="20" max="140" value="45"></label>
+      <label><input type="checkbox" class="ctT" checked> Contact points</label><label><input type="checkbox" id="plPuck" checked> Puck</label>
+      <label><input type="checkbox" id="plTeam"> Red team</label>
+    </div>
+    <p class="keys">Contact points: white = top hand, orange = blade heel, cyan = blade toe, magenta = the physics puck-contact point (its ring is the spot on the ice). The stick is drawn from the same geometry the physics uses.</p>
   </div>
   <div id="load">Loading…</div>
   <div id="err" hidden></div>

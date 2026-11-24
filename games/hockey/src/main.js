@@ -1,6 +1,7 @@
-import { createGame, step, DT, TEAMS, switchUser } from './sim.js';
+import { createGame, step, DT, TEAMS, switchUser, stickWorld } from './sim.js';
 import { MODES, RINK } from './config.js';
-import { Renderer } from './render.js';
+import { Renderer, DEFAULT_PITCH } from './render.js';
+import { HOCKEY } from './poses.js';
 import { SCENARIOS, RECORD } from './scenarios.js';
 
 const $ = (id) => document.getElementById(id);
@@ -32,8 +33,37 @@ function start(mode) {
   paused = false; $('menu').hidden = true; $('lab').hidden = true; $('paused').hidden = true; $('hud').hidden = false; controls(true);
 }
 
+// ---------------------------------------------------------------- Player Lab
+// One skater at centre ice, drawn by the game renderer with the same stick geometry the physics uses.
+// Pick an action, facing, time and camera; contact points show where the physics touches the puck.
+const PL = { on: false, t: 0, yaw: 0 };
+const ROLE = { gStance: 'G', gButterfly: 'G', gGlove: 'G', gBlocker: 'G' };
+export function labScene({ action, u, yawDeg, team = 0, puck = true, zoom = 4.5 }) {
+  const name = action === 'carry' ? 'hSkate' : action, a = HOCKEY[name];
+  const loop = !!a.loop, isG = ROLE[name] === 'G';
+  const p = { id: 0, team, role: isG ? 'G' : 'C', isG, x: 0, z: 0, vx: 0, vz: 0, yaw: yawDeg * Math.PI / 180, skin: 0.35, number: isG ? 31 : 9, benched: false,
+    act: loop ? name : 'hGlide', ph: loop ? u : 0, one: loop ? null : { name, t: u * a.dur } };
+  const st = stickWorld(p);
+  const withPuck = puck && ['carry', 'hPass', 'hShoot', 'hSlap'].includes(action);
+  return { skaters: [p], puck: { x: withPuck ? st.C.x : 50, y: 0, z: withPuck ? st.C.z : 0, vx: 0, vz: 0, owner: null }, hidePuck: !withPuck,
+    debug: { trails: [], marks: [] }, user: null, auto: true, focus: { x: 0, z: 0 }, viewW: zoom, stick: st, name, loop, dur: a.dur };
+}
+function labFrame(dt) {
+  const action = $('plAct').value, name = action === 'carry' ? 'hSkate' : action, a = HOCKEY[name];
+  if ($('plPlay').checked) { PL.t = (PL.t + dt / a.dur) % 1; $('plT').value = String(Math.round(PL.t * 1000)); }
+  PL.yaw = Number($('plYaw').value);
+  const sc = labScene({ action, u: PL.t, yawDeg: PL.yaw, team: $('plTeam').checked ? 1 : 0, puck: $('plPuck').checked, zoom: Number($('plZoom').value) / 10 });
+  R.draw(sc, dt, false);
+  const c = sc.stick.C, f = a.loop ? Math.floor(PL.t * a.frames) % a.frames : Math.round(PL.t * (a.frames - 1));
+  $('plabNow').textContent = `${name} t=${(PL.t * a.dur).toFixed(2)}s (sprite frame ${f + 1}/${a.frames}) · facing ${PL.yaw}° · blade contact ${c.y.toFixed(2)} m above the ice`;
+}
+function openPlab() {
+  controls(false); $('menu').hidden = true; $('lab').hidden = true; $('hud').hidden = true; $('plab').hidden = false; PL.on = true;
+}
+
 function frame(now) {
   const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  if (PL.on && R) { labFrame(dt); requestAnimationFrame(frame); return; }
   if (replay) {
     replay.i = Math.min(replay.frames.length - 1, replay.i + Math.max(1, Math.round(dt / DT)));
     const f = replay.frames[replay.i];
@@ -103,6 +133,20 @@ function wire() {
   $('again').onclick = () => { $('again').hidden = true; paused = true; $('menu').hidden = false; S.auto = true; };
   $('dbgT').onchange = (e) => { debug = e.target.checked; $('dbg').hidden = !debug; };
   $('openLab').onclick = openLab;
+  $('openPlab').onclick = openPlab;
+  $('plabBack').onclick = () => { PL.on = false; $('plab').hidden = true; $('menu').hidden = false; };
+  $('plT').oninput = () => { $('plPlay').checked = false; PL.t = Number($('plT').value) / 1000; };
+  const turn = (d) => { $('plYaw').value = String((Number($('plYaw').value) + d + 360) % 360); };
+  $('plL').onclick = () => turn(-45); $('plR').onclick = () => turn(45);
+  // camera pitch and contact points: one setting, mirrored on the menu and in the Player Lab
+  const store = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
+  const load = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
+  const setPitch = (v) => { R.setPitch(v); for (const el of document.querySelectorAll('.pitchSel')) el.value = String(v); store('rink95.pitch', String(v)); };
+  const setContacts = (on) => { R.contacts = on; for (const el of document.querySelectorAll('.ctT')) el.checked = on; };
+  for (const el of document.querySelectorAll('.pitchSel')) el.onchange = () => setPitch(Number(el.value));
+  for (const el of document.querySelectorAll('.ctT')) el.onchange = () => setContacts(el.checked);
+  setPitch(Number(load('rink95.pitch')) || DEFAULT_PITCH);
+  $('openPlab').addEventListener('click', () => setContacts(true));
   $('labBack').onclick = () => { replay = null; $('lab').hidden = true; $('menu').hidden = false; };
   // stick: screen up is +x on the ice, screen right is +z
   const pad = $('stick'), knob = $('knob'); let pid = null, cx = 0, cy = 0;
@@ -150,5 +194,5 @@ function openLab() {
   });
 }
 
-window.__hockey = { get S() { return S; }, get R() { return R; } };   // for automated playtests
+window.__hockey = { get S() { return S; }, get R() { return R; }, labScene };   // for automated playtests and the contact sheet
 boot().catch((e) => showErr(e.message));

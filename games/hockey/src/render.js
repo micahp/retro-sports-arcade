@@ -5,13 +5,16 @@ import * as THREE from '../vendor/three.module.js';
 import { StackRenderer, bakeAll } from '../vendor/stack/stack-renderer.js';
 import { RINK } from './config.js';
 import { HOCKEY, HOCKEY_KEYS } from './poses.js';
-import { animOf, TEAMS } from './sim.js';
+import { animOf, TEAMS, stickWorld } from './sim.js';
 
 export const KITS = [
   { jersey: '#1f4fa8', trim: '#f3f5f8', number: '#f3f5f8', pants: '#16213a', pantStripe: '#f3f5f8', helmet: '#1f4fa8', helmetStripe: '#f3f5f8', mask: '#c9d1d8', sock: '#1f4fa8', sockStripe: '#f3f5f8', glove: '#16213a', cleat: '#141414', belt: '#d8b57a' },
   { jersey: '#c8323a', trim: '#1d1d1f', number: '#fbefe0', pants: '#1d1d1f', pantStripe: '#c8323a', helmet: '#1d1d1f', helmetStripe: '#c8323a', mask: '#c9d1d8', sock: '#c8323a', sockStripe: '#1d1d1f', glove: '#c8323a', cleat: '#141414', belt: '#d8b57a' },
 ];
-const PITCH = 58 * Math.PI / 180;
+// Camera pitch (degrees above the ice). 72 by default; 58 (the original) and 80 kept for comparison
+// with NHL 95 (debug menu). Pitch only moves the camera: positions, sizes and reach are untouched.
+export const PITCHES = [58, 72, 80];
+export const DEFAULT_PITCH = 72;
 
 function rinkTexture(ppm) {
   const { hx, hz, corner, goalX, blueX, mouth, crease, centreR, dotX, dotZ, nzDotX } = RINK, m = 1.5;
@@ -97,6 +100,22 @@ export class Renderer {
     this.trail = new THREE.Line(this.trailGeo, new THREE.LineBasicMaterial({ color: 0xff3d7f })); this.trail.frustumCulled = false; this.trail.visible = false; this.scene.add(this.trail);
     const mg = new THREE.RingGeometry(0.25, 0.34, 16); mg.rotateX(-Math.PI / 2);
     this.marks = new THREE.InstancedMesh(mg, new THREE.MeshBasicMaterial({ color: 0xffffff, depthWrite: false }), 40); this.marks.frustumCulled = false; this.marks.visible = false; this.scene.add(this.marks);
+    // sticks: drawn per frame in world space from the physics stick (sim.stickWorld), not baked into
+    // the sprite, and depth-tested against the sprite layers so they pass in front of / behind the body.
+    // Shaft and blade at real length and position; cross-sections slightly thick so they read on a phone.
+    const box = new THREE.BoxGeometry(1, 1, 1);
+    this.shafts = new THREE.InstancedMesh(box, new THREE.MeshLambertMaterial({ color: 0xc9a36a }), 16); this.shafts.frustumCulled = false; this.scene.add(this.shafts);
+    this.blades = new THREE.InstancedMesh(box, new THREE.MeshLambertMaterial({ color: 0x16181b }), 16); this.blades.frustumCulled = false; this.scene.add(this.blades);
+    this.STICK = { shaft: 0.045, blade: [0.03, 0.07] };
+    // contact debugging: top hand (white), heel (orange), toe (cyan), physics contact point (magenta) and
+    // its spot on the ice
+    const sph = new THREE.SphereGeometry(0.045, 10, 8);
+    this.pts = new THREE.InstancedMesh(sph, new THREE.MeshBasicMaterial({ depthTest: false }), 64); this.pts.renderOrder = 5; this.pts.frustumCulled = false; this.pts.visible = false; this.scene.add(this.pts);
+    const cg = new THREE.RingGeometry(0.09, 0.13, 20); cg.rotateX(-Math.PI / 2);
+    this.contactRing = new THREE.InstancedMesh(cg, new THREE.MeshBasicMaterial({ color: 0xff2bd6, depthWrite: false }), 16); this.contactRing.frustumCulled = false; this.contactRing.visible = false; this.scene.add(this.contactRing);
+    this.contacts = false;
+    this.pitchDeg = DEFAULT_PITCH;
+    this.v3 = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
     this.cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 300);
     this.view = { w: 19, fx: 0, fz: 0 };
     this.tmp = new THREE.Matrix4(); this.col = new THREE.Color();
@@ -107,12 +126,25 @@ export class Renderer {
     };
   }
   resize(w, h) { this.r.setSize(w, h, false); this.aspect = w / h; }
+  setPitch(deg) { this.pitchDeg = deg; }
+  /** Segment a->b as an oriented box: length along a->b, `up` kept vertical where possible. */
+  segment(mesh, i, a, b, w, h) {
+    const [A, B, F, U] = this.v3; A.set(a.x, a.y, a.z); B.set(b.x, b.y, b.z);
+    F.subVectors(B, A); const len = F.length() || 1e-6; F.divideScalar(len);
+    U.set(0, 1, 0); if (Math.abs(F.dot(U)) > 0.98) U.set(1, 0, 0);
+    const R = new THREE.Vector3().crossVectors(U, F).normalize(); U.crossVectors(F, R).normalize();
+    this.tmp.makeBasis(R, U, F); this.tmp.scale(new THREE.Vector3(w, h, len)); this.tmp.setPosition((A.x + B.x) / 2, (A.y + B.y) / 2, (A.z + B.z) / 2);
+    mesh.setMatrixAt(i, this.tmp);
+  }
   draw(S, dt, debug) {
     const t0 = performance.now();
+    const PITCH = this.pitchDeg * Math.PI / 180;
     const pk = S.puck, skaters = S.skaters.filter((p) => !p.benched);
-    // camera leads the puck a little in the direction it moves
-    const lx = pk.x + pk.vx * 0.25, lz = pk.z + pk.vz * 0.1;
-    const k = 1 - Math.exp(-dt * 5);
+    // camera leads the puck a little in the direction it moves (S.focus overrides, for the Player Lab)
+    const fp = S.focus || pk;
+    const lx = fp.x + (fp.vx || 0) * 0.25, lz = fp.z + (fp.vz || 0) * 0.1;
+    const k = S.focus ? 1 : 1 - Math.exp(-dt * 5);
+    if (S.viewW) this.view.w = S.viewW;
     this.view.fx += (lx - this.view.fx) * k; this.view.fz += (lz - this.view.fz) * k;
     const hw = this.view.w / 2, hh = hw / this.aspect;           // hw across (z), hh up the screen
     const visX = hh / Math.sin(PITCH);
@@ -124,6 +156,22 @@ export class Renderer {
     this.sr.update(skaters.map((p) => ({ x: p.x, z: p.z, yaw: p.yaw, frame: this.frameOf(p), team: p.team, skin: p.skin, number: p.number })));
     skaters.forEach((p, i) => { this.tmp.makeTranslation(p.x, 0.01, p.z); this.shadows.setMatrixAt(i, this.tmp); });
     this.shadows.count = skaters.length; this.shadows.instanceMatrix.needsUpdate = true;
+    // sticks, from the physics stick of each player at its current animation time
+    const st = skaters.map((p) => stickWorld(p)), SK = this.STICK;
+    st.forEach((s, i) => { this.segment(this.shafts, i, s.T, s.H, SK.shaft, SK.shaft); this.segment(this.blades, i, s.H, s.E, SK.blade[0], SK.blade[1]); });
+    this.shafts.count = this.blades.count = st.length;
+    this.shafts.instanceMatrix.needsUpdate = this.blades.instanceMatrix.needsUpdate = true;
+    this.pts.visible = this.contactRing.visible = this.contacts;
+    if (this.contacts) {
+      const cols = [0xffffff, 0xff9a2b, 0x2be3ff, 0xff2bd6]; let n = 0;
+      st.forEach((s, i) => {
+        [s.T, s.H, s.E, s.C].forEach((q, j) => { this.tmp.makeTranslation(q.x, q.y, q.z); this.pts.setMatrixAt(n, this.tmp); this.pts.setColorAt(n, this.col.set(cols[j])); n++; });
+        this.tmp.makeTranslation(s.C.x, 0.018, s.C.z); this.contactRing.setMatrixAt(i, this.tmp);
+      });
+      this.pts.count = n; this.pts.instanceMatrix.needsUpdate = true; if (this.pts.instanceColor) this.pts.instanceColor.needsUpdate = true;
+      this.contactRing.count = st.length; this.contactRing.instanceMatrix.needsUpdate = true;
+    }
+    this.puck.visible = this.puckShadow.visible = !S.hidePuck;
     const u = S.user && !S.auto ? S.user : null;
     this.userRing.visible = !!u; if (u) this.userRing.position.set(u.x, 0.015, u.z);
     const tgt = pk.pass && pk.pass.to; this.targetRing.visible = !!tgt; if (tgt) this.targetRing.position.set(tgt.x, 0.016, tgt.z);

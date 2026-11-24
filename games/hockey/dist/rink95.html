@@ -89,14 +89,37 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--kick); outl
       <button type="button" data-mode="en">Empty net<small>6 on 5 · your goalie pulled</small></button>
       <button type="button" data-mode="shootout">Shootout<small>best of three</small></button>
       <button type="button" id="openLab">Puck lab<small>nine puck tests, run on this phone, with replays</small></button>
+      <button type="button" id="openPlab">Player lab<small>one skater: every action, any facing, scrub the animation, stick contact points</small></button>
     </div>
     <div class="row"><label>Periods <select id="perSel"><option value="300">5 min</option><option value="600" selected>10 min</option><option value="1200">20 min</option></select></label><label><input type="checkbox" id="penT" checked> Penalties</label><label><input type="checkbox" id="dbgT"> Debug view: puck trail, shots, saves, hits, posts</label></div>
+    <div class="row"><label>Camera <select class="pitchSel"><option value="58">58°</option><option value="72" selected>72°</option><option value="80">80°</option></select></label><label><input type="checkbox" class="ctT"> Stick contact points</label></div>
     <p class="keys">With the puck: PASS, SHOOT (tap for a wrist shot, hold for a slap shot). Without it: SWITCH to the skater nearest the puck, CHECK (skate into him for a hit; slow and close is a poke check). Push the stick hard against your direction to stop. Keyboard: WASD, J, K.</p>
   </div>
 
   <div id="lab" class="sheet" hidden>
     <div class="row"><button id="labBack" type="button" class="ghost">Back</button><span id="labNow">Tap Replay to watch a test on the rink</span></div>
     <div id="labList"></div>
+  </div>
+  <div id="plab" class="sheet" hidden>
+    <div class="row"><button id="plabBack" type="button" class="ghost">Back</button><b id="plabNow" style="font-family:var(--f-mono);font-size:12px"></b></div>
+    <div class="row">
+      <label>Action <select id="plAct">
+        <option value="hGlide">Idle (glide)</option><option value="hSkate">Skate</option><option value="carry" selected>Carry the puck</option>
+        <option value="hPass">Pass</option><option value="hShoot">Wrist shot</option><option value="hSlap">Slap shot</option>
+        <option value="hCheck">Check</option><option value="hBrake">Hockey stop</option><option value="hFall">Fall</option>
+        <option value="gStance">Goalie stance</option><option value="gButterfly">Goalie butterfly</option><option value="gGlove">Goalie glove</option><option value="gBlocker">Goalie blocker</option>
+      </select></label>
+      <label><input type="checkbox" id="plPlay" checked> Play</label>
+    </div>
+    <div class="row"><label style="flex:1">Time <input type="range" id="plT" min="0" max="1000" value="0" style="width:100%"></label></div>
+    <div class="row"><button type="button" class="ghost" id="plL">⟲ 45°</button><label style="flex:1">Facing <input type="range" id="plYaw" min="0" max="359" value="0" style="width:100%"></label><button type="button" class="ghost" id="plR">45° ⟳</button></div>
+    <div class="row">
+      <label>Camera <select class="pitchSel"><option value="58">58°</option><option value="72" selected>72°</option><option value="80">80°</option></select></label>
+      <label>Zoom <input type="range" id="plZoom" min="20" max="140" value="45"></label>
+      <label><input type="checkbox" class="ctT" checked> Contact points</label><label><input type="checkbox" id="plPuck" checked> Puck</label>
+      <label><input type="checkbox" id="plTeam"> Red team</label>
+    </div>
+    <p class="keys">Contact points: white = top hand, orange = blade heel, cyan = blade toe, magenta = the physics puck-contact point (its ring is the spot on the ice). The stick is drawn from the same geometry the physics uses.</p>
   </div>
   <div id="load">Loading…</div>
   <div id="err" hidden></div>
@@ -53557,11 +53580,14 @@ function ballPart(J, where) {
  * The footprint is G x G cells centred on the pelvis; layer 0 sits on the ground
  * (lowest voxel touches y = 0 unless the pose lifts off with root.lift).
  */
+// Bake footprint half-width (m) around the pelvis. Rink '95 change to the vendored Gridiron body (the only one):
+// was a hard-coded 1.15; a setting so a game can widen it (hockey falls reach further than football poses).
+const BAKE = { half: 1.15 };
 function voxelize(pose, size) {
   const J = fk(pose);
   const lift = J._pose.root.lift || 0;
   const v = size;
-  const half = 1.15;
+  const half = BAKE.half;
   const G = Math.ceil((2 * half) / v);
   const yLo = -0.7, HT = Math.ceil(3.4 / v);
   const N = G * G * HT;
@@ -53667,7 +53693,7 @@ function voxelize(pose, size) {
   return { v, G, i0: bi0, j0: bj0, gx, gz, nl, data };
 }
 
-return { PARTS: parts, MASK_BARS: bars, ballPart, sdRoundBox, sdEllipsoid, sdCone, voxelize, PAL };
+return { PARTS: parts, MASK_BARS: bars, ballPart, sdRoundBox, sdEllipsoid, sdCone, voxelize, PAL, BAKE };
 })();
 __m.footlock = (() => {
 // Foot locking: once the animation puts a foot on the ground, pin it to that
@@ -54645,17 +54671,18 @@ __m.poses = (() => {
 // solved here in body space for each pose (top hand to blade on the ice) and
 // handed to the part through a module variable. That hook is the main adapter
 // cost and the first thing to generalise if the stack becomes shared tech.
-const { PARTS, PAL, sdRoundBox, sdCone } = __m.body;
+// (Since the render branch: the stick is no longer a baked part. It is drawn per frame in world space
+// from stickOf, the same geometry the physics uses; see render.js.)
+const { PARTS, PAL, sdRoundBox, BAKE } = __m.body;
 const { ACTIONS } = __m.actions;
-const { fk, D, sampleKeys, apply, applyT } = __m.skeleton;
+const { fk, D, sampleKeys, apply } = __m.skeleton;
+// Bake footprint: with the stick drawn separately, only the body bakes. Falls stretch the arms past the
+// vendor default (1.15 m: fall frames 7-9 clipped); 1.3 m clears every frame (tests/poses.test.mjs).
+BAKE.half = 1.3;
 
 const deg = (a) => a.map((x) => (typeof x === 'number' ? x * D : x));
 const at = (J, n, c) => { const o = J[n].R, p = J[n].p; return [p[0] + o[0] * c[0] + o[1] * c[1] + o[2] * c[2], p[1] + o[3] * c[0] + o[4] * c[1] + o[5] * c[2], p[2] + o[6] * c[0] + o[7] * c[1] + o[8] * c[2]]; };
 const SOLE = -0.125, BLADE_HALF = 0.15;
-// Furthest the drawn stick may reach from the pelvis in x or z: inside voxelize's +-1.15 m footprint
-// with a margin for the shaft and blade thickness.
-const REACH_LIMIT = 1.08;
-
 /** Lowest point of the skate blades in FK body space: where the ice is for this pose. */
 function groundY(J) {
   let y = 1e9;
@@ -54663,7 +54690,13 @@ function groundY(J) {
   return y;
 }
 
-// Stick geometry per pose, in body space: top hand T, blade heel B, blade toe E.
+// Stick geometry per pose, in body space: top hand T, blade heel H, blade toe E, ice level g.
+// THIS IS THE PHYSICS STICK: the sim's puck-contact point (bladeOf) is the midpoint of H and E, and
+// the renderer draws exactly this geometry as a separate world-space mesh (render.js), so the drawn
+// blade is where the physics blade is. It is not baked into the player sprite any more (the bake's
+// +-1.15 m footprint cut the blade off). Known issue, left for a separate mechanics change: the blade
+// is bent sideways off the shaft (a real stick is planar, blade continuing the shaft's line); fixing
+// it moves the contact point, so it needs its own paired-seed experiment.
 function stickOf(J, s) {
   const T = at(J, 'wrL', [0.02, -0.07, 0]);
   const g = groundY(J);
@@ -54675,69 +54708,14 @@ function stickOf(J, s) {
   }
   else B = [s.blade[0], g + (s.blade[1] === 'ice' ? 0.03 : s.blade[1]), s.blade[2]];
   // shaft length is fixed: slide the heel along the hand-to-target line
-  const L = 1.5;
-  const heel = (B) => {
-    const d = [B[0] - T[0], B[1] - T[1], B[2] - T[2]], dl = Math.hypot(...d) || 1;
-    return { H: s.blade === 'drop' ? B : [T[0] + d[0] / dl * Math.min(L, dl), T[1] + d[1] / dl * Math.min(L, dl), T[2] + d[2] / dl * Math.min(L, dl)], hx: d[0] / dl, hz: d[2] / dl };
-  };
-  // PHYSICS stick (H0, E0): the original geometry. The sim's puck-contact point (bladeOf) uses it, so
-  // physics and every baseline are unchanged by the visual fixes below; moving contact to the drawn
-  // blade is a separate, tested change.
-  const p0 = heel(B), H0 = p0.H, side = [p0.hz, 0, -p0.hx], sl = Math.hypot(side[0], side[2]) || 1;
-  const E0 = [H0[0] - side[0] / sl * 0.3, H0[1] + 0.01, H0[2] - side[2] / sl * 0.3];
-  // DRAWN stick (H, E). Two fixes for "the sticks look backwards":
-  //  1. reach: the original carry target put the blade only ~0.1 m ahead of the top hand, so with the
-  //     58-degree camera the shaft drew straight down the screen and skaters facing up-screen seemed to
-  //     drag it behind them. Skaters carry the blade further out: +0.55 m forward, +0.1 m to the
-  //     forehand side, blended out as the blade lifts (wind-ups unchanged). Goalies keep theirs.
-  //  2. blade direction: a stick is planar, so seen from above the blade continues the shaft's line,
-  //     toe away from the player. The original bent the blade sideways off the shaft.
-  //  The whole drawn stick must stay inside the voxel bake footprint (vendor/stack/body.js voxelize:
-  //  +-1.15 m around the pelvis), or the blade is cut off and the stick never reaches the ice. The
-  //  first try pushed the toe to ~1.7 m and lost the blade; the reach is now shrunk until the toe fits.
-  let toe = 0.27; const LIM = REACH_LIMIT;
-  // k scales the extra reach; toe shortens the drawn blade; f pulls the blade target in toward the hands
-  // (some original targets, e.g. the fall's stick laid out at 1.6 m, never fitted either). In that order.
-  const solve = (k, f) => {
-    let BV = B;
-    if (!s.goalie && s.blade !== 'drop') {
-      const w = Math.max(0, Math.min(1, 1 - (B[1] - g - 0.03) / 0.3)) * k;
-      BV = [B[0] + 0.3 * w, B[1], B[2] + 0.12 * w];
-    }
-    BV = [T[0] + (BV[0] - T[0]) * f, BV[1], T[2] + (BV[2] - T[2]) * f];
-    const pv = heel(BV), H = pv.H, hl = Math.hypot(pv.hx, pv.hz) || 1;
-    return { H, E: [H[0] + pv.hx / hl * toe, H[1] + 0.01, H[2] + pv.hz / hl * toe] };
-  };
-  const over = (st) => Math.max(Math.abs(st.E[0]), Math.abs(st.E[2]), Math.abs(st.H[0]), Math.abs(st.H[2])) > LIM;
-  let k = 1, f = 1, st = solve(k, f);
-  while (over(st) && k > 0) { k = Math.max(0, k - 0.1); st = solve(k, f); }
-  while (over(st) && toe > 0.12) { toe -= 0.03; st = solve(k, f); }
-  while (over(st) && f > 0.6) { f -= 0.05; st = solve(k, f); }
-  if (over(st)) {
-    // last resort (falls, arms stretched to the edge of the footprint): the drawn stick lies on the
-    // ice alongside the player, blade beside the hip
-    const side = T[2] >= 0 ? 1 : -1, BV = [0.15, g + 0.03, 0.8 * side];
-    const pv = heel(BV), hl = Math.hypot(pv.hx, pv.hz) || 1;
-    st = { H: pv.H, E: [pv.H[0] + pv.hx / hl * toe, pv.H[1] + 0.01, pv.H[2] + pv.hz / hl * toe] };
-    if (over(st)) st = { H: [0.15, BV[1], 0.8 * side], E: [0.15 - toe, BV[1] + 0.01, 0.8 * side] };
-  }
-  return { T, H: st.H, E: st.E, H0, E0, g };
+  const L = 1.5, d = [B[0] - T[0], B[1] - T[1], B[2] - T[2]], dl = Math.hypot(...d) || 1;
+  const H = s.blade === 'drop' ? B : [T[0] + d[0] / dl * Math.min(L, dl), T[1] + d[1] / dl * Math.min(L, dl), T[2] + d[2] / dl * Math.min(L, dl)];
+  const hx = d[0] / dl, hz = d[2] / dl, side = [hz, 0, -hx];
+  const sl = Math.hypot(side[0], side[2]) || 1;
+  const E = [H[0] - side[0] / sl * 0.3, H[1] + 0.01, H[2] - side[2] / sl * 0.3];
+  return { T, H, E, g };
 }
 
-// the current pose's stick, read by the stick part while that pose voxelises
-let CUR = null;
-const local = (J, w) => applyT(J.wrR.R, [w[0] - J.wrR.p[0], w[1] - J.wrR.p[1], w[2] - J.wrR.p[2]]);
-const stickPart = {
-  prio: 3, thin: true, joint: 'wrR', bounds: [[-0.1, -0.1, -0.1], [0.1, 0.1, 0.1]],
-  sdf: (p) => (CUR ? Math.min(sdCone(p, CUR.t, CUR.h, 0.02, 0.018), sdCone(p, CUR.h, CUR.e, 0.026, 0.022)) : 1),
-  mat: (p) => {
-    if (!CUR) return PAL.BELT;
-    const dh = Math.hypot(p[0] - CUR.h[0], p[1] - CUR.h[1], p[2] - CUR.h[2]);
-    const dt = Math.hypot(p[0] - CUR.t[0], p[1] - CUR.t[1], p[2] - CUR.t[2]);
-    return dh < 0.05 || sdCone(p, CUR.h, CUR.e, 0.03, 0.03) < 0 || dt < 0.07 ? PAL.SOLE : PAL.BELT;
-  },
-};
-PARTS.push(stickPart);
 // skate blades under the boots
 for (const an of ['anR', 'anL']) {
   PARTS.push({
@@ -54748,16 +54726,7 @@ for (const an of ['anR', 'anL']) {
 }
 
 /** Attach the stick for one pose and return the pose (called inside each action fn). */
-function withStick(pose, s) {
-  const J = fk(pose);
-  const st = stickOf(J, s);
-  const t = local(J, st.T), h = local(J, st.H), e = local(J, st.E);
-  CUR = { t, h, e };
-  const mn = [0, 1, 2].map((i) => Math.min(t[i], h[i], e[i]) - 0.06), mx = [0, 1, 2].map((i) => Math.max(t[i], h[i], e[i]) + 0.06);
-  stickPart.bounds = [mn, mx];
-  pose._stick = s;
-  return pose;
-}
+function withStick(pose, s) { pose._stick = s; return pose; }
 
 // ---------------------------------------------------------------- poses
 const UPPER = {
@@ -54886,7 +54855,7 @@ function poseAt(name, t) {
 }
 
 
-return { jointPoint: at, groundY, stickOf, poseAt, REACH_LIMIT, HOCKEY, HOCKEY_KEYS };
+return { jointPoint: at, groundY, stickOf, poseAt, HOCKEY, HOCKEY_KEYS };
 })();
 __m.helpers = (() => {
 // Small rule helpers shared by the sim and the AI.
@@ -55135,9 +55104,20 @@ function bladeOf(p) {
   const tt = p.one ? p.one.t : p.ph * a.dur;
   const { stick, g } = poseAt(name, tt);
   const c = Math.cos(p.yaw), s = Math.sin(p.yaw);
-  // contact point: the legacy blade (E0), so the poses.js visual fix leaves physics unchanged
-  const m = [(stick.H0[0] + stick.E0[0]) / 2, (stick.H0[1] + stick.E0[1]) / 2 - g, (stick.H0[2] + stick.E0[2]) / 2];
+  // contact point: midpoint of the blade (heel H, toe E); render.js draws this same stick (stickWorld)
+  const m = [(stick.H[0] + stick.E[0]) / 2, (stick.H[1] + stick.E[1]) / 2 - g, (stick.H[2] + stick.E[2]) / 2];
   return { x: p.x + m[0] * c - m[2] * s, y: m[1], z: p.z + m[0] * s + m[2] * c };
+}
+/** The whole stick in world space at p's current animation time: top hand T, heel H, toe E, contact C
+ *  (= bladeOf). Same pose, same time and same transform as the physics, for drawing and debugging. */
+function stickWorld(p) {
+  const name = p.one ? p.one.name : p.act, a = HOCKEY[name];
+  const tt = p.one ? p.one.t : p.ph * a.dur;
+  const { stick, g } = poseAt(name, tt);
+  const c = Math.cos(p.yaw), s = Math.sin(p.yaw);
+  const w = (v) => ({ x: p.x + v[0] * c - v[2] * s, y: v[1] - g, z: p.z + v[0] * s + v[2] * c });
+  const C = [(stick.H[0] + stick.E[0]) / 2, (stick.H[1] + stick.E[1]) / 2, (stick.H[2] + stick.E[2]) / 2];
+  return { T: w(stick.T), H: w(stick.H), E: w(stick.E), C: w(C) };
 }
 const start = (p, name) => { p.one = { name, t: 0, fired: false }; };
 const busy = (p) => p.down > 0 || (p.one && !['hCheck', 'hBrake'].includes(p.one.name));
@@ -55610,7 +55590,7 @@ function animOf(p) {
   return { name: p.act, t: p.ph * HOCKEY[p.act].dur };
 }
 
-return { attackDir, choosePassTarget, laneOpen, createGame, addSkater, setLineups, bladeOf, step, switchUser, strengthOf, callPenalty, animOf, DT, TEAMS, penaltySeconds };
+return { attackDir, choosePassTarget, laneOpen, createGame, addSkater, setLineups, bladeOf, stickWorld, step, switchUser, strengthOf, callPenalty, animOf, DT, TEAMS, penaltySeconds };
 })();
 __m.scenarios = (() => {
 // Puck lab: repeatable scenarios with measured pass/fail checks. The node test
@@ -55742,13 +55722,16 @@ const THREE = __m.three;
 const { StackRenderer, bakeAll } = __m.stackr;
 const { RINK } = __m.config;
 const { HOCKEY, HOCKEY_KEYS } = __m.poses;
-const { animOf, TEAMS } = __m.sim;
+const { animOf, TEAMS, stickWorld } = __m.sim;
 
 const KITS = [
   { jersey: '#1f4fa8', trim: '#f3f5f8', number: '#f3f5f8', pants: '#16213a', pantStripe: '#f3f5f8', helmet: '#1f4fa8', helmetStripe: '#f3f5f8', mask: '#c9d1d8', sock: '#1f4fa8', sockStripe: '#f3f5f8', glove: '#16213a', cleat: '#141414', belt: '#d8b57a' },
   { jersey: '#c8323a', trim: '#1d1d1f', number: '#fbefe0', pants: '#1d1d1f', pantStripe: '#c8323a', helmet: '#1d1d1f', helmetStripe: '#c8323a', mask: '#c9d1d8', sock: '#c8323a', sockStripe: '#1d1d1f', glove: '#c8323a', cleat: '#141414', belt: '#d8b57a' },
 ];
-const PITCH = 58 * Math.PI / 180;
+// Camera pitch (degrees above the ice). 72 by default; 58 (the original) and 80 kept for comparison
+// with NHL 95 (debug menu). Pitch only moves the camera: positions, sizes and reach are untouched.
+const PITCHES = [58, 72, 80];
+const DEFAULT_PITCH = 72;
 
 function rinkTexture(ppm) {
   const { hx, hz, corner, goalX, blueX, mouth, crease, centreR, dotX, dotZ, nzDotX } = RINK, m = 1.5;
@@ -55834,6 +55817,22 @@ class Renderer {
     this.trail = new THREE.Line(this.trailGeo, new THREE.LineBasicMaterial({ color: 0xff3d7f })); this.trail.frustumCulled = false; this.trail.visible = false; this.scene.add(this.trail);
     const mg = new THREE.RingGeometry(0.25, 0.34, 16); mg.rotateX(-Math.PI / 2);
     this.marks = new THREE.InstancedMesh(mg, new THREE.MeshBasicMaterial({ color: 0xffffff, depthWrite: false }), 40); this.marks.frustumCulled = false; this.marks.visible = false; this.scene.add(this.marks);
+    // sticks: drawn per frame in world space from the physics stick (sim.stickWorld), not baked into
+    // the sprite, and depth-tested against the sprite layers so they pass in front of / behind the body.
+    // Shaft and blade at real length and position; cross-sections slightly thick so they read on a phone.
+    const box = new THREE.BoxGeometry(1, 1, 1);
+    this.shafts = new THREE.InstancedMesh(box, new THREE.MeshLambertMaterial({ color: 0xc9a36a }), 16); this.shafts.frustumCulled = false; this.scene.add(this.shafts);
+    this.blades = new THREE.InstancedMesh(box, new THREE.MeshLambertMaterial({ color: 0x16181b }), 16); this.blades.frustumCulled = false; this.scene.add(this.blades);
+    this.STICK = { shaft: 0.045, blade: [0.03, 0.07] };
+    // contact debugging: top hand (white), heel (orange), toe (cyan), physics contact point (magenta) and
+    // its spot on the ice
+    const sph = new THREE.SphereGeometry(0.045, 10, 8);
+    this.pts = new THREE.InstancedMesh(sph, new THREE.MeshBasicMaterial({ depthTest: false }), 64); this.pts.renderOrder = 5; this.pts.frustumCulled = false; this.pts.visible = false; this.scene.add(this.pts);
+    const cg = new THREE.RingGeometry(0.09, 0.13, 20); cg.rotateX(-Math.PI / 2);
+    this.contactRing = new THREE.InstancedMesh(cg, new THREE.MeshBasicMaterial({ color: 0xff2bd6, depthWrite: false }), 16); this.contactRing.frustumCulled = false; this.contactRing.visible = false; this.scene.add(this.contactRing);
+    this.contacts = false;
+    this.pitchDeg = DEFAULT_PITCH;
+    this.v3 = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
     this.cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 300);
     this.view = { w: 19, fx: 0, fz: 0 };
     this.tmp = new THREE.Matrix4(); this.col = new THREE.Color();
@@ -55844,12 +55843,25 @@ class Renderer {
     };
   }
   resize(w, h) { this.r.setSize(w, h, false); this.aspect = w / h; }
+  setPitch(deg) { this.pitchDeg = deg; }
+  /** Segment a->b as an oriented box: length along a->b, `up` kept vertical where possible. */
+  segment(mesh, i, a, b, w, h) {
+    const [A, B, F, U] = this.v3; A.set(a.x, a.y, a.z); B.set(b.x, b.y, b.z);
+    F.subVectors(B, A); const len = F.length() || 1e-6; F.divideScalar(len);
+    U.set(0, 1, 0); if (Math.abs(F.dot(U)) > 0.98) U.set(1, 0, 0);
+    const R = new THREE.Vector3().crossVectors(U, F).normalize(); U.crossVectors(F, R).normalize();
+    this.tmp.makeBasis(R, U, F); this.tmp.scale(new THREE.Vector3(w, h, len)); this.tmp.setPosition((A.x + B.x) / 2, (A.y + B.y) / 2, (A.z + B.z) / 2);
+    mesh.setMatrixAt(i, this.tmp);
+  }
   draw(S, dt, debug) {
     const t0 = performance.now();
+    const PITCH = this.pitchDeg * Math.PI / 180;
     const pk = S.puck, skaters = S.skaters.filter((p) => !p.benched);
-    // camera leads the puck a little in the direction it moves
-    const lx = pk.x + pk.vx * 0.25, lz = pk.z + pk.vz * 0.1;
-    const k = 1 - Math.exp(-dt * 5);
+    // camera leads the puck a little in the direction it moves (S.focus overrides, for the Player Lab)
+    const fp = S.focus || pk;
+    const lx = fp.x + (fp.vx || 0) * 0.25, lz = fp.z + (fp.vz || 0) * 0.1;
+    const k = S.focus ? 1 : 1 - Math.exp(-dt * 5);
+    if (S.viewW) this.view.w = S.viewW;
     this.view.fx += (lx - this.view.fx) * k; this.view.fz += (lz - this.view.fz) * k;
     const hw = this.view.w / 2, hh = hw / this.aspect;           // hw across (z), hh up the screen
     const visX = hh / Math.sin(PITCH);
@@ -55861,6 +55873,22 @@ class Renderer {
     this.sr.update(skaters.map((p) => ({ x: p.x, z: p.z, yaw: p.yaw, frame: this.frameOf(p), team: p.team, skin: p.skin, number: p.number })));
     skaters.forEach((p, i) => { this.tmp.makeTranslation(p.x, 0.01, p.z); this.shadows.setMatrixAt(i, this.tmp); });
     this.shadows.count = skaters.length; this.shadows.instanceMatrix.needsUpdate = true;
+    // sticks, from the physics stick of each player at its current animation time
+    const st = skaters.map((p) => stickWorld(p)), SK = this.STICK;
+    st.forEach((s, i) => { this.segment(this.shafts, i, s.T, s.H, SK.shaft, SK.shaft); this.segment(this.blades, i, s.H, s.E, SK.blade[0], SK.blade[1]); });
+    this.shafts.count = this.blades.count = st.length;
+    this.shafts.instanceMatrix.needsUpdate = this.blades.instanceMatrix.needsUpdate = true;
+    this.pts.visible = this.contactRing.visible = this.contacts;
+    if (this.contacts) {
+      const cols = [0xffffff, 0xff9a2b, 0x2be3ff, 0xff2bd6]; let n = 0;
+      st.forEach((s, i) => {
+        [s.T, s.H, s.E, s.C].forEach((q, j) => { this.tmp.makeTranslation(q.x, q.y, q.z); this.pts.setMatrixAt(n, this.tmp); this.pts.setColorAt(n, this.col.set(cols[j])); n++; });
+        this.tmp.makeTranslation(s.C.x, 0.018, s.C.z); this.contactRing.setMatrixAt(i, this.tmp);
+      });
+      this.pts.count = n; this.pts.instanceMatrix.needsUpdate = true; if (this.pts.instanceColor) this.pts.instanceColor.needsUpdate = true;
+      this.contactRing.count = st.length; this.contactRing.instanceMatrix.needsUpdate = true;
+    }
+    this.puck.visible = this.puckShadow.visible = !S.hidePuck;
     const u = S.user && !S.auto ? S.user : null;
     this.userRing.visible = !!u; if (u) this.userRing.position.set(u.x, 0.015, u.z);
     const tgt = pk.pass && pk.pass.to; this.targetRing.visible = !!tgt; if (tgt) this.targetRing.position.set(tgt.x, 0.016, tgt.z);
@@ -55886,12 +55914,13 @@ class Renderer {
   }
 }
 
-return { Renderer, KITS };
+return { Renderer, KITS, PITCHES, DEFAULT_PITCH };
 })();
 __m.main = (() => {
-const { createGame, step, DT, TEAMS, switchUser } = __m.sim;
+const { createGame, step, DT, TEAMS, switchUser, stickWorld } = __m.sim;
 const { MODES, RINK } = __m.config;
-const { Renderer } = __m.render;
+const { Renderer, DEFAULT_PITCH } = __m.render;
+const { HOCKEY } = __m.poses;
 const { SCENARIOS, RECORD } = __m.scenarios;
 
 const $ = (id) => document.getElementById(id);
@@ -55923,8 +55952,37 @@ function start(mode) {
   paused = false; $('menu').hidden = true; $('lab').hidden = true; $('paused').hidden = true; $('hud').hidden = false; controls(true);
 }
 
+// ---------------------------------------------------------------- Player Lab
+// One skater at centre ice, drawn by the game renderer with the same stick geometry the physics uses.
+// Pick an action, facing, time and camera; contact points show where the physics touches the puck.
+const PL = { on: false, t: 0, yaw: 0 };
+const ROLE = { gStance: 'G', gButterfly: 'G', gGlove: 'G', gBlocker: 'G' };
+function labScene({ action, u, yawDeg, team = 0, puck = true, zoom = 4.5 }) {
+  const name = action === 'carry' ? 'hSkate' : action, a = HOCKEY[name];
+  const loop = !!a.loop, isG = ROLE[name] === 'G';
+  const p = { id: 0, team, role: isG ? 'G' : 'C', isG, x: 0, z: 0, vx: 0, vz: 0, yaw: yawDeg * Math.PI / 180, skin: 0.35, number: isG ? 31 : 9, benched: false,
+    act: loop ? name : 'hGlide', ph: loop ? u : 0, one: loop ? null : { name, t: u * a.dur } };
+  const st = stickWorld(p);
+  const withPuck = puck && ['carry', 'hPass', 'hShoot', 'hSlap'].includes(action);
+  return { skaters: [p], puck: { x: withPuck ? st.C.x : 50, y: 0, z: withPuck ? st.C.z : 0, vx: 0, vz: 0, owner: null }, hidePuck: !withPuck,
+    debug: { trails: [], marks: [] }, user: null, auto: true, focus: { x: 0, z: 0 }, viewW: zoom, stick: st, name, loop, dur: a.dur };
+}
+function labFrame(dt) {
+  const action = $('plAct').value, name = action === 'carry' ? 'hSkate' : action, a = HOCKEY[name];
+  if ($('plPlay').checked) { PL.t = (PL.t + dt / a.dur) % 1; $('plT').value = String(Math.round(PL.t * 1000)); }
+  PL.yaw = Number($('plYaw').value);
+  const sc = labScene({ action, u: PL.t, yawDeg: PL.yaw, team: $('plTeam').checked ? 1 : 0, puck: $('plPuck').checked, zoom: Number($('plZoom').value) / 10 });
+  R.draw(sc, dt, false);
+  const c = sc.stick.C, f = a.loop ? Math.floor(PL.t * a.frames) % a.frames : Math.round(PL.t * (a.frames - 1));
+  $('plabNow').textContent = `${name} t=${(PL.t * a.dur).toFixed(2)}s (sprite frame ${f + 1}/${a.frames}) · facing ${PL.yaw}° · blade contact ${c.y.toFixed(2)} m above the ice`;
+}
+function openPlab() {
+  controls(false); $('menu').hidden = true; $('lab').hidden = true; $('hud').hidden = true; $('plab').hidden = false; PL.on = true;
+}
+
 function frame(now) {
   const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  if (PL.on && R) { labFrame(dt); requestAnimationFrame(frame); return; }
   if (replay) {
     replay.i = Math.min(replay.frames.length - 1, replay.i + Math.max(1, Math.round(dt / DT)));
     const f = replay.frames[replay.i];
@@ -55994,6 +56052,20 @@ function wire() {
   $('again').onclick = () => { $('again').hidden = true; paused = true; $('menu').hidden = false; S.auto = true; };
   $('dbgT').onchange = (e) => { debug = e.target.checked; $('dbg').hidden = !debug; };
   $('openLab').onclick = openLab;
+  $('openPlab').onclick = openPlab;
+  $('plabBack').onclick = () => { PL.on = false; $('plab').hidden = true; $('menu').hidden = false; };
+  $('plT').oninput = () => { $('plPlay').checked = false; PL.t = Number($('plT').value) / 1000; };
+  const turn = (d) => { $('plYaw').value = String((Number($('plYaw').value) + d + 360) % 360); };
+  $('plL').onclick = () => turn(-45); $('plR').onclick = () => turn(45);
+  // camera pitch and contact points: one setting, mirrored on the menu and in the Player Lab
+  const store = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
+  const load = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
+  const setPitch = (v) => { R.setPitch(v); for (const el of document.querySelectorAll('.pitchSel')) el.value = String(v); store('rink95.pitch', String(v)); };
+  const setContacts = (on) => { R.contacts = on; for (const el of document.querySelectorAll('.ctT')) el.checked = on; };
+  for (const el of document.querySelectorAll('.pitchSel')) el.onchange = () => setPitch(Number(el.value));
+  for (const el of document.querySelectorAll('.ctT')) el.onchange = () => setContacts(el.checked);
+  setPitch(Number(load('rink95.pitch')) || DEFAULT_PITCH);
+  $('openPlab').addEventListener('click', () => setContacts(true));
   $('labBack').onclick = () => { replay = null; $('lab').hidden = true; $('menu').hidden = false; };
   // stick: screen up is +x on the ice, screen right is +z
   const pad = $('stick'), knob = $('knob'); let pid = null, cx = 0, cy = 0;
@@ -56041,9 +56113,9 @@ function openLab() {
   });
 }
 
-window.__hockey = { get S() { return S; }, get R() { return R; } };   // for automated playtests
+window.__hockey = { get S() { return S; }, get R() { return R; }, labScene };   // for automated playtests and the contact sheet
 boot().catch((e) => showErr(e.message));
 
-return {  };
+return { labScene };
 })();
 </script>

@@ -215,11 +215,14 @@ export { sdRoundBox, sdEllipsoid, sdCone };
  * The footprint is G x G cells centred on the pelvis; layer 0 sits on the ground
  * (lowest voxel touches y = 0 unless the pose lifts off with root.lift).
  */
+// Bake footprint half-width (m) around the pelvis. Rink '95 change to the vendored Gridiron body (the only one):
+// was a hard-coded 1.15; a setting so a game can widen it (hockey falls reach further than football poses).
+export const BAKE = { half: 1.15 };
 export function voxelize(pose, size) {
   const J = fk(pose);
   const lift = J._pose.root.lift || 0;
   const v = size;
-  const half = 1.15;
+  const half = BAKE.half;
   const G = Math.ceil((2 * half) / v);
   const yLo = -0.7, HT = Math.ceil(3.4 / v);
   const N = G * G * HT;

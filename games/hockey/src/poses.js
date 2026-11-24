@@ -9,17 +9,18 @@
 // solved here in body space for each pose (top hand to blade on the ice) and
 // handed to the part through a module variable. That hook is the main adapter
 // cost and the first thing to generalise if the stack becomes shared tech.
-import { PARTS, PAL, sdRoundBox, sdCone } from '../vendor/stack/body.js';
+// (Since the render branch: the stick is no longer a baked part. It is drawn per frame in world space
+// from stickOf, the same geometry the physics uses; see render.js.)
+import { PARTS, PAL, sdRoundBox, BAKE } from '../vendor/stack/body.js';
 import { ACTIONS } from '../vendor/stack/actions.js';
-import { fk, D, sampleKeys, apply, applyT } from '../vendor/stack/skeleton.js';
+import { fk, D, sampleKeys, apply } from '../vendor/stack/skeleton.js';
+// Bake footprint: with the stick drawn separately, only the body bakes. Falls stretch the arms past the
+// vendor default (1.15 m: fall frames 7-9 clipped); 1.3 m clears every frame (tests/poses.test.mjs).
+BAKE.half = 1.3;
 
 const deg = (a) => a.map((x) => (typeof x === 'number' ? x * D : x));
 const at = (J, n, c) => { const o = J[n].R, p = J[n].p; return [p[0] + o[0] * c[0] + o[1] * c[1] + o[2] * c[2], p[1] + o[3] * c[0] + o[4] * c[1] + o[5] * c[2], p[2] + o[6] * c[0] + o[7] * c[1] + o[8] * c[2]]; };
 const SOLE = -0.125, BLADE_HALF = 0.15;
-// Furthest the drawn stick may reach from the pelvis in x or z: inside voxelize's +-1.15 m footprint
-// with a margin for the shaft and blade thickness.
-export const REACH_LIMIT = 1.08;
-
 /** Lowest point of the skate blades in FK body space: where the ice is for this pose. */
 export function groundY(J) {
   let y = 1e9;
@@ -27,7 +28,13 @@ export function groundY(J) {
   return y;
 }
 
-// Stick geometry per pose, in body space: top hand T, blade heel B, blade toe E.
+// Stick geometry per pose, in body space: top hand T, blade heel H, blade toe E, ice level g.
+// THIS IS THE PHYSICS STICK: the sim's puck-contact point (bladeOf) is the midpoint of H and E, and
+// the renderer draws exactly this geometry as a separate world-space mesh (render.js), so the drawn
+// blade is where the physics blade is. It is not baked into the player sprite any more (the bake's
+// +-1.15 m footprint cut the blade off). Known issue, left for a separate mechanics change: the blade
+// is bent sideways off the shaft (a real stick is planar, blade continuing the shaft's line); fixing
+// it moves the contact point, so it needs its own paired-seed experiment.
 export function stickOf(J, s) {
   const T = at(J, 'wrL', [0.02, -0.07, 0]);
   const g = groundY(J);
@@ -39,69 +46,14 @@ export function stickOf(J, s) {
   }
   else B = [s.blade[0], g + (s.blade[1] === 'ice' ? 0.03 : s.blade[1]), s.blade[2]];
   // shaft length is fixed: slide the heel along the hand-to-target line
-  const L = 1.5;
-  const heel = (B) => {
-    const d = [B[0] - T[0], B[1] - T[1], B[2] - T[2]], dl = Math.hypot(...d) || 1;
-    return { H: s.blade === 'drop' ? B : [T[0] + d[0] / dl * Math.min(L, dl), T[1] + d[1] / dl * Math.min(L, dl), T[2] + d[2] / dl * Math.min(L, dl)], hx: d[0] / dl, hz: d[2] / dl };
-  };
-  // PHYSICS stick (H0, E0): the original geometry. The sim's puck-contact point (bladeOf) uses it, so
-  // physics and every baseline are unchanged by the visual fixes below; moving contact to the drawn
-  // blade is a separate, tested change.
-  const p0 = heel(B), H0 = p0.H, side = [p0.hz, 0, -p0.hx], sl = Math.hypot(side[0], side[2]) || 1;
-  const E0 = [H0[0] - side[0] / sl * 0.3, H0[1] + 0.01, H0[2] - side[2] / sl * 0.3];
-  // DRAWN stick (H, E). Two fixes for "the sticks look backwards":
-  //  1. reach: the original carry target put the blade only ~0.1 m ahead of the top hand, so with the
-  //     58-degree camera the shaft drew straight down the screen and skaters facing up-screen seemed to
-  //     drag it behind them. Skaters carry the blade further out: +0.55 m forward, +0.1 m to the
-  //     forehand side, blended out as the blade lifts (wind-ups unchanged). Goalies keep theirs.
-  //  2. blade direction: a stick is planar, so seen from above the blade continues the shaft's line,
-  //     toe away from the player. The original bent the blade sideways off the shaft.
-  //  The whole drawn stick must stay inside the voxel bake footprint (vendor/stack/body.js voxelize:
-  //  +-1.15 m around the pelvis), or the blade is cut off and the stick never reaches the ice. The
-  //  first try pushed the toe to ~1.7 m and lost the blade; the reach is now shrunk until the toe fits.
-  let toe = 0.27; const LIM = REACH_LIMIT;
-  // k scales the extra reach; toe shortens the drawn blade; f pulls the blade target in toward the hands
-  // (some original targets, e.g. the fall's stick laid out at 1.6 m, never fitted either). In that order.
-  const solve = (k, f) => {
-    let BV = B;
-    if (!s.goalie && s.blade !== 'drop') {
-      const w = Math.max(0, Math.min(1, 1 - (B[1] - g - 0.03) / 0.3)) * k;
-      BV = [B[0] + 0.3 * w, B[1], B[2] + 0.12 * w];
-    }
-    BV = [T[0] + (BV[0] - T[0]) * f, BV[1], T[2] + (BV[2] - T[2]) * f];
-    const pv = heel(BV), H = pv.H, hl = Math.hypot(pv.hx, pv.hz) || 1;
-    return { H, E: [H[0] + pv.hx / hl * toe, H[1] + 0.01, H[2] + pv.hz / hl * toe] };
-  };
-  const over = (st) => Math.max(Math.abs(st.E[0]), Math.abs(st.E[2]), Math.abs(st.H[0]), Math.abs(st.H[2])) > LIM;
-  let k = 1, f = 1, st = solve(k, f);
-  while (over(st) && k > 0) { k = Math.max(0, k - 0.1); st = solve(k, f); }
-  while (over(st) && toe > 0.12) { toe -= 0.03; st = solve(k, f); }
-  while (over(st) && f > 0.6) { f -= 0.05; st = solve(k, f); }
-  if (over(st)) {
-    // last resort (falls, arms stretched to the edge of the footprint): the drawn stick lies on the
-    // ice alongside the player, blade beside the hip
-    const side = T[2] >= 0 ? 1 : -1, BV = [0.15, g + 0.03, 0.8 * side];
-    const pv = heel(BV), hl = Math.hypot(pv.hx, pv.hz) || 1;
-    st = { H: pv.H, E: [pv.H[0] + pv.hx / hl * toe, pv.H[1] + 0.01, pv.H[2] + pv.hz / hl * toe] };
-    if (over(st)) st = { H: [0.15, BV[1], 0.8 * side], E: [0.15 - toe, BV[1] + 0.01, 0.8 * side] };
-  }
-  return { T, H: st.H, E: st.E, H0, E0, g };
+  const L = 1.5, d = [B[0] - T[0], B[1] - T[1], B[2] - T[2]], dl = Math.hypot(...d) || 1;
+  const H = s.blade === 'drop' ? B : [T[0] + d[0] / dl * Math.min(L, dl), T[1] + d[1] / dl * Math.min(L, dl), T[2] + d[2] / dl * Math.min(L, dl)];
+  const hx = d[0] / dl, hz = d[2] / dl, side = [hz, 0, -hx];
+  const sl = Math.hypot(side[0], side[2]) || 1;
+  const E = [H[0] - side[0] / sl * 0.3, H[1] + 0.01, H[2] - side[2] / sl * 0.3];
+  return { T, H, E, g };
 }
 
-// the current pose's stick, read by the stick part while that pose voxelises
-let CUR = null;
-const local = (J, w) => applyT(J.wrR.R, [w[0] - J.wrR.p[0], w[1] - J.wrR.p[1], w[2] - J.wrR.p[2]]);
-const stickPart = {
-  prio: 3, thin: true, joint: 'wrR', bounds: [[-0.1, -0.1, -0.1], [0.1, 0.1, 0.1]],
-  sdf: (p) => (CUR ? Math.min(sdCone(p, CUR.t, CUR.h, 0.02, 0.018), sdCone(p, CUR.h, CUR.e, 0.026, 0.022)) : 1),
-  mat: (p) => {
-    if (!CUR) return PAL.BELT;
-    const dh = Math.hypot(p[0] - CUR.h[0], p[1] - CUR.h[1], p[2] - CUR.h[2]);
-    const dt = Math.hypot(p[0] - CUR.t[0], p[1] - CUR.t[1], p[2] - CUR.t[2]);
-    return dh < 0.05 || sdCone(p, CUR.h, CUR.e, 0.03, 0.03) < 0 || dt < 0.07 ? PAL.SOLE : PAL.BELT;
-  },
-};
-PARTS.push(stickPart);
 // skate blades under the boots
 for (const an of ['anR', 'anL']) {
   PARTS.push({
@@ -112,16 +64,7 @@ for (const an of ['anR', 'anL']) {
 }
 
 /** Attach the stick for one pose and return the pose (called inside each action fn). */
-function withStick(pose, s) {
-  const J = fk(pose);
-  const st = stickOf(J, s);
-  const t = local(J, st.T), h = local(J, st.H), e = local(J, st.E);
-  CUR = { t, h, e };
-  const mn = [0, 1, 2].map((i) => Math.min(t[i], h[i], e[i]) - 0.06), mx = [0, 1, 2].map((i) => Math.max(t[i], h[i], e[i]) + 0.06);
-  stickPart.bounds = [mn, mx];
-  pose._stick = s;
-  return pose;
-}
+function withStick(pose, s) { pose._stick = s; return pose; }
 
 // ---------------------------------------------------------------- poses
 const UPPER = {

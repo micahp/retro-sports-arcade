@@ -27,7 +27,10 @@ export function createGame(modeKey = 'regulation', seed = 'rink-95', opts = {}) 
   //   roster:  'neutral' | 'spread' (M1: who gets which ratings)
   // blade: 'legacy' (contact on the sideways blade, the baseline) | 'planar' (the blade continues the shaft, M-blade fix)
   // rules: 'none' | 'nhl95' (offside and icing, src/rules.js)
-  const engine = { skating: 'legacy', cadence: 'legacy', roster: 'neutral', blade: 'legacy', rules: 'none', ...(opts.engine || {}) };
+  // offsideLine: 'rink' (the drawn blue line, RINK.blueX) | 'ref82' (NHL 95's 82 units; kept only to attribute experiments)
+  // offsideTol:  'nhl95' (NHL 95's flag / clear / whistle depths past the line) | 'none' (one threshold, the first version)
+  // clockRate:   game seconds per physics second; physics stays at 60 Hz
+  const engine = { skating: 'legacy', cadence: 'legacy', roster: 'neutral', blade: 'legacy', rules: 'none', offsideLine: 'rink', offsideTol: 'nhl95', clockRate: 1, ...(opts.engine || {}) };
   const S = {
     engine, seedStr: String(seed),
     R: rng(seed), mode, modeKey, t: 0, period: 1, clock: periodSec || 0, periodSec, score: [0, 0],
@@ -89,7 +92,7 @@ function dropPuck(S, input) {
   // the winner draws it back toward a defenceman
   const ang = (S.R() - 0.5) * 1.2;
   pk.vx = -d * 7 * Math.cos(ang); pk.vz = 7 * Math.sin(ang); pk.lock = 0.15; S.touch++;
-  pk.lastTouch = win; S.phase = 'play'; S.phaseT = 0;
+  pk.lastTouch = win; touched(pk, win); S.phase = 'play'; S.phaseT = 0;
   log(S, 'faceoff', { team: win.team });
 }
 
@@ -106,6 +109,9 @@ export function bladeOf(p) {
   const m = [(stick.H0[0] + E[0]) / 2, (stick.H0[1] + E[1]) / 2 - g, (stick.H0[2] + E[2]) / 2];
   return { x: p.x + m[0] * c - m[2] * s, y: m[1], z: p.z + m[0] * s + m[2] * c };
 }
+// Rules-only touch record: every path that touches the puck calls this. It feeds src/rules.js only, so the
+// legacy fields (S.touch gates pickup retries, pk.lastTouch credits goals) keep their exact old behaviour.
+function touched(pk, p) { pk.touchN = (pk.touchN || 0) + 1; pk.toucher = p; }
 const start = (p, name) => { p.one = { name, t: 0, fired: false }; };
 const busy = (p) => p.down > 0 || (p.one && !['hCheck', 'hBrake'].includes(p.one.name));
 const dist = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -132,13 +138,14 @@ export function step(S, input = {}) {
   for (const p of S.skaters) move(S, p, dt);
   collide(S);
   if (live || S.phase === 'whistle') puckStep(S, dt);
-  if (live && S.rules && !S.mode.shootout && !S.mode.lab) {
+  if (S.phase === 'play' && S.rules && !S.mode.shootout && !S.mode.lab) {
     const w = rulesStep(S);
-    if (w) { S.phase = 'whistle'; S.phaseT = 0; S.banner = `${TEAMS[w.team].short} ${w.kind.toUpperCase()}`; S.whistleFor = { kind: w.kind, team: w.team }; log(S, w.kind, { team: w.team }); }
+    if (w) ruleWhistle(S, w);
   }
   if (live && !S.mode.shootout && !S.mode.lab) {
-    tickPenalties(S, dt);
-    S.clock -= dt;
+    const rate = S.engine.clockRate;      // game seconds per physics second (legacy 1; NHL 95 measured 2.43)
+    tickPenalties(S, dt * rate);
+    S.clock -= dt * rate;
     if (S.clock <= 0) { S.clock = 0; endPeriod(S); }
   }
   if (S.mode.shootout || S.shootout) shootoutStep(S);
@@ -207,7 +214,7 @@ function releaseShot(S, p, kind) {
   const tz = az + (S.R() - 0.5) * cfg.spread * 2;
   const ty = cfg.lift[0] + S.R() * (cfg.lift[1] - cfg.lift[0]);
   const dx = gx - pk.x, dz = tz - pk.z, L = Math.hypot(dx, dz);
-  pk.owner = null; pk.vx = dx / L * cfg.speed; pk.vz = dz / L * cfg.speed; pk.vy = ty; pk.lock = 0.12; pk.lastTouch = p; S.touch++;
+  pk.owner = null; pk.vx = dx / L * cfg.speed; pk.vz = dz / L * cfg.speed; pk.vy = ty; pk.lock = 0.12; pk.lastTouch = p; S.touch++; touched(pk, p);
   pk.shot = { by: p, team: p.team, kind, from: { x: pk.x, z: pk.z }, t: S.t, resolved: {} };
   S.stats[p.team].shots++;
   log(S, 'shot', { team: p.team, kind, speed: cfg.speed, from: [+pk.x.toFixed(2), +pk.z.toFixed(2)] });
@@ -218,7 +225,7 @@ function releasePass(S, p) {
   if (!q) return;
   const d = dist(p, q), speed = Math.max(SHOT.pass.min, Math.min(SHOT.pass.max, 8 + d * 0.55));
   const lp = leadPass(pk, { x: q.x + Math.cos(q.yaw) * 0.9, z: q.z + Math.sin(q.yaw) * 0.9, vx: q.vx, vz: q.vz }, speed) || { vx: (q.x - pk.x) / d * speed, vz: (q.z - pk.z) / d * speed };
-  pk.owner = null; pk.vx = lp.vx; pk.vz = lp.vz; pk.vy = 0; pk.lock = 0.1; pk.lastTouch = p; pk.pass = { from: p, to: q, team: p.team }; pk.shot = null; S.touch++;
+  pk.owner = null; pk.vx = lp.vx; pk.vz = lp.vz; pk.vy = 0; pk.lock = 0.1; pk.lastTouch = p; pk.pass = { from: p, to: q, team: p.team }; pk.shot = null; S.touch++; touched(pk, p);
   S.stats[p.team].passes++;
   log(S, 'pass', { team: p.team, from: p.id, to: q.id, speed: +speed.toFixed(1) });
 }
@@ -242,7 +249,7 @@ function checkHit(S, p) {
     p.vx *= 0.5; p.vz *= 0.5;
     start(best, 'hFall'); best.down = 1;
     const pk = S.puck;
-    if (pk.owner === best) { pk.owner = null; pk.vx = best.vx + nx * 2; pk.vz = best.vz + nz * 2; pk.lock = 0.25; S.touch++; }
+    if (pk.owner === best) { pk.owner = null; pk.vx = best.vx + nx * 2; pk.vz = best.vz + nz * 2; pk.lock = 0.25; S.touch++; touched(pk, best); }
     S.stats[p.team].hits++;
     S.debug.marks.push({ x: best.x, z: best.z, kind: 'hit', t: S.t });
     if (S.penaltiesOn) judgeHit(S, p, best, nx, nz, closing, hadPuck);
@@ -264,7 +271,7 @@ function poke(S, p, carrier) {
   p.cool = 0.7;
   if (!ok) { if (S.penaltiesOn && S.R() < PENALTY.chance.hooking) callPenalty(S, p, 'hooking'); return; }
   const dx = pk.x - p.x, dz = pk.z - p.z, d = Math.hypot(dx, dz) || 1;
-  pk.owner = null; pk.vx = carrier.vx * 0.5 + dx / d * 4 + (S.R() - 0.5) * 3; pk.vz = carrier.vz * 0.5 + dz / d * 4 + (S.R() - 0.5) * 3; pk.lock = 0.2; S.touch++;
+  pk.owner = null; pk.vx = carrier.vx * 0.5 + dx / d * 4 + (S.R() - 0.5) * 3; pk.vz = carrier.vz * 0.5 + dz / d * 4 + (S.R() - 0.5) * 3; pk.lock = 0.2; S.touch++; touched(pk, p);   // the poker touched it
 }
 export function switchUser(S) {
   const pk = S.puck;
@@ -384,11 +391,13 @@ function puckStep(S, dt) {
   // goalie save attempts happen before the puck moves past them
   for (const g of S.skaters) if (g.isG && pk.shot && !pk.shot.resolved[g.id] && g.team !== pk.shot.team) trySave(S, g);
   const bodies = S.skaters.map((p) => (p.isG && pk.shot && pk.shot.resolved[p.id] === 'beat') || p === pk.lastTouch && pk.lock > 0 ? { x: 1e9, z: 1e9, r: 0 } : { x: p.x, z: p.z, vx: p.vx, vz: p.vz, r: p.isG ? GOALIE.body : PUCK.bodyR });
-  const ev = stepPuck(pk, dt, bodies);
+  const ev0 = stepPuck(pk, dt, bodies);
+  // rules games: touches in this step (a deflection) are recorded before a goal is decided; legacy keeps its order
+  const ev = S.rules ? [...ev0.filter((e) => !e.startsWith('goal:')), ...ev0.filter((e) => e.startsWith('goal:'))] : ev0;
   for (const e of ev) {
     if (e.startsWith('goal:')) return goal(S, +e.split(':')[1]);
     if (e === 'post' || e === 'crossbar') { log(S, e); S.debug.marks.push({ x: pk.x, z: pk.z, kind: 'post', t: S.t }); }
-    if (e.startsWith('body:')) { const b = S.skaters[+e.split(':')[1]]; pk.lastTouch = b; log(S, 'deflect', { off: b.id }); }
+    if (e.startsWith('body:')) { const b = S.skaters[+e.split(':')[1]]; pk.lastTouch = b; touched(pk, b); log(S, 'deflect', { off: b.id }); }
     if (e === 'board') log(S, 'board');
     if (e === 'net') log(S, 'net');
   }
@@ -407,14 +416,14 @@ function puckStep(S, dt) {
       if (S.R() < chance) { take(S, p); break; }
       else if (rel > 6) {          // touched but not controlled: a tip that changes its line
         const a = (S.R() - 0.5) * 0.8, c = Math.cos(a), s = Math.sin(a), vx = pk.vx * 0.7, vz = pk.vz * 0.7;
-        pk.vx = vx * c - vz * s; pk.vz = vx * s + vz * c; pk.lastTouch = p; S.touch++; log(S, 'tip', { by: p.id });
+        pk.vx = vx * c - vz * s; pk.vz = vx * s + vz * c; pk.lastTouch = p; S.touch++; touched(pk, p); log(S, 'tip', { by: p.id });
       }
     }
   }
 }
 function take(S, p) {
   const pk = S.puck, was = pk.pass;
-  pk.owner = p; pk.settle = PUCK.settle; pk.shot = null; pk.lastTouch = p;
+  pk.owner = p; pk.settle = PUCK.settle; pk.shot = null; pk.lastTouch = p; touched(pk, p);
   if (was) {
     if (was.team === p.team) { S.stats[p.team].passesDone++; log(S, 'reception', { by: p.id }); }
     else { S.stats[p.team].intercepts++; log(S, 'interception', { by: p.id }); }
@@ -445,11 +454,20 @@ function trySave(S, g) {
     const d = attackDir(S, g.team), a = (S.R() - 0.5) * 2.2;
     const out = sp * (0.25 + S.R() * 0.2);
     pk.vx = d * Math.cos(a) * out; pk.vz = Math.sin(a) * out; pk.vy = high ? 1.5 : 0; pk.x = g.x + d * 0.5; pk.z = g.z + Math.sin(a) * 0.3;
-    pk.lock = 0.1; pk.lastTouch = g; S.touch++; pk.shot.resolved[g.id] = 'save';
+    pk.lock = 0.1; pk.lastTouch = g; S.touch++; touched(pk, g); pk.shot.resolved[g.id] = 'save';
     log(S, 'save', { by: g.id, kind: 'rebound' }); S.debug.marks.push({ x: pk.x, z: pk.z, kind: 'save', t: S.t });
   }
 }
+function ruleWhistle(S, w) {
+  S.phase = 'whistle'; S.phaseT = 0; S.banner = `${TEAMS[w.team].short} ${w.kind.toUpperCase()}`; S.whistleFor = { kind: w.kind, team: w.team }; log(S, w.kind, { team: w.team });
+}
 function goal(S, end) {
+  // rules games: no goal during a stoppage, and an illegal touch on the same step (offside) stops play first
+  if (S.rules && !S.mode.shootout && !S.mode.lab) {
+    if (S.phase !== 'play') return;
+    const w = rulesStep(S);
+    if (w) return ruleWhistle(S, w);
+  }
   // a goal in the +x net counts for whoever attacks +x this period
   const team = attackDir(S, 0) === end ? 0 : 1;
   S.score[team]++; S.stats[team].goals++;

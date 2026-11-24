@@ -62,7 +62,15 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--kick); outl
   <div id="hud" hidden>
     <div class="score"><span class="t0">HAR <b id="sc0">0</b></span><span class="mid"><b id="clock">3:00</b>&nbsp;<small id="per">P1</small></span><span class="t1"><b id="sc1">0</b> FDY</span></div>
     <span id="man">5 on 5</span>
-    <button id="pause" type="button" class="ghost">Menu</button>
+    <button id="pause" type="button" class="ghost" aria-label="Pause">❚❚ Pause</button>
+  </div>
+  <div id="paused" class="sheet" hidden>
+    <h1>PAUSED</h1>
+    <p id="pausedScore"></p>
+    <div class="modes">
+      <button type="button" class="main" id="resume">Resume<small>back to the game</small></button>
+      <button type="button" id="quit">Quit to menu<small>this game is abandoned</small></button>
+    </div>
   </div>
   <div id="banner" hidden></div>
   <div id="dbg" hidden></div>
@@ -54452,6 +54460,58 @@ const MODES = {
 
 return { RINK, PUCK, SHOT, SKATE, PENALTY, GOALIE, LINEUPS, MODES };
 })();
+__m.ratings = (() => {
+// M1. Player attribute schema (research/nhl95-reference-study/MECHANICS-MATRIX.md M1).
+//
+// Every skater and goalie carries `p.r`, a rating per attribute on a 0-100 scale. 50 is NEUTRAL: a
+// neutral player reproduces the legacy engine constants exactly (each mechanic maps a rating to a
+// multiplier that is exactly 1 at 50), so a neutral roster plays byte-for-byte like the legacy engine.
+// Weight is in kilograms, neutral 90 (SKATE.mass). No hot/cold, home-ice or situational bonuses
+// (deliberately out of scope for now).
+//
+// Which mechanic reads which attribute (only the ones implemented so far are live):
+//   speed         top skating speed                            M2 (live with engine.skating = 'rated')
+//   agility       acceleration, lateral edge grip, turn rate   M2 (live)
+//   weight (kg)   acceleration (heavier accelerates slower)    M2 (live); check outcomes later (M16)
+//   offAware      decision interval on offence (carrier)        M3 (live with engine.cadence = 'rated')
+//   defAware      decision interval on defence (checks, pokes)  M3 (live)
+//   shotPower, shotAccuracy, passing, stickhandling, checking, aggression, endurance: schema only (M6-M17)
+//   goalie: reflexes, positioning, puckControl, agility, weight: schema only (M10-M13)
+const { rng } = __m.rng;
+
+const NEUTRAL = 50;
+const SKATER_ATTRS = ['speed', 'agility', 'offAware', 'defAware', 'shotPower', 'shotAccuracy', 'passing', 'stickhandling', 'checking', 'aggression', 'endurance'];
+const GOALIE_ATTRS = ['reflexes', 'positioning', 'puckControl', 'agility'];
+const WEIGHT_NEUTRAL = 90;
+
+/** A neutral rating block for a skater or a goalie. */
+function neutralRatings(isG) {
+  const r = Object.fromEntries((isG ? GOALIE_ATTRS : SKATER_ATTRS).map((k) => [k, NEUTRAL]));
+  r.weight = WEIGHT_NEUTRAL;
+  return r;
+}
+
+// Rosters. 'neutral': everyone 50 / 90 kg. 'spread': an EXPERIMENT roster, not calibrated to anyone:
+// each attribute ~ 50 + 15 N(0,1) clamped to 20-90, weight ~ 90 + 7 N(0,1) kg clamped to 75-110.
+// Drawn from its own generator keyed by (game seed, team, role), so it never consumes the game's
+// random stream and a player keeps the same ratings if the lineup is rebuilt (e.g. for overtime).
+function rosterRatings(kind, seed, team, role, isG) {
+  const r = neutralRatings(isG);
+  if (kind === 'neutral' || !kind) return r;
+  if (kind !== 'spread') throw new Error(`unknown roster '${kind}'`);
+  const R = rng(`${seed}#roster#${team}#${role}`);
+  for (const k of Object.keys(r)) {
+    if (k === 'weight') r.weight = Math.round(Math.max(75, Math.min(110, WEIGHT_NEUTRAL + 7 * R.normal())));
+    else r[k] = Math.round(Math.max(20, Math.min(90, NEUTRAL + 15 * R.normal())));
+  }
+  return r;
+}
+
+/** Signed deviation from neutral in [-1, 1]: 0 at 50. */
+const dev = (v) => (v - NEUTRAL) / 50;
+
+return { neutralRatings, rosterRatings, NEUTRAL, SKATER_ATTRS, GOALIE_ATTRS, WEIGHT_NEUTRAL, dev };
+})();
 __m.puck = (() => {
 // Puck physics. Pure functions over plain objects so the node tests and the game
 // run the same code. x along the rink, z across, y up (metres).
@@ -54612,13 +54672,31 @@ function stickOf(J, s) {
   }
   else B = [s.blade[0], g + (s.blade[1] === 'ice' ? 0.03 : s.blade[1]), s.blade[2]];
   // shaft length is fixed: slide the heel along the hand-to-target line
-  const L = 1.5, d = [B[0] - T[0], B[1] - T[1], B[2] - T[2]], dl = Math.hypot(...d) || 1;
-  const H = s.blade === 'drop' ? B : [T[0] + d[0] / dl * Math.min(L, dl), T[1] + d[1] / dl * Math.min(L, dl), T[2] + d[2] / dl * Math.min(L, dl)];
-  // blade points to the player's left of the shaft, flat on the ice when the heel is down
-  const hx = d[0] / dl, hz = d[2] / dl, side = [hz, 0, -hx];
-  const sl = Math.hypot(side[0], side[2]) || 1;
-  const E = [H[0] - side[0] / sl * 0.3 * (s.flip ? -1 : 1), H[1] + 0.01, H[2] - side[2] / sl * 0.3 * (s.flip ? -1 : 1)];
-  return { T, H, E, g };
+  const L = 1.5;
+  const heel = (B) => {
+    const d = [B[0] - T[0], B[1] - T[1], B[2] - T[2]], dl = Math.hypot(...d) || 1;
+    return { H: s.blade === 'drop' ? B : [T[0] + d[0] / dl * Math.min(L, dl), T[1] + d[1] / dl * Math.min(L, dl), T[2] + d[2] / dl * Math.min(L, dl)], hx: d[0] / dl, hz: d[2] / dl };
+  };
+  // PHYSICS stick (H0, E0): the original geometry. The sim's puck-contact point (bladeOf) uses it, so
+  // physics and every baseline are unchanged by the visual fixes below; moving contact to the drawn
+  // blade is a separate, tested change.
+  const p0 = heel(B), H0 = p0.H, side = [p0.hz, 0, -p0.hx], sl = Math.hypot(side[0], side[2]) || 1;
+  const E0 = [H0[0] - side[0] / sl * 0.3, H0[1] + 0.01, H0[2] - side[2] / sl * 0.3];
+  // DRAWN stick (H, E). Two fixes for "the sticks look backwards":
+  //  1. reach: the original carry target put the blade only ~0.1 m ahead of the top hand, so with the
+  //     58-degree camera the shaft drew straight down the screen and skaters facing up-screen seemed to
+  //     drag it behind them. Skaters carry the blade further out: +0.55 m forward, +0.1 m to the
+  //     forehand side, blended out as the blade lifts (wind-ups unchanged). Goalies keep theirs.
+  //  2. blade direction: a stick is planar, so seen from above the blade continues the shaft's line,
+  //     toe away from the player. The original bent the blade sideways off the shaft.
+  let BV = B;
+  if (!s.goalie && s.blade !== 'drop') {
+    const w = Math.max(0, Math.min(1, 1 - (B[1] - g - 0.03) / 0.3));
+    BV = [B[0] + 0.55 * w, B[1], B[2] + 0.1 * w];
+  }
+  const pv = heel(BV), H = pv.H, hl = Math.hypot(pv.hx, pv.hz) || 1;
+  const E = [H[0] + pv.hx / hl * 0.3, H[1] + 0.01, H[2] + pv.hz / hl * 0.3];
+  return { T, H, E, H0, E0, g };
 }
 
 // the current pose's stick, read by the stick part while that pose voxelises
@@ -54687,14 +54765,14 @@ function glide(ph) {
   }, ON_ICE);
 }
 const stance = (o) => ({ ...UPPER, root: { pitch: 30 * D, roll: 0, yaw: 0, lift: 0, x: 0, z: 0 }, hipR: deg([50, 10, 0]), knR: 70 * D, hipL: deg([50, 10, 0]), knL: 70 * D, flatR: true, flatL: true, ...o });
-const keysWithStick = (list, blades) => (t) => {
+const keysWithStick = (list, blades, extra = {}) => (t) => {
   const pose = sampleKeys(list, t, { base: stance({}) });
   // blade target: piecewise-linear over the same key times
   let i = 0; while (i < blades.length - 2 && t > blades[i + 1].t) i++;
   const a = blades[i], b = blades[i + 1], u = Math.max(0, Math.min(1, (t - a.t) / ((b.t - a.t) || 1)));
   const s = u * u * (3 - 2 * u);
   const y = (v) => (v === 'ice' ? 0.03 : v);
-  return withStick(pose, { blade: [a.b[0] + (b.b[0] - a.b[0]) * s, y(a.b[1]) + (y(b.b[1]) - y(a.b[1])) * s, a.b[2] + (b.b[2] - a.b[2]) * s] });
+  return withStick(pose, { ...extra, blade: [a.b[0] + (b.b[0] - a.b[0]) * s, y(a.b[1]) + (y(b.b[1]) - y(a.b[1])) * s, a.b[2] + (b.b[2] - a.b[2]) * s] });
 };
 
 const SHOOT = keysWithStick([
@@ -54747,8 +54825,8 @@ const FALL = keysWithStick([
 const G_BASE = { ...UPPER, root: { pitch: 18 * D, roll: 0, yaw: 0, lift: 0, x: 0, z: 0 }, spine: deg([6, 0, 0]), chest: deg([4, 0, 0]), neck: deg([-16, 0, 0]),
   hipR: deg([48, 22, -10]), knR: 76 * D, hipL: deg([48, 22, -10]), knL: 76 * D, flatR: true, flatL: true,
   shL: deg([40, 46, 0]), elL: 70 * D, shR: deg([30, 30, 0]), elR: 40 * D };
-const gStance = (ph) => { const b = Math.sin(ph * Math.PI * 2) * 0.5 + 0.5; return withStick({ ...G_BASE, knR: (74 + 4 * b) * D, knL: (74 + 4 * b) * D }, { blade: [0.55, 'ice', -0.05] }); };
-const gKeys = (key, blade) => keysWithStick([{ t: 0, ...G_BASE }, { t: 0.35, ...G_BASE, ...key }, { t: 0.8, ...G_BASE, ...key }, { t: 1, ...G_BASE }], blade);
+const gStance = (ph) => { const b = Math.sin(ph * Math.PI * 2) * 0.5 + 0.5; return withStick({ ...G_BASE, knR: (74 + 4 * b) * D, knL: (74 + 4 * b) * D }, { goalie: true, blade: [0.55, 'ice', -0.05] }); };
+const gKeys = (key, blade) => keysWithStick([{ t: 0, ...G_BASE }, { t: 0.35, ...G_BASE, ...key }, { t: 0.8, ...G_BASE, ...key }, { t: 1, ...G_BASE }], blade, { goalie: true });
 const G_BUTTERFLY = gKeys({ root: { pitch: 10 * D }, hipR: deg([80, 52, -40]), knR: 128 * D, hipL: deg([80, 52, -40]), knL: 128 * D, flatR: false, flatL: false },
   [{ t: 0, b: [0.55, 'ice', -0.05] }, { t: 1, b: [0.55, 'ice', -0.05] }]);
 const G_GLOVE = gKeys({ chest: deg([4, -14, 0]), shL: deg([60, 110, 0]), elL: 30 * D, hipL: deg([40, 34, 0]), knL: 60 * D },
@@ -54944,6 +55022,7 @@ const { RINK, PUCK, SHOT, SKATE, GOALIE, LINEUPS, MODES, PENALTY } = __m.config;
 const { makePuck, stepPuck, boards, leadPass } = __m.puck;
 const { HOCKEY, poseAt } = __m.poses;
 const { aiIntent } = __m.ai;
+const { rosterRatings } = __m.ratings;
 const { attackDir, choosePassTarget, laneOpen } = __m.helpers;
 
 
@@ -54956,7 +55035,13 @@ function createGame(modeKey = 'regulation', seed = 'rink-95', opts = {}) {
   // opts.periodSec picks one of the mode's periodOptions (NHL 95 rules: 5, 10 or 20 minutes)
   if (opts.periodSec != null && !(mode.periodOptions || []).includes(opts.periodSec)) throw new Error(`period length ${opts.periodSec} s is not an option of ${modeKey}`);
   const periodSec = opts.periodSec ?? mode.periodSec;
+  // Engine configuration. LEGACY (the defaults) reproduces the engine as it was before M1-M3.
+  //   skating: 'legacy' | 'rated'  (M2: speed, acceleration, edges and turning from ratings)
+  //   cadence: 'legacy' | 'rated'  (M3: AI decisions on per-player intervals from awareness)
+  //   roster:  'neutral' | 'spread' (M1: who gets which ratings)
+  const engine = { skating: 'legacy', cadence: 'legacy', roster: 'neutral', ...(opts.engine || {}) };
   const S = {
+    engine, seedStr: String(seed),
     R: rng(seed), mode, modeKey, t: 0, period: 1, clock: periodSec || 0, periodSec, score: [0, 0],
     phase: 'faceoff', phaseT: 0, skaters: [], puck: makePuck(), user: null, userTeam: opts.userTeam ?? 0,
     log: [], events: [], stats: [0, 1].map(() => ({ shots: 0, saves: 0, goals: 0, passes: 0, passesDone: 0, intercepts: 0, hits: 0 })),
@@ -54972,7 +55057,8 @@ function createGame(modeKey = 'regulation', seed = 'rink-95', opts = {}) {
 function makeSkater(S, team, role) {
   const isG = role === 'G';
   return { id: S.skaters.length, team, role, isG, x: 0, z: 0, vx: 0, vz: 0, yaw: 0, act: isG ? 'gStance' : 'hGlide', ph: S.R(), one: null, down: 0, cool: 0,
-    number: NUMS[role] + (team ? 1 : 0), skin: S.R(), intent: null, tried: -1, charge: 0, hold: null };
+    number: NUMS[role] + (team ? 1 : 0), skin: S.R(), intent: null, tried: -1, charge: 0, hold: null,
+    r: rosterRatings(S.engine ? S.engine.roster : 'neutral', S.seedStr, team, role, isG) };
 }
 function addSkater(S, team, role, at = {}) { const p = makeSkater(S, team, role); Object.assign(p, at); S.skaters.push(p); p.id = S.skaters.length - 1; return p; }
 function setLineups(S, skaters, goalies = [true, true]) {
@@ -55024,7 +55110,8 @@ function bladeOf(p) {
   const tt = p.one ? p.one.t : p.ph * a.dur;
   const { stick, g } = poseAt(name, tt);
   const c = Math.cos(p.yaw), s = Math.sin(p.yaw);
-  const m = [(stick.H[0] + stick.E[0]) / 2, (stick.H[1] + stick.E[1]) / 2 - g, (stick.H[2] + stick.E[2]) / 2];
+  // contact point: the legacy blade (E0), so the poses.js visual fix leaves physics unchanged
+  const m = [(stick.H0[0] + stick.E0[0]) / 2, (stick.H0[1] + stick.E0[1]) / 2 - g, (stick.H0[2] + stick.E0[2]) / 2];
   return { x: p.x + m[0] * c - m[2] * s, y: m[1], z: p.z + m[0] * s + m[2] * c };
 }
 const start = (p, name) => { p.one = { name, t: 0, fired: false }; };
@@ -55661,7 +55748,7 @@ function rinkTexture(ppm) {
   g.restore();
   // centre-ice mark: the game's own name, no league marks
   g.fillStyle = 'rgba(47,98,181,0.16)'; g.font = `bold ${Math.round(1.6 * ppm)}px sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.save(); g.translate(X(0), Z(0)); g.rotate(-Math.PI / 2); g.scale(-1, 1); g.fillText("RINK '95", 0, 0); g.restore();
+  g.save(); g.translate(X(0), Z(0)); g.rotate(Math.PI / 2); g.fillText("RINK '95", 0, 0); g.restore();
   return { canvas: c, m };
 }
 
@@ -55808,7 +55895,7 @@ function start(mode) {
   const opts = { auto: false, penalties: $('penT').checked };
   if (MODES[mode].periodOptions) opts.periodSec = Number($('perSel').value);
   S = createGame(mode, 'game-' + Date.now(), opts);
-  paused = false; $('menu').hidden = true; $('lab').hidden = true; $('hud').hidden = false; controls(true);
+  paused = false; $('menu').hidden = true; $('lab').hidden = true; $('paused').hidden = true; $('hud').hidden = false; controls(true);
 }
 
 function frame(now) {
@@ -55854,11 +55941,25 @@ function hud() {
   if (debug) $('dbg').textContent = `${R.ms.toFixed(1)} ms · shots ${S.stats[0].shots}-${S.stats[1].shots} · saves ${S.stats[0].saves}-${S.stats[1].saves} · passes ${S.stats[0].passesDone}/${S.stats[0].passes} · hits ${S.stats[0].hits}-${S.stats[1].hits}`;
 }
 
+// Pause freezes the game exactly where it is (no steps run); Resume continues the same game.
+function pause() {
+  if (!S || S.auto || paused || !$('menu').hidden) return;          // only a game you are playing
+  paused = true; controls(false);
+  $('pausedScore').textContent = `${TEAMS[0].short} ${S.score[0]} – ${S.score[1]} ${TEAMS[1].short} · ${$('per').textContent} ${$('clock').textContent}`;
+  $('paused').hidden = false;
+}
+function resume() {
+  if (!S || $('paused').hidden) return;
+  $('paused').hidden = true; controls(true); last = performance.now(); acc = 0; paused = false;
+}
 const controls = (on) => { $('stick').hidden = !on; document.querySelector('.acts').hidden = !on; };
 function wire() {
   controls(false);
   for (const b of document.querySelectorAll('[data-mode]')) b.onclick = () => start(b.dataset.mode);
-  $('pause').onclick = () => { paused = true; $('menu').hidden = false; controls(false); };
+  $('pause').onclick = pause;
+  $('resume').onclick = resume;
+  $('quit').onclick = () => { $('paused').hidden = true; $('hud').hidden = true; $('menu').hidden = false; S.auto = true; };
+  document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });   // switching apps on a phone pauses
   $('again').onclick = () => { $('again').hidden = true; paused = true; $('menu').hidden = false; S.auto = true; };
   $('dbgT').onchange = (e) => { debug = e.target.checked; $('dbg').hidden = !debug; };
   $('openLab').onclick = openLab;
@@ -55882,7 +55983,7 @@ function wire() {
   // keyboard: WASD or arrows, J = pass / switch, K = shoot (hold for slap) / check
   const keys = new Set();
   const kv = () => { let x = 0, z = 0; if (keys.has('w') || keys.has('arrowup')) x += 1; if (keys.has('s') || keys.has('arrowdown')) x -= 1; if (keys.has('d') || keys.has('arrowright')) z += 1; if (keys.has('a') || keys.has('arrowleft')) z -= 1; const l = Math.hypot(x, z); if (l) { input.x = x / l; input.z = z / l; input.lastTouch = performance.now(); } else if (pid === null) { input.x = input.z = 0; } };
-  addEventListener('keydown', (e) => { const k = e.key.toLowerCase(); if (e.repeat) return; if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault(); keys.add(k); kv(); if (k === 'j') { input.pass = true; input.lastTouch = performance.now(); } if (k === 'k' || k === ' ') { input.shootDown = true; input.holding = true; input.held = 0; input.lastTouch = performance.now(); } if (k === 'escape') { paused = true; $('menu').hidden = false; } });
+  addEventListener('keydown', (e) => { const k = e.key.toLowerCase(); if (e.repeat) return; if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault(); keys.add(k); kv(); if (k === 'j') { input.pass = true; input.lastTouch = performance.now(); } if (k === 'k' || k === ' ') { input.shootDown = true; input.holding = true; input.held = 0; input.lastTouch = performance.now(); } if (k === 'escape' || k === 'p') { if (!$('paused').hidden) resume(); else pause(); } });
   addEventListener('keyup', (e) => { const k = e.key.toLowerCase(); keys.delete(k); kv(); if ((k === 'k' || k === ' ') && input.holding) { input.shootUp = true; input.holding = false; } });
 }
 

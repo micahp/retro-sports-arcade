@@ -93,7 +93,8 @@ export function bladeOf(p) {
   const tt = p.one ? p.one.t : p.ph * a.dur;
   const { stick, g } = poseAt(name, tt);
   const c = Math.cos(p.yaw), s = Math.sin(p.yaw);
-  const m = [(stick.H[0] + stick.E[0]) / 2, (stick.H[1] + stick.E[1]) / 2 - g, (stick.H[2] + stick.E[2]) / 2];
+  // contact point: the legacy blade (E0), so the poses.js visual fix leaves physics unchanged
+  const m = [(stick.H0[0] + stick.E0[0]) / 2, (stick.H0[1] + stick.E0[1]) / 2 - g, (stick.H0[2] + stick.E0[2]) / 2];
   return { x: p.x + m[0] * c - m[2] * s, y: m[1], z: p.z + m[0] * s + m[2] * c };
 }
 const start = (p, name) => { p.one = { name, t: 0, fired: false }; };

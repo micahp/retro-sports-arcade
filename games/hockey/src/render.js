@@ -36,7 +36,7 @@ function rinkTexture(ppm) {
   g.restore();
   // centre-ice mark: the game's own name, no league marks
   g.fillStyle = 'rgba(47,98,181,0.16)'; g.font = `bold ${Math.round(1.6 * ppm)}px sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.save(); g.translate(X(0), Z(0)); g.rotate(-Math.PI / 2); g.scale(-1, 1); g.fillText("RINK '95", 0, 0); g.restore();
+  g.save(); g.translate(X(0), Z(0)); g.rotate(Math.PI / 2); g.fillText("RINK '95", 0, 0); g.restore();
   return { canvas: c, m };
 }
 

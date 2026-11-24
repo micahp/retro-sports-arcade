@@ -36,13 +36,31 @@ export function stickOf(J, s) {
   }
   else B = [s.blade[0], g + (s.blade[1] === 'ice' ? 0.03 : s.blade[1]), s.blade[2]];
   // shaft length is fixed: slide the heel along the hand-to-target line
-  const L = 1.5, d = [B[0] - T[0], B[1] - T[1], B[2] - T[2]], dl = Math.hypot(...d) || 1;
-  const H = s.blade === 'drop' ? B : [T[0] + d[0] / dl * Math.min(L, dl), T[1] + d[1] / dl * Math.min(L, dl), T[2] + d[2] / dl * Math.min(L, dl)];
-  // blade points to the player's left of the shaft, flat on the ice when the heel is down
-  const hx = d[0] / dl, hz = d[2] / dl, side = [hz, 0, -hx];
-  const sl = Math.hypot(side[0], side[2]) || 1;
-  const E = [H[0] - side[0] / sl * 0.3 * (s.flip ? -1 : 1), H[1] + 0.01, H[2] - side[2] / sl * 0.3 * (s.flip ? -1 : 1)];
-  return { T, H, E, g };
+  const L = 1.5;
+  const heel = (B) => {
+    const d = [B[0] - T[0], B[1] - T[1], B[2] - T[2]], dl = Math.hypot(...d) || 1;
+    return { H: s.blade === 'drop' ? B : [T[0] + d[0] / dl * Math.min(L, dl), T[1] + d[1] / dl * Math.min(L, dl), T[2] + d[2] / dl * Math.min(L, dl)], hx: d[0] / dl, hz: d[2] / dl };
+  };
+  // PHYSICS stick (H0, E0): the original geometry. The sim's puck-contact point (bladeOf) uses it, so
+  // physics and every baseline are unchanged by the visual fixes below; moving contact to the drawn
+  // blade is a separate, tested change.
+  const p0 = heel(B), H0 = p0.H, side = [p0.hz, 0, -p0.hx], sl = Math.hypot(side[0], side[2]) || 1;
+  const E0 = [H0[0] - side[0] / sl * 0.3, H0[1] + 0.01, H0[2] - side[2] / sl * 0.3];
+  // DRAWN stick (H, E). Two fixes for "the sticks look backwards":
+  //  1. reach: the original carry target put the blade only ~0.1 m ahead of the top hand, so with the
+  //     58-degree camera the shaft drew straight down the screen and skaters facing up-screen seemed to
+  //     drag it behind them. Skaters carry the blade further out: +0.55 m forward, +0.1 m to the
+  //     forehand side, blended out as the blade lifts (wind-ups unchanged). Goalies keep theirs.
+  //  2. blade direction: a stick is planar, so seen from above the blade continues the shaft's line,
+  //     toe away from the player. The original bent the blade sideways off the shaft.
+  let BV = B;
+  if (!s.goalie && s.blade !== 'drop') {
+    const w = Math.max(0, Math.min(1, 1 - (B[1] - g - 0.03) / 0.3));
+    BV = [B[0] + 0.55 * w, B[1], B[2] + 0.1 * w];
+  }
+  const pv = heel(BV), H = pv.H, hl = Math.hypot(pv.hx, pv.hz) || 1;
+  const E = [H[0] + pv.hx / hl * 0.3, H[1] + 0.01, H[2] + pv.hz / hl * 0.3];
+  return { T, H, E, H0, E0, g };
 }
 
 // the current pose's stick, read by the stick part while that pose voxelises
@@ -111,14 +129,14 @@ function glide(ph) {
   }, ON_ICE);
 }
 const stance = (o) => ({ ...UPPER, root: { pitch: 30 * D, roll: 0, yaw: 0, lift: 0, x: 0, z: 0 }, hipR: deg([50, 10, 0]), knR: 70 * D, hipL: deg([50, 10, 0]), knL: 70 * D, flatR: true, flatL: true, ...o });
-const keysWithStick = (list, blades) => (t) => {
+const keysWithStick = (list, blades, extra = {}) => (t) => {
   const pose = sampleKeys(list, t, { base: stance({}) });
   // blade target: piecewise-linear over the same key times
   let i = 0; while (i < blades.length - 2 && t > blades[i + 1].t) i++;
   const a = blades[i], b = blades[i + 1], u = Math.max(0, Math.min(1, (t - a.t) / ((b.t - a.t) || 1)));
   const s = u * u * (3 - 2 * u);
   const y = (v) => (v === 'ice' ? 0.03 : v);
-  return withStick(pose, { blade: [a.b[0] + (b.b[0] - a.b[0]) * s, y(a.b[1]) + (y(b.b[1]) - y(a.b[1])) * s, a.b[2] + (b.b[2] - a.b[2]) * s] });
+  return withStick(pose, { ...extra, blade: [a.b[0] + (b.b[0] - a.b[0]) * s, y(a.b[1]) + (y(b.b[1]) - y(a.b[1])) * s, a.b[2] + (b.b[2] - a.b[2]) * s] });
 };
 
 const SHOOT = keysWithStick([
@@ -171,8 +189,8 @@ const FALL = keysWithStick([
 const G_BASE = { ...UPPER, root: { pitch: 18 * D, roll: 0, yaw: 0, lift: 0, x: 0, z: 0 }, spine: deg([6, 0, 0]), chest: deg([4, 0, 0]), neck: deg([-16, 0, 0]),
   hipR: deg([48, 22, -10]), knR: 76 * D, hipL: deg([48, 22, -10]), knL: 76 * D, flatR: true, flatL: true,
   shL: deg([40, 46, 0]), elL: 70 * D, shR: deg([30, 30, 0]), elR: 40 * D };
-const gStance = (ph) => { const b = Math.sin(ph * Math.PI * 2) * 0.5 + 0.5; return withStick({ ...G_BASE, knR: (74 + 4 * b) * D, knL: (74 + 4 * b) * D }, { blade: [0.55, 'ice', -0.05] }); };
-const gKeys = (key, blade) => keysWithStick([{ t: 0, ...G_BASE }, { t: 0.35, ...G_BASE, ...key }, { t: 0.8, ...G_BASE, ...key }, { t: 1, ...G_BASE }], blade);
+const gStance = (ph) => { const b = Math.sin(ph * Math.PI * 2) * 0.5 + 0.5; return withStick({ ...G_BASE, knR: (74 + 4 * b) * D, knL: (74 + 4 * b) * D }, { goalie: true, blade: [0.55, 'ice', -0.05] }); };
+const gKeys = (key, blade) => keysWithStick([{ t: 0, ...G_BASE }, { t: 0.35, ...G_BASE, ...key }, { t: 0.8, ...G_BASE, ...key }, { t: 1, ...G_BASE }], blade, { goalie: true });
 const G_BUTTERFLY = gKeys({ root: { pitch: 10 * D }, hipR: deg([80, 52, -40]), knR: 128 * D, hipL: deg([80, 52, -40]), knL: 128 * D, flatR: false, flatL: false },
   [{ t: 0, b: [0.55, 'ice', -0.05] }, { t: 1, b: [0.55, 'ice', -0.05] }]);
 const G_GLOVE = gKeys({ chest: deg([4, -14, 0]), shL: deg([60, 110, 0]), elL: 30 * D, hipL: deg([40, 34, 0]), knL: 60 * D },

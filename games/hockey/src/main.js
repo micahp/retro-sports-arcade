@@ -29,7 +29,7 @@ function start(mode) {
   const opts = { auto: false, penalties: $('penT').checked };
   if (MODES[mode].periodOptions) opts.periodSec = Number($('perSel').value);
   S = createGame(mode, 'game-' + Date.now(), opts);
-  paused = false; $('menu').hidden = true; $('lab').hidden = true; $('hud').hidden = false; controls(true);
+  paused = false; $('menu').hidden = true; $('lab').hidden = true; $('paused').hidden = true; $('hud').hidden = false; controls(true);
 }
 
 function frame(now) {
@@ -75,11 +75,25 @@ function hud() {
   if (debug) $('dbg').textContent = `${R.ms.toFixed(1)} ms · shots ${S.stats[0].shots}-${S.stats[1].shots} · saves ${S.stats[0].saves}-${S.stats[1].saves} · passes ${S.stats[0].passesDone}/${S.stats[0].passes} · hits ${S.stats[0].hits}-${S.stats[1].hits}`;
 }
 
+// Pause freezes the game exactly where it is (no steps run); Resume continues the same game.
+function pause() {
+  if (!S || S.auto || paused || !$('menu').hidden) return;          // only a game you are playing
+  paused = true; controls(false);
+  $('pausedScore').textContent = `${TEAMS[0].short} ${S.score[0]} – ${S.score[1]} ${TEAMS[1].short} · ${$('per').textContent} ${$('clock').textContent}`;
+  $('paused').hidden = false;
+}
+function resume() {
+  if (!S || $('paused').hidden) return;
+  $('paused').hidden = true; controls(true); last = performance.now(); acc = 0; paused = false;
+}
 const controls = (on) => { $('stick').hidden = !on; document.querySelector('.acts').hidden = !on; };
 function wire() {
   controls(false);
   for (const b of document.querySelectorAll('[data-mode]')) b.onclick = () => start(b.dataset.mode);
-  $('pause').onclick = () => { paused = true; $('menu').hidden = false; controls(false); };
+  $('pause').onclick = pause;
+  $('resume').onclick = resume;
+  $('quit').onclick = () => { $('paused').hidden = true; $('hud').hidden = true; $('menu').hidden = false; S.auto = true; };
+  document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });   // switching apps on a phone pauses
   $('again').onclick = () => { $('again').hidden = true; paused = true; $('menu').hidden = false; S.auto = true; };
   $('dbgT').onchange = (e) => { debug = e.target.checked; $('dbg').hidden = !debug; };
   $('openLab').onclick = openLab;
@@ -103,7 +117,7 @@ function wire() {
   // keyboard: WASD or arrows, J = pass / switch, K = shoot (hold for slap) / check
   const keys = new Set();
   const kv = () => { let x = 0, z = 0; if (keys.has('w') || keys.has('arrowup')) x += 1; if (keys.has('s') || keys.has('arrowdown')) x -= 1; if (keys.has('d') || keys.has('arrowright')) z += 1; if (keys.has('a') || keys.has('arrowleft')) z -= 1; const l = Math.hypot(x, z); if (l) { input.x = x / l; input.z = z / l; input.lastTouch = performance.now(); } else if (pid === null) { input.x = input.z = 0; } };
-  addEventListener('keydown', (e) => { const k = e.key.toLowerCase(); if (e.repeat) return; if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault(); keys.add(k); kv(); if (k === 'j') { input.pass = true; input.lastTouch = performance.now(); } if (k === 'k' || k === ' ') { input.shootDown = true; input.holding = true; input.held = 0; input.lastTouch = performance.now(); } if (k === 'escape') { paused = true; $('menu').hidden = false; } });
+  addEventListener('keydown', (e) => { const k = e.key.toLowerCase(); if (e.repeat) return; if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault(); keys.add(k); kv(); if (k === 'j') { input.pass = true; input.lastTouch = performance.now(); } if (k === 'k' || k === ' ') { input.shootDown = true; input.holding = true; input.held = 0; input.lastTouch = performance.now(); } if (k === 'escape' || k === 'p') { if (!$('paused').hidden) resume(); else pause(); } });
   addEventListener('keyup', (e) => { const k = e.key.toLowerCase(); keys.delete(k); kv(); if ((k === 'k' || k === ' ') && input.holding) { input.shootUp = true; input.holding = false; } });
 }
 

@@ -7,6 +7,7 @@ import { HOCKEY, poseAt } from './poses.js';
 import { aiIntent } from './ai.js';
 import { rosterRatings } from './ratings.js';
 import { skateFactors } from './skating.js';
+import { iceMotion, locomotionAction } from './ice-motion.js';
 import { newRules, rulesStep } from './rules.js';
 const NO_SKATE = { top: 1, accel: 1, edges: 1, turn: 1 };   // legacy skating: every factor exactly 1
 import { attackDir, choosePassTarget, laneOpen } from './helpers.js';
@@ -30,7 +31,7 @@ export function createGame(modeKey = 'regulation', seed = 'rink-95', opts = {}) 
   // offsideLine: 'rink' (the drawn blue line, RINK.blueX) | 'ref82' (NHL 95's 82 units; kept only to attribute experiments)
   // offsideTol:  'nhl95' (NHL 95's flag / clear / whistle depths past the line) | 'none' (one threshold, the first version)
   // clockRate:   game seconds per physics second; physics stays at 60 Hz
-  const engine = { skating: 'legacy', cadence: 'legacy', roster: 'neutral', blade: 'legacy', rules: 'none', offsideLine: 'rink', offsideTol: 'nhl95', clockRate: 1, ...(opts.engine || {}) };
+  const engine = { motion: 'legacy', skating: 'legacy', cadence: 'legacy', roster: 'neutral', blade: 'legacy', rules: 'none', offsideLine: 'rink', offsideTol: 'nhl95', clockRate: 1, ...(opts.engine || {}) };
   const S = {
     engine, seedStr: String(seed),
     R: rng(seed), mode, modeKey, t: 0, period: 1, clock: periodSec || 0, periodSec, score: [0, 0],
@@ -132,7 +133,7 @@ export function step(S, input = {}) {
     p.cool = Math.max(0, p.cool - dt);
     if (!live && S.phase !== 'faceoff') { p.intent = { mx: 0, mz: 0 }; continue; }
     if (S.phase === 'faceoff' || p.benched) { p.intent = { mx: 0, mz: 0 }; continue; }
-    p.intent = p.script ? p.script(S, p) : p === S.user && !S.auto && input.active ? userIntent(S, p, input) : aiIntent(S, p);
+    p.intent = p.script ? p.script(S, p) : p === S.user && !S.auto && (input.active || S.engine.motion === 'edges') ? userIntent(S, p, input) : aiIntent(S, p);
   }
   if (live) for (const p of S.skaters) actions(S, p);
   for (const p of S.skaters) move(S, p, dt);
@@ -158,6 +159,8 @@ export function step(S, input = {}) {
 // input: { active, x, z (stick, screen-mapped to rink), pass (pressed), shootDown, shootUp, held }
 function userIntent(S, p, inp) {
   const it = { mx: inp.x || 0, mz: inp.z || 0 };
+  if (S.engine.motion === 'edges' && inp.backward) it.faceYaw = Math.atan2(S.puck.z-p.z,S.puck.x-p.x);
+  if (S.engine.motion === 'edges' && inp.brake) it.brake = true;
   const own = S.puck.owner === p;
   if (own) {
     if (inp.pass) it.pass = choosePassTarget(S, p, inp.x, inp.z);
@@ -203,7 +206,7 @@ function actions(S, p) {
     else { start(p, 'hCheck'); p.one.closing = bestClosing(S, p); p.cool = 1.0; }
   }
   const sp = Math.hypot(p.vx, p.vz), ml = Math.hypot(it.mx, it.mz);
-  if (sp > 5 && ml > 0.5 && (p.vx * it.mx + p.vz * it.mz) / (sp * ml) < -0.6) start(p, 'hBrake');
+  if (S.engine.motion !== 'edges' && sp > 5 && ml > 0.5 && (p.vx * it.mx + p.vz * it.mz) / (sp * ml) < -0.6) start(p, 'hBrake');
 }
 
 function releaseShot(S, p, kind) {
@@ -289,6 +292,19 @@ function move(S, p, dt) {
   const sp = Math.hypot(p.vx, p.vz);
   const carrying = S.puck.owner === p;
   const F = S.engine.skating === 'rated' ? skateFactors(p.r) : NO_SKATE;   // M2
+  if (S.engine.motion === 'edges') {
+    const m = iceMotion(p, it, dt, SKATE, F, carrying);
+    p.vx=m.vx; p.vz=m.vz; p.yaw=m.yaw; p.motionState=m.state; p.turnSign=m.turnSign;
+    p.x+=p.vx*dt; p.z+=p.vz*dt;
+    boards(p, SKATE.bodyR, .2, .9); keepOutOfNets(p);
+    const act=locomotionAction(m.state,m.turnSign);
+    if(p.act!==act && (act==='hReady'||act.startsWith('hStop'))) p.ph=0;
+    p.act=act;
+    const speed=Math.hypot(p.vx,p.vz);
+    const cadence=['hSkate','hBack','hTurnL','hTurnR'].includes(act)?Math.max(.45,Math.min(1.5,speed/5.5+.35)):1;
+    p.ph=(p.ph+dt/HOCKEY[act].dur*cadence)%1;
+    return;
+  }
   const top = SKATE.max * F.top * (carrying ? SKATE.carryFactor : 1) * Math.min(1, ml);
   const braking = p.one && p.one.name === 'hBrake';
   const shooting = p.one && (p.one.name === 'hShoot' || p.one.name === 'hSlap');

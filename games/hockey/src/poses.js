@@ -228,7 +228,25 @@ const G_GLOVE = gKeys({ chest: deg([4, -14, 0]), shL: deg([60, 110, 0]), elL: 30
 const G_BLOCKER = gKeys({ chest: deg([4, 14, 0]), shR: deg([40, 100, 0]), elR: 20 * D, hipR: deg([40, 34, 0]), knR: 60 * D },
   [{ t: 0, b: [0.55, 'ice', -0.05] }, { t: 0.4, b: [0.4, 0.5, 0.9] }, { t: 1, b: [0.55, 'ice', -0.05] }]);
 
+// First-pass hockey-specific locomotion poses; visuals still require reference playtest.
+function ready() { return withStick(stance({root:{pitch:20*D,roll:0,yaw:0,lift:0,x:0,z:0}}),ON_ICE); }
+function backward(ph) {
+  const leg=q=>{const push=Math.max(0,Math.sin(q*Math.PI*2));return {hip:deg([43-20*push,12+26*push,-12*push]),kn:(68-23*push)*D};};
+  const R=leg(ph), L=leg(ph+.5);
+  return withStick({...stance({}),root:{pitch:16*D,roll:4*D*Math.sin(ph*2*Math.PI),yaw:0,lift:0,x:0,z:0},hipR:R.hip,knR:R.kn,hipL:L.hip,knL:L.kn},ON_ICE);
+}
+function edgeTurn(ph,sign) {
+  const sw=Math.sin(ph*2*Math.PI), out=Math.max(0,sw), inn=Math.max(0,-sw);
+  return withStick({...stance({}),root:{pitch:25*D,roll:sign*19*D,yaw:0,lift:0,x:0,z:0},hipR:deg([52-16*out,14+22*out,sign*12]),hipL:deg([49-16*inn,14+22*inn,sign*12]),knR:(80-25*out)*D,knL:(78-25*inn)*D},ON_ICE);
+}
+function edgeStop(sign) {return withStick({...stance({}),root:{pitch:12*D,roll:sign*12*D,yaw:sign*55*D,lift:0,x:0,z:0},chest:deg([10,0,-sign*35]),hipR:deg([60,24,0]),hipL:deg([60,24,0]),knR:90*D,knL:90*D},ON_ICE);}
 export const HOCKEY = {
+  hReady: {loop:true,dur:1,frames:1,fn:ready},
+  hBack: {loop:true,dur:.8,frames:12,fn:backward},
+  hTurnL: {loop:true,dur:.7,frames:12,fn:p=>edgeTurn(p,-1)},
+  hTurnR: {loop:true,dur:.7,frames:12,fn:p=>edgeTurn(p,1)},
+  hStopL: {loop:true,dur:.4,frames:1,fn:()=>edgeStop(-1)},
+  hStopR: {loop:true,dur:.4,frames:1,fn:()=>edgeStop(1)},
   hSkate: { loop: true, dur: 0.62, frames: 12, fn: skate },
   hGlide: { loop: true, dur: 1.6, frames: 4, fn: glide },
   hShoot: { dur: 0.5, frames: 10, fn: SHOOT, release: 0.6 },

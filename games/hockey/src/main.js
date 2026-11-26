@@ -26,7 +26,7 @@ async function boot() {
 
 function start(mode) {
   replay = null;
-  const opts = { auto: false, penalties: $('penT').checked };
+  const opts = { auto: false, penalties: $('penT').checked, engine: { motion: 'edges', skating: 'rated', roster: 'spread' } };
   if (MODES[mode].periodOptions) opts.periodSec = Number($('perSel').value);
   S = createGame(mode, 'game-' + Date.now(), opts);
   paused = false; $('menu').hidden = true; $('lab').hidden = true; $('paused').hidden = true; $('hud').hidden = false; controls(true);
@@ -41,7 +41,7 @@ function frame(now) {
     R.draw(fake, dt, true);
     if (replay.i >= replay.frames.length - 1) { replay.hold = (replay.hold || 0) + dt; if (replay.hold > 1.5) { replay.i = 0; replay.hold = 0; } }
   } else if (S) {
-    input.active = now - input.lastTouch < 6000 && !S.auto;
+    input.active = !S.auto;
     if (!paused) {
       acc += dt;
       while (acc >= DT) {
@@ -124,7 +124,7 @@ function wire() {
   btn($('bB'), () => { input.shootDown = true; input.holding = true; input.held = 0; }, () => { if (input.holding) { input.shootUp = true; input.holding = false; } });
   // keyboard: WASD or arrows, J = pass / switch, K = shoot (hold for slap) / check
   const keys = new Set();
-  const kv = () => { let x = 0, z = 0; if (keys.has('w') || keys.has('arrowup')) x += 1; if (keys.has('s') || keys.has('arrowdown')) x -= 1; if (keys.has('d') || keys.has('arrowright')) z += 1; if (keys.has('a') || keys.has('arrowleft')) z -= 1; const l = Math.hypot(x, z); if (l) { input.x = x / l; input.z = z / l; input.lastTouch = performance.now(); } else if (pid === null) { input.x = input.z = 0; } };
+  const kv = () => { input.backward = keys.has('shift'); input.brake = keys.has('control'); let x = 0, z = 0; if (keys.has('w') || keys.has('arrowup')) x += 1; if (keys.has('s') || keys.has('arrowdown')) x -= 1; if (keys.has('d') || keys.has('arrowright')) z += 1; if (keys.has('a') || keys.has('arrowleft')) z -= 1; const l = Math.hypot(x, z); if (l) { input.x = x / l; input.z = z / l; input.lastTouch = performance.now(); } else if (pid === null) { input.x = input.z = 0; } };
   addEventListener('keydown', (e) => { const k = e.key.toLowerCase(); if (e.repeat) return; if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault(); keys.add(k); kv(); if (k === 'j') { input.pass = true; input.lastTouch = performance.now(); } if (k === 'k' || k === ' ') { input.shootDown = true; input.holding = true; input.held = 0; input.lastTouch = performance.now(); } if (k === 'escape' || k === 'p') { if (!$('paused').hidden) resume(); else pause(); } });
   addEventListener('keyup', (e) => { const k = e.key.toLowerCase(); keys.delete(k); kv(); if ((k === 'k' || k === ' ') && input.holding) { input.shootUp = true; input.holding = false; } });
 }

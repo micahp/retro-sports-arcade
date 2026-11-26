@@ -4,8 +4,8 @@
 import * as THREE from '../vendor/three.module.js';
 import { StackRenderer, bakeAll } from '../vendor/stack/stack-renderer.js';
 import { RINK } from './config.js';
-import { HOCKEY, HOCKEY_KEYS } from './poses.js';
-import { animOf, TEAMS } from './sim.js';
+import { HOCKEY, HOCKEY_KEYS, frameIndex } from './poses.js';
+import { animOf, TEAMS, stickWorld } from './sim.js';
 
 export const KITS = [
   { jersey: '#1f4fa8', trim: '#f3f5f8', number: '#f3f5f8', pants: '#16213a', pantStripe: '#f3f5f8', helmet: '#1f4fa8', helmetStripe: '#f3f5f8', mask: '#c9d1d8', sock: '#1f4fa8', sockStripe: '#f3f5f8', glove: '#16213a', cleat: '#141414', belt: '#d8b57a' },
@@ -97,14 +97,25 @@ export class Renderer {
     this.trail = new THREE.Line(this.trailGeo, new THREE.LineBasicMaterial({ color: 0xff3d7f })); this.trail.frustumCulled = false; this.trail.visible = false; this.scene.add(this.trail);
     const mg = new THREE.RingGeometry(0.25, 0.34, 16); mg.rotateX(-Math.PI / 2);
     this.marks = new THREE.InstancedMesh(mg, new THREE.MeshBasicMaterial({ color: 0xffffff, depthWrite: false }), 40); this.marks.frustumCulled = false; this.marks.visible = false; this.scene.add(this.marks);
+    const stickBox=new THREE.BoxGeometry(1,1,1);
+    this.shafts=new THREE.InstancedMesh(stickBox,new THREE.MeshLambertMaterial({color:0xc9a36a}),16);
+    this.blades=new THREE.InstancedMesh(stickBox,new THREE.MeshLambertMaterial({color:0x20252b}),16);
+    this.shafts.frustumCulled=this.blades.frustumCulled=false;this.scene.add(this.shafts,this.blades);
+    this.stickTmp=new THREE.Object3D();
     this.cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 300);
     this.view = { w: 19, fx: 0, fz: 0 };
     this.tmp = new THREE.Matrix4(); this.col = new THREE.Color();
     this.frameOf = (p) => {
       const { name, t } = animOf(p), a = HOCKEY[name], ix = this.bake.index[name];
-      const i = a.loop ? Math.floor(((t / a.dur) % 1 + 1) % 1 * a.frames) % a.frames : Math.min(a.frames - 1, Math.round(Math.min(1, t / a.dur) * (a.frames - 1)));
+      const i = frameIndex(name,t);
       return ix.start + i;
     };
+  }
+  stickSegment(mesh,i,a,b,width,height){
+    const A=new THREE.Vector3(a.x,a.y,a.z),B=new THREE.Vector3(b.x,b.y,b.z),d=B.clone().sub(A),o=this.stickTmp;
+    o.position.copy(A).add(B).multiplyScalar(.5);
+    o.quaternion.setFromUnitVectors(new THREE.Vector3(1,0,0),d.clone().normalize());
+    o.scale.set(d.length(),height,width);o.updateMatrix();mesh.setMatrixAt(i,o.matrix);
   }
   resize(w, h) { this.r.setSize(w, h, false); this.aspect = w / h; }
   draw(S, dt, debug) {
@@ -122,6 +133,8 @@ export class Renderer {
     // look along +x so the rink runs up the screen and +z is to the right
     this.cam.position.set(fx - Math.cos(PITCH) * 80, Math.sin(PITCH) * 80, fz); this.cam.up.set(0, 1, 0); this.cam.lookAt(fx, 0, fz); this.cam.updateMatrixWorld();
     this.sr.update(skaters.map((p) => ({ x: p.x, z: p.z, yaw: p.yaw, frame: this.frameOf(p), team: p.team, skin: p.skin, number: p.number })));
+    skaters.forEach((p,i)=>{const st=stickWorld(p);this.stickSegment(this.shafts,i,st.T,st.H,.034,.034);this.stickSegment(this.blades,i,st.H,st.E,.018,.07);});
+    this.shafts.count=this.blades.count=skaters.length;this.shafts.instanceMatrix.needsUpdate=this.blades.instanceMatrix.needsUpdate=true;
     skaters.forEach((p, i) => { this.tmp.makeTranslation(p.x, 0.01, p.z); this.shadows.setMatrixAt(i, this.tmp); });
     this.shadows.count = skaters.length; this.shadows.instanceMatrix.needsUpdate = true;
     const u = S.user && !S.auto ? S.user : null;

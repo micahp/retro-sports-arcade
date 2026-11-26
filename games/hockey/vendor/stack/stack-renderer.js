@@ -48,10 +48,11 @@ export function bakeAll(voxel, only = null) {
     }
     f.data = null;
   }
-  const meta = new Float32Array(frames.length * 2 * 4);
+  const meta = new Float32Array(frames.length * 3 * 4);
   frames.forEach((f, i) => {
     meta.set([f.ax, f.ay, f.gx, f.gz], i * 4);
     meta.set([f.cols, f.i0, f.j0, f.nl], (frames.length + i) * 4);
+    meta.set([f.yShift||0,0,0,0],(2*frames.length+i)*4);
   });
   return {
     voxel, G: frames[0]?.G ?? 1, frames, index, atlas, AW, AH, meta,
@@ -79,7 +80,7 @@ void main() {
   float li = m1.y + c.x * gx, lj = m1.z + c.y * gz;
   float lx = (li - uG * 0.5) * uV, lz = (lj - uG * 0.5) * uV;
   float cy = cos(iA.z), sy = sin(iA.z);
-  vec3 wp = vec3(iA.x + lx * cy - lz * sy, iB.x * uV, iA.y + lx * sy + lz * cy);
+  vec3 wp = vec3(iA.x + lx * cy - lz * sy, iB.x * uV + texelFetch(uMeta, ivec2(int(f),2),0).x, iA.y + lx * sy + lz * cy);
   float col = mod(k, m1.x), row = floor(k / m1.x);
   vTile = ivec4(int(m0.x + col * gx + 0.5), int(m0.y + row * gz + 0.5), int(gx + 0.5), int(gz + 0.5));
   vPx = c * vec2(gx, gz);
@@ -170,7 +171,7 @@ export class StackRenderer {
     const atlasTex = new THREE.DataTexture(bake.atlas, bake.AW, bake.AH, THREE.RGFormat, THREE.UnsignedByteType);
     atlasTex.magFilter = atlasTex.minFilter = THREE.NearestFilter; atlasTex.generateMipmaps = false; atlasTex.needsUpdate = true;
     atlasTex.unpackAlignment = 1;
-    const metaTex = new THREE.DataTexture(bake.meta, bake.frames.length, 2, THREE.RGBAFormat, THREE.FloatType);
+    const metaTex = new THREE.DataTexture(bake.meta, bake.frames.length, 3, THREE.RGBAFormat, THREE.FloatType);
     metaTex.magFilter = metaTex.minFilter = THREE.NearestFilter; metaTex.needsUpdate = true;
     const pal = [...teamPalette(kits[0]), ...teamPalette(kits[1])];
     this.material = new THREE.ShaderMaterial({

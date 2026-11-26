@@ -3,7 +3,7 @@
 import { rng } from './rng.js';
 import { RINK, PUCK, SHOT, SKATE, GOALIE, LINEUPS, MODES, PENALTY } from './config.js';
 import { makePuck, stepPuck, boards, leadPass } from './puck.js';
-import { HOCKEY, poseAt } from './poses.js';
+import { HOCKEY, poseAt, stickContact } from './poses.js';
 import { aiIntent } from './ai.js';
 import { rosterRatings } from './ratings.js';
 import { skateFactors } from './skating.js';
@@ -31,7 +31,7 @@ export function createGame(modeKey = 'regulation', seed = 'rink-95', opts = {}) 
   // offsideLine: 'rink' (the drawn blue line, RINK.blueX) | 'ref82' (NHL 95's 82 units; kept only to attribute experiments)
   // offsideTol:  'nhl95' (NHL 95's flag / clear / whistle depths past the line) | 'none' (one threshold, the first version)
   // clockRate:   game seconds per physics second; physics stays at 60 Hz
-  const engine = { motion: 'legacy', skating: 'legacy', cadence: 'legacy', roster: 'neutral', blade: 'legacy', rules: 'none', offsideLine: 'rink', offsideTol: 'nhl95', clockRate: 1, ...(opts.engine || {}) };
+  const engine = { motion: 'legacy', skating: 'legacy', cadence: 'legacy', roster: 'neutral', blade: 'rigid', rules: 'none', offsideLine: 'rink', offsideTol: 'nhl95', clockRate: 1, ...(opts.engine || {}) };
   const S = {
     engine, seedStr: String(seed),
     R: rng(seed), mode, modeKey, t: 0, period: 1, clock: periodSec || 0, periodSec, score: [0, 0],
@@ -100,16 +100,13 @@ function dropPuck(S, input) {
 function log(S, type, data = {}) { const e = { t: +S.t.toFixed(3), type, ...data }; S.log.push(e); S.events.push(e); }
 
 // ---------------------------------------------------------------- stick / blade
-export function bladeOf(p) {
-  const name = p.one ? p.one.name : p.act, a = HOCKEY[name];
-  const tt = p.one ? p.one.t : p.ph * a.dur;
-  const { stick, g } = poseAt(name, tt);
-  const c = Math.cos(p.yaw), s = Math.sin(p.yaw);
-  // contact point: the legacy blade (E0), so the poses.js visual fix leaves physics unchanged
-  const E = p.bladeMode === 'planar' ? stick.Ep0 : stick.E0;   // engine.blade: legacy (default) or planar
-  const m = [(stick.H0[0] + E[0]) / 2, (stick.H0[1] + E[1]) / 2 - g, (stick.H0[2] + E[2]) / 2];
-  return { x: p.x + m[0] * c - m[2] * s, y: m[1], z: p.z + m[0] * s + m[2] * c };
+export function stickWorld(p){
+ const name=p.one?p.one.name:p.act,a=HOCKEY[name],t=p.one?p.one.t:p.ph*a.dur;
+ const {stick,g}=poseAt(name,t),c=Math.cos(p.yaw),s=Math.sin(p.yaw);
+ const w=v=>({x:p.x+v[0]*c-v[2]*s,y:v[1]-g,z:p.z+v[0]*s+v[2]*c});
+ return {T:w(stick.T),H:w(stick.H),E:w(stick.E),C:w(stickContact(stick)),mode:stick.mode,error:stick.error,fallback:stick.fallback};
 }
+export function bladeOf(p){return stickWorld(p).C;}
 // Rules-only touch record: every path that touches the puck calls this. It feeds src/rules.js only, so the
 // legacy fields (S.touch gates pickup retries, pk.lastTouch credits goals) keep their exact old behaviour.
 function touched(pk, p) { pk.touchN = (pk.touchN || 0) + 1; pk.toucher = p; }
@@ -180,8 +177,14 @@ function actions(S, p) {
   if (p.one) {
     const a = HOCKEY[p.one.name];
     p.one.t += DT;
-    if ((p.one.name === 'hShoot' || p.one.name === 'hSlap') && !p.one.fired && p.one.t >= a.dur * a.release && pk.owner === p) { p.one.fired = true; releaseShot(S, p, p.one.name === 'hSlap' ? 'slap' : 'wrist'); }
-    if (p.one.name === 'hPass' && !p.one.fired && p.one.t >= a.dur * a.release && pk.owner === p) { p.one.fired = true; releasePass(S, p); }
+    if (['hShoot','hSlap','hPass'].includes(p.one.name) && !p.one.fired && p.one.t >= a.dur*a.release && pk.owner===p) {
+      p.one.t=a.dur*a.release;
+      const b=bladeOf(p),gap=Math.hypot(pk.x-b.x,pk.z-b.z);
+      if(gap<=.12&&b.y>=-.005&&b.y<=.12){
+        p.one.fired=true;log(S,'bladeRelease',{by:p.id,action:p.one.name,gap:+gap.toFixed(4),height:+b.y.toFixed(4)});
+        if(p.one.name==='hPass')releasePass(S,p);else releaseShot(S,p,p.one.name==='hSlap'?'slap':'wrist');
+      }else{p.one.wait=(p.one.wait||0)+DT;if(p.one.wait>.3){log(S,'releaseCancelled',{by:p.id,action:p.one.name,gap:+gap.toFixed(4)});p.one=null;return;}}
+    }
     if (p.one.name === 'hCheck' && !p.one.fired && p.one.t >= a.dur * a.hit) { p.one.fired = true; checkHit(S, p); }
     if (p.one && p.one.t >= a.dur) { if (p.one.name === 'hFall') p.down = 0.5; p.one = null; }   // a penalty can clear p.one mid-check
   }
@@ -206,7 +209,7 @@ function actions(S, p) {
     else { start(p, 'hCheck'); p.one.closing = bestClosing(S, p); p.cool = 1.0; }
   }
   const sp = Math.hypot(p.vx, p.vz), ml = Math.hypot(it.mx, it.mz);
-  if (S.engine.motion !== 'edges' && sp > 5 && ml > 0.5 && (p.vx * it.mx + p.vz * it.mz) / (sp * ml) < -0.6) start(p, 'hBrake');
+  if (S.engine.motion !== 'edges' && !p.one && sp > 5 && ml > 0.5 && (p.vx * it.mx + p.vz * it.mz) / (sp * ml) < -0.6) start(p, 'hBrake');
 }
 
 function releaseShot(S, p, kind) {
@@ -390,7 +393,7 @@ function puckStep(S, dt) {
   if (o) {
     if (o.isG) { pk.x = o.x + Math.cos(o.yaw) * 0.3; pk.z = o.z + Math.sin(o.yaw) * 0.3; pk.y = 0.6; pk.vx = pk.vz = 0; return; }
     let tx, tz;
-    if (o.one && (o.one.name === 'hShoot' || o.one.name === 'hSlap') && o.hold) {
+    if (o.one && (o.one.name === 'hShoot' || o.one.name === 'hSlap') && o.hold && bladeOf(o).y > .12) {
       const c = Math.cos(o.yaw), s = Math.sin(o.yaw); tx = o.x + o.hold.f * c - o.hold.r * s; tz = o.z + o.hold.f * s + o.hold.r * c;
     } else { const b = bladeOf(o); tx = b.x; tz = b.z; }
     // the puck rides with the skater and eases onto the blade: a received puck, a turn or an

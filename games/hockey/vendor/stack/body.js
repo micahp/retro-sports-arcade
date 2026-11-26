@@ -219,7 +219,7 @@ export function voxelize(pose, size) {
   const J = fk(pose);
   const lift = J._pose.root.lift || 0;
   const v = size;
-  const half = 1.15;
+  const half = 1.35;
   const G = Math.ceil((2 * half) / v);
   const yLo = -0.7, HT = Math.ceil(3.4 / v);
   const N = G * G * HT;
@@ -322,5 +322,5 @@ export function voxelize(pose, size) {
       }
     }
   }
-  return { v, G, i0: bi0, j0: bj0, gx, gz, nl, data };
+  return { v, G, i0: bi0, j0: bj0, gx, gz, nl, data, yShift: Number.isFinite(pose._ground) ? yLo+kmin*v-base*v-pose._ground : 0 };
 }

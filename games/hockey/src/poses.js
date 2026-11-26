@@ -11,7 +11,8 @@
 // cost and the first thing to generalise if the stack becomes shared tech.
 import { PARTS, PAL, sdRoundBox, sdCone } from '../vendor/stack/body.js';
 import { ACTIONS } from '../vendor/stack/actions.js';
-import { fk, D, sampleKeys, apply, applyT } from '../vendor/stack/skeleton.js';
+import { fk, D, sampleKeys } from '../vendor/stack/skeleton.js';
+import { solveStick, stickContact } from '../../shared/stick/rigid-stick.js';
 
 const deg = (a) => a.map((x) => (typeof x === 'number' ? x * D : x));
 const at = (J, n, c) => { const o = J[n].R, p = J[n].p; return [p[0] + o[0] * c[0] + o[1] * c[1] + o[2] * c[2], p[1] + o[3] * c[0] + o[4] * c[1] + o[5] * c[2], p[2] + o[6] * c[0] + o[7] * c[1] + o[8] * c[2]]; };
@@ -27,86 +28,8 @@ export function groundY(J) {
   return y;
 }
 
-// Stick geometry per pose, in body space: top hand T, blade heel B, blade toe E.
-export function stickOf(J, s) {
-  const T = at(J, 'wrL', [0.02, -0.07, 0]);
-  const g = groundY(J);
-  let B;
-  if (s.blade === 'drop') {
-    // dropped stick lies on the real floor (the lowest body point), not at skate height
-    let floor = 1e9; for (const k in J) if (k[0] !== '_') floor = Math.min(floor, J[k].p[1] - 0.1);
-    B = [T[0] + 0.9, floor + 0.02, T[2] + 0.7];
-  }
-  else B = [s.blade[0], g + (s.blade[1] === 'ice' ? 0.03 : s.blade[1]), s.blade[2]];
-  // shaft length is fixed: slide the heel along the hand-to-target line
-  const L = 1.5;
-  const heel = (B) => {
-    const d = [B[0] - T[0], B[1] - T[1], B[2] - T[2]], dl = Math.hypot(...d) || 1;
-    return { H: s.blade === 'drop' ? B : [T[0] + d[0] / dl * Math.min(L, dl), T[1] + d[1] / dl * Math.min(L, dl), T[2] + d[2] / dl * Math.min(L, dl)], hx: d[0] / dl, hz: d[2] / dl };
-  };
-  // PHYSICS stick (H0, E0): the original geometry. The sim's puck-contact point (bladeOf) uses it, so
-  // physics and every baseline are unchanged by the visual fixes below; moving contact to the drawn
-  // blade is a separate, tested change.
-  const p0 = heel(B), H0 = p0.H, side = [p0.hz, 0, -p0.hx], sl = Math.hypot(side[0], side[2]) || 1;
-  const E0 = [H0[0] - side[0] / sl * 0.3, H0[1] + 0.01, H0[2] - side[2] / sl * 0.3];
-  // PLANAR blade (correctness fix, engine.blade = 'planar'): a stick is planar, so the blade continues the
-  // shaft line from the heel, toe away from the player, 0.27 m long. The legacy E0 above points back
-  // toward the player (about -0.29 m along the facing in every action); see tests/blade.test.mjs.
-  const sh = [H0[0] - T[0], H0[2] - T[2]], shl = Math.hypot(sh[0], sh[1]) || 1;
-  const Ep0 = [H0[0] + sh[0] / shl * 0.27, H0[1] + 0.01, H0[2] + sh[1] / shl * 0.27];
-  // DRAWN stick (H, E). Two fixes for "the sticks look backwards":
-  //  1. reach: the original carry target put the blade only ~0.1 m ahead of the top hand, so with the
-  //     58-degree camera the shaft drew straight down the screen and skaters facing up-screen seemed to
-  //     drag it behind them. Skaters carry the blade further out: +0.55 m forward, +0.1 m to the
-  //     forehand side, blended out as the blade lifts (wind-ups unchanged). Goalies keep theirs.
-  //  2. blade direction: a stick is planar, so seen from above the blade continues the shaft's line,
-  //     toe away from the player. The original bent the blade sideways off the shaft.
-  //  The whole drawn stick must stay inside the voxel bake footprint (vendor/stack/body.js voxelize:
-  //  +-1.15 m around the pelvis), or the blade is cut off and the stick never reaches the ice. The
-  //  first try pushed the toe to ~1.7 m and lost the blade; the reach is now shrunk until the toe fits.
-  let toe = 0.27; const LIM = REACH_LIMIT;
-  // k scales the extra reach; toe shortens the drawn blade; f pulls the blade target in toward the hands
-  // (some original targets, e.g. the fall's stick laid out at 1.6 m, never fitted either). In that order.
-  const solve = (k, f) => {
-    let BV = B;
-    if (!s.goalie && s.blade !== 'drop') {
-      const w = Math.max(0, Math.min(1, 1 - (B[1] - g - 0.03) / 0.3)) * k;
-      BV = [B[0] + 0.3 * w, B[1], B[2] + 0.12 * w];
-    }
-    BV = [T[0] + (BV[0] - T[0]) * f, BV[1], T[2] + (BV[2] - T[2]) * f];
-    const pv = heel(BV), H = pv.H, hl = Math.hypot(pv.hx, pv.hz) || 1;
-    return { H, E: [H[0] + pv.hx / hl * toe, H[1] + 0.01, H[2] + pv.hz / hl * toe] };
-  };
-  const over = (st) => Math.max(Math.abs(st.E[0]), Math.abs(st.E[2]), Math.abs(st.H[0]), Math.abs(st.H[2])) > LIM;
-  let k = 1, f = 1, st = solve(k, f);
-  while (over(st) && k > 0) { k = Math.max(0, k - 0.1); st = solve(k, f); }
-  while (over(st) && toe > 0.12) { toe -= 0.03; st = solve(k, f); }
-  while (over(st) && f > 0.6) { f -= 0.05; st = solve(k, f); }
-  if (over(st)) {
-    // last resort (falls, arms stretched to the edge of the footprint): the drawn stick lies on the
-    // ice alongside the player, blade beside the hip
-    const side = T[2] >= 0 ? 1 : -1, BV = [0.15, g + 0.03, 0.8 * side];
-    const pv = heel(BV), hl = Math.hypot(pv.hx, pv.hz) || 1;
-    st = { H: pv.H, E: [pv.H[0] + pv.hx / hl * toe, pv.H[1] + 0.01, pv.H[2] + pv.hz / hl * toe] };
-    if (over(st)) st = { H: [0.15, BV[1], 0.8 * side], E: [0.15 - toe, BV[1] + 0.01, 0.8 * side] };
-  }
-  return { T, H: st.H, E: st.E, H0, E0, Ep0, g };
-}
-
-// the current pose's stick, read by the stick part while that pose voxelises
-let CUR = null;
-const local = (J, w) => applyT(J.wrR.R, [w[0] - J.wrR.p[0], w[1] - J.wrR.p[1], w[2] - J.wrR.p[2]]);
-const stickPart = {
-  prio: 3, thin: true, joint: 'wrR', bounds: [[-0.1, -0.1, -0.1], [0.1, 0.1, 0.1]],
-  sdf: (p) => (CUR ? Math.min(sdCone(p, CUR.t, CUR.h, 0.02, 0.018), sdCone(p, CUR.h, CUR.e, 0.026, 0.022)) : 1),
-  mat: (p) => {
-    if (!CUR) return PAL.BELT;
-    const dh = Math.hypot(p[0] - CUR.h[0], p[1] - CUR.h[1], p[2] - CUR.h[2]);
-    const dt = Math.hypot(p[0] - CUR.t[0], p[1] - CUR.t[1], p[2] - CUR.t[2]);
-    return dh < 0.05 || sdCone(p, CUR.h, CUR.e, 0.03, 0.03) < 0 || dt < 0.07 ? PAL.SOLE : PAL.BELT;
-  },
-};
-PARTS.push(stickPart);
+// Stick is a separate rigid prop, not clipped to the sprite.
+export function stickOf(J,s){return s;}
 // skate blades under the boots
 for (const an of ['anR', 'anL']) {
   PARTS.push({
@@ -117,17 +40,13 @@ for (const an of ['anR', 'anL']) {
 }
 
 /** Attach the stick for one pose and return the pose (called inside each action fn). */
-function withStick(pose, s) {
-  const J = fk(pose);
-  const st = stickOf(J, s);
-  const t = local(J, st.T), h = local(J, st.H), e = local(J, st.E);
-  CUR = { t, h, e };
-  const mn = [0, 1, 2].map((i) => Math.min(t[i], h[i], e[i]) - 0.06), mx = [0, 1, 2].map((i) => Math.max(t[i], h[i], e[i]) + 0.06);
-  stickPart.bounds = [mn, mx];
-  pose._stick = s;
-  return pose;
+function withStick(pose,s){
+ const J=fk(pose),g=groundY(J);
+ const h=s.blade==='drop'?.035:s.blade[1]==='ice'?.035:s.blade[1];
+ const heel=s.blade==='drop'?[.85,g+.035,.35]:[s.blade[0],g+h,s.blade[2]];
+ const r=solveStick(pose,heel,g,{goalie:s.goalie,drop:s.blade==='drop',handed:s.handed});
+ return {...r.pose,_ground:g,_stick:{T:r.T,H:r.H,E:r.E,targets:r.targets,error:r.error,fallback:r.fallback,mode:r.mode,g}};
 }
-
 // ---------------------------------------------------------------- poses
 const UPPER = {
   spine: deg([10, 0, 0]), chest: deg([6, 0, 0]), neck: deg([-30, 0, 0]), head: deg([-8, 0, 0]),
@@ -148,7 +67,7 @@ function skate(ph) {
     root: { pitch: 34 * D, roll: 5 * D * sw, yaw: 4 * D * sw, lift: 0, x: 0, z: -0.05 * sw },
     chest: deg([6, 0, -8 * sw]), shL: deg([62 + 6 * sw, 22, 10]), shR: deg([40 - 8 * sw, 12, 0]),
     hipR: R.hip, knR: R.kn, hipL: L.hip, knL: L.kn, flatR: true, flatL: true,
-  }, { blade: [0.85, 'ice', 0.25 - 0.08 * sw] });
+  }, { blade: [0.85, 'ice', 0.25] });
 }
 function glide(ph) {
   const b = Math.sin(ph * Math.PI * 2) * 0.5 + 0.5;
@@ -166,6 +85,7 @@ const keysWithStick = (list, blades, extra = {}) => (t) => {
   const a = blades[i], b = blades[i + 1], u = Math.max(0, Math.min(1, (t - a.t) / ((b.t - a.t) || 1)));
   const s = u * u * (3 - 2 * u);
   const y = (v) => (v === 'ice' ? 0.03 : v);
+  if(extra.fall && t>=.6)return withStick(pose,{blade:'drop'});
   return withStick(pose, { ...extra, blade: [a.b[0] + (b.b[0] - a.b[0]) * s, y(a.b[1]) + (y(b.b[1]) - y(a.b[1])) * s, a.b[2] + (b.b[2] - a.b[2]) * s] });
 };
 
@@ -175,7 +95,7 @@ const SHOOT = keysWithStick([
   { t: 0.62, root: { pitch: 36 * D }, chest: deg([8, 0, -6]), spine: deg([10, 0, -4]), shL: deg([60, 20, 10]), elL: 70 * D, shR: deg([56, 8, 0]), elR: 20 * D, hipR: deg([60, 8, 0]), knR: 82 * D, hipL: deg([40, 16, 0]), knL: 60 * D },
   { t: 1, root: { pitch: 22 * D }, chest: deg([2, 0, -30]), spine: deg([6, 0, -14]), shL: deg([70, 30, 10]), elL: 40 * D, shR: deg([110, 20, 0]), elR: 20 * D, hipR: deg([56, 8, 0]), knR: 76 * D, hipL: deg([36, 18, 0]), knL: 58 * D },
 ], [
-  { t: 0, b: [0.85, 'ice', 0.25] }, { t: 0.45, b: [-0.55, 0.9, 0.75] }, { t: 0.62, b: [0.75, 'ice', 0.35] }, { t: 1, b: [1.0, 1.05, -0.35] },
+  { t: 0, b: [0.85, 'ice', 0.25] }, { t: 0.45, b: [0.35, 0.05, 0.55] }, { t: 0.625, b: [0.85, 'ice', 0.25] }, { t: 1, b: [1.0, 1.05, -0.35] },
 ]);
 const CHECK = keysWithStick([
   { t: 0, ...stance({}) },
@@ -197,7 +117,7 @@ const SLAP = keysWithStick([
   { t: 0.66, root: { pitch: 38 * D }, chest: deg([8, 0, -8]), spine: deg([10, 0, -6]), shL: deg([58, 20, 10]), elL: 60 * D, shR: deg([58, 8, 0]), elR: 14 * D, hipR: deg([62, 8, 0]), knR: 84 * D, hipL: deg([40, 16, 0]), knL: 60 * D },
   { t: 1, root: { pitch: 20 * D }, chest: deg([0, 0, -34]), spine: deg([4, 0, -16]), shL: deg([76, 34, 10]), elL: 30 * D, shR: deg([124, 22, 0]), elR: 14 * D, hipR: deg([56, 8, 0]), knR: 74 * D, hipL: deg([34, 18, 0]), knL: 56 * D },
 ], [
-  { t: 0, b: [0.85, 'ice', 0.25] }, { t: 0.55, b: [-0.6, 1.5, 0.9] }, { t: 0.66, b: [0.8, 'ice', 0.4] }, { t: 1, b: [1.0, 1.4, -0.5] },
+  { t: 0, b: [0.85, 'ice', 0.25] }, { t: 0.55, b: [-0.15, 0.65, 0.7] }, { t: 0.65, b: [0.85, 'ice', 0.25] }, { t: 1, b: [1.0, 1.4, -0.5] },
 ]);
 // pass: short draw back and a low sweep through the puck
 const PASS = keysWithStick([
@@ -205,7 +125,7 @@ const PASS = keysWithStick([
   { t: 0.4, chest: deg([6, 0, 22]), shL: deg([70, 26, 10]), shR: deg([30, 24, 0]) },
   { t: 0.6, chest: deg([6, 0, -10]), shL: deg([58, 20, 10]), shR: deg([50, 10, 0]) },
   { t: 1, ...stance({}), chest: deg([6, 0, -16]) },
-], [{ t: 0, b: [0.85, 'ice', 0.25] }, { t: 0.4, b: [0.2, 'ice', 0.6] }, { t: 0.6, b: [0.85, 'ice', 0.3] }, { t: 1, b: [1.0, 0.12, -0.1] }]);
+], [{ t: 0, b: [0.85, 'ice', 0.25] }, { t: 0.4, b: [0.2, 'ice', 0.6] }, { t: 0.6, b: [0.85, 'ice', 0.25] }, { t: 1, b: [1.0, 0.12, -0.1] }]);
 
 // a hockey fall: stumble forward, knees, then flat on the ice with the stick out
 const PRONE = ACTIONS.prone.fn(0);
@@ -213,7 +133,7 @@ const FALL = keysWithStick([
   { t: 0, ...stance({}) },
   { t: 0.3, root: { pitch: 58 * D }, neck: deg([-40, 0, 0]), hipR: deg([70, 12, 0]), knR: 100 * D, hipL: deg([40, 12, 0]), knL: 70 * D, shR: deg([90, 20, 0]), elR: 30 * D, shL: deg([100, 20, 10]), elL: 30 * D },
   { t: 1, ...PRONE, shR: deg([150, 20, 0]), elR: 20 * D, shL: deg([150, 20, 10]), elL: 20 * D },
-], [{ t: 0, b: [0.85, 'ice', 0.25] }, { t: 1, b: [1.6, 'ice', 0.1] }]);
+], [{ t: 0, b: [0.85, 'ice', 0.25] }, { t: 1, b: [0.85, 'ice', 0.25] }], {fall:true});
 
 // goalie: wide crouch with the paddle on the ice, butterfly drop, glove and blocker saves
 const G_BASE = { ...UPPER, root: { pitch: 18 * D, roll: 0, yaw: 0, lift: 0, x: 0, z: 0 }, spine: deg([6, 0, 0]), chest: deg([4, 0, 0]), neck: deg([-16, 0, 0]),
@@ -249,9 +169,9 @@ export const HOCKEY = {
   hStopR: {loop:true,dur:.4,frames:1,fn:()=>edgeStop(1)},
   hSkate: { loop: true, dur: 0.62, frames: 12, fn: skate },
   hGlide: { loop: true, dur: 1.6, frames: 4, fn: glide },
-  hShoot: { dur: 0.5, frames: 10, fn: SHOOT, release: 0.6 },
-  hSlap: { dur: 0.95, frames: 14, fn: SLAP, release: 0.62 },
-  hPass: { dur: 0.32, frames: 8, fn: PASS, release: 0.55 },
+  hShoot: { dur: 0.5, frames: 17, fn: SHOOT, release: 0.625 },
+  hSlap: { dur: 0.95, frames: 21, fn: SLAP, release: 0.65 },
+  hPass: { dur: 0.32, frames: 11, fn: PASS, release: 0.6 },
   hCheck: { dur: 0.5, frames: 8, fn: CHECK, hit: 0.45 },
   hBrake: { dur: 0.45, frames: 6, fn: BRAKE },
   hFall: { dur: 0.9, frames: 10, fn: FALL },
@@ -260,15 +180,10 @@ export const HOCKEY = {
   gGlove: { dur: 0.45, frames: 6, fn: G_GLOVE },
   gBlocker: { dur: 0.45, frames: 6, fn: G_BLOCKER },
 };
-Object.assign(ACTIONS, HOCKEY);
-export const HOCKEY_KEYS = Object.keys(HOCKEY);
-
-/** Pose of an action at time t (seconds) or loop phase, with its stick, in FK body space. */
-export function poseAt(name, t) {
-  const a = HOCKEY[name];
-  const u = a.loop ? (((t / a.dur) % 1) + 1) % 1 : Math.min(1, t / a.dur);
-  const pose = a.fn(u);
-  const J = fk(pose);
-  return { J, stick: stickOf(J, pose._stick), g: groundY(J) };
-}
-export { at as jointPoint };
+// Both renderer and physics use the same baked sample index.
+export function frameIndex(name,t){const a=HOCKEY[name];return a.loop?Math.floor((((t/a.dur)%1+1)%1)*a.frames+1e-9)%a.frames:Math.min(a.frames-1,Math.max(0,Math.round(t/a.dur*(a.frames-1))));}
+for(const a of Object.values(HOCKEY)){const raw=a.fn,cache=new Map();a.fn=u=>{const i=a.loop?Math.round((((u%1)+1)%1)*a.frames)%a.frames:Math.max(0,Math.min(a.frames-1,Math.round(u*(a.frames-1))));if(!cache.has(i))cache.set(i,raw(a.loop?i/a.frames:a.frames===1?0:i/(a.frames-1)));return cache.get(i);};}
+Object.assign(ACTIONS,HOCKEY);
+export const HOCKEY_KEYS=Object.keys(HOCKEY);
+export function poseAt(name,t){const a=HOCKEY[name],i=frameIndex(name,t),pose=a.fn(a.loop?i/a.frames:a.frames===1?0:i/(a.frames-1)),J=fk(pose),stick=pose._stick;return {J,pose,stick,g:stick.g};}
+export { at as jointPoint, stickContact };

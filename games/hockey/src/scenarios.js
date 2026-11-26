@@ -104,7 +104,7 @@ export const SCENARIOS = [
           const g = addSkater(S, 1, 'G', { x: RINK.goalX - 0.8, z: 0 });
           const sh = addSkater(S, 0, 'C', { x: RINK.goalX - 11.6, z: -0.6 }); sh.script = () => ({ mx: 0, mz: 0 });
           const dx = RINK.goalX - (RINK.goalX - 10.5), dz = z, L = Math.hypot(dx, dz);
-          loosePuck(S, { x: RINK.goalX - 10.5, z: 0, vx: dx / L * 25, vz: dz / L * 25, vy: 0.5, shot: { by: sh, team: 0, kind: 'wrist', from: { x: RINK.goalX - 10.5, z: 0 }, t: 0, resolved: {} } });
+          loosePuck(S, { x: RINK.goalX - 10.5, z: 0, vx: dx / L * 25, vz: dz / L * 25, vy: 0.5, lock: 0.12, lastTouch: sh, shot: { by: sh, team: 0, kind: 'wrist', from: { x: RINK.goalX - 10.5, z: 0 }, t: 0, resolved: {} } });
           run(S, 1.2); if (S.log.some((e) => e.type === 'save')) saves++;
         }
         return saves / n;

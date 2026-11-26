@@ -26,14 +26,27 @@ export function solveStick(pose,heel,g,opts={}){
  }
  if(opts.drop){const H=[.85,g+.035,.35],U=[-1,0,0],V=[Math.sin(theta),0,Math.cos(theta)];return {pose,T:add(H,mul(U,S.shaft)),H,E:add(H,mul(V,S.blade)),targets:{},error:0,mode:'released',fallback:false};}
  if(heel[1]-g<=.085)grounded(heel);
- else{
-  const primary=unit(sub(old,heel)),second=unit(sub(old,low));
-  for(const d of [primary,second,...[.25,-.25,.5,-.5,.75,-.75].flatMap(k=>[unit(add(primary,[0,k,0])),unit(add(primary,[k,0,0])),unit(add(primary,[0,0,k]))])]){
-   const H=add(old,mul(d,-(S.shaft-(goalie?S.bottom:S.top))));
-   const out=unit([H[0]-J.pelvis.p[0],0,H[2]-J.pelvis.p[2]]);
-   let perp=unit(sub(out,mul(d,dot(out,d))));if(len(perp)<.5)perp=unit(sub([0,1,0],mul(d,d[1])));
-   attempt(H,d,add(mul(d,-Math.sin(theta)),mul(perp,Math.cos(theta))));
-   if(best?.error<.009)break;
+ else {
+  // Rotate the rigid prop about a reachable grip, not about an unreachable blade target.
+  grounded([.85,g+.035,.25]);
+  const carry=best;best=null;
+  if(carry&&carry.error<=.03){
+   const grip=goalie?S.bottom:S.top,anchor=carry.targets[topSide],reach=S.shaft-grip;
+   const tilt=Math.acos(Math.max(-.8,Math.min(.77,(anchor[1]-heel[1])/reach)));
+   const base=Math.atan2(carry.H[2]-anchor[2],carry.H[0]-anchor[0]);
+   const target=Math.atan2(heel[2]-anchor[2],heel[0]-anchor[0]);
+   const delta=Math.atan2(Math.sin(target-base),Math.cos(target-base));
+   for(const scale of [1,.8,.6,.4,.2,0]){
+    const az=base+delta*scale;
+    for(const th of [tilt,theta+(tilt-theta)*.8,theta+(tilt-theta)*.6,theta]){
+     const d=[Math.cos(az)*Math.sin(th),-Math.cos(th),Math.sin(az)*Math.sin(th)];
+     const v=[Math.cos(az)*Math.cos(th),Math.sin(th),Math.sin(az)*Math.cos(th)];
+     const H=add(anchor,mul(d,reach)),V=add(mul(d,Math.sin(theta)),mul(v,Math.cos(theta)));
+     attempt(H,mul(d,-1),V);
+     if(best?.error<.009)break;
+    }
+    if(best?.error<.009)break;
+   }
   }
  }
  let fallback=false;

@@ -8,6 +8,7 @@ import { aiIntent } from './ai.js';
 import { rosterRatings } from './ratings.js';
 import { skateFactors } from './skating.js';
 import { iceMotion, locomotionAction } from './ice-motion.js';
+import { gripPoint } from '../../shared/rig/ik.js';
 import { newRules, rulesStep } from './rules.js';
 const NO_SKATE = { top: 1, accel: 1, edges: 1, turn: 1 };   // legacy skating: every factor exactly 1
 import { attackDir, choosePassTarget, laneOpen } from './helpers.js';
@@ -102,9 +103,9 @@ function log(S, type, data = {}) { const e = { t: +S.t.toFixed(3), type, ...data
 // ---------------------------------------------------------------- stick / blade
 export function stickWorld(p){
  const name=p.one?p.one.name:p.act,a=HOCKEY[name],t=p.one?p.one.t:p.ph*a.dur;
- const {stick,g}=poseAt(name,t),c=Math.cos(p.yaw),s=Math.sin(p.yaw);
+ const {stick,g,J}=poseAt(name,t),c=Math.cos(p.yaw),s=Math.sin(p.yaw);
  const w=v=>({x:p.x+v[0]*c-v[2]*s,y:v[1]-g,z:p.z+v[0]*s+v[2]*c});
- return {T:w(stick.T),H:w(stick.H),E:w(stick.E),C:w(stickContact(stick)),mode:stick.mode,error:stick.error,fallback:stick.fallback};
+ return {T:w(stick.T),H:w(stick.H),E:w(stick.E),C:w(stickContact(stick)),mode:stick.mode,error:stick.error,fallback:stick.fallback,grips:Object.fromEntries(Object.entries(stick.targets).map(([side,v])=>[side,w(v)])),actualGrips:Object.fromEntries(Object.keys(stick.targets).map(side=>[side,w(gripPoint(J,side))]))};
 }
 export function bladeOf(p){return stickWorld(p).C;}
 // Rules-only touch record: every path that touches the puck calls this. It feeds src/rules.js only, so the

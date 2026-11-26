@@ -102,6 +102,9 @@ export class Renderer {
     this.blades=new THREE.InstancedMesh(stickBox,new THREE.MeshLambertMaterial({color:0x20252b}),16);
     this.shafts.frustumCulled=this.blades.frustumCulled=false;this.scene.add(this.shafts,this.blades);
     this.stickTmp=new THREE.Object3D();
+    const markerGeo=new THREE.SphereGeometry(.042,10,8);
+    this.labMarkers=Array.from({length:8},(_,i)=>new THREE.Mesh(markerGeo,new THREE.MeshBasicMaterial({color:[0xffffff,0xffb040,0x33c9f4,0xff4bd3,0x3bff8b,0x3bff8b,0xff695e,0xff695e][i],depthTest:false})));
+    for(const m of this.labMarkers){m.visible=false;m.renderOrder=20;this.scene.add(m);}
     this.cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 300);
     this.view = { w: 19, fx: 0, fz: 0 };
     this.tmp = new THREE.Matrix4(); this.col = new THREE.Color();
@@ -111,10 +114,14 @@ export class Renderer {
       return ix.start + i;
     };
   }
-  stickSegment(mesh,i,a,b,width,height){
+  stickSegment(mesh,i,a,b,width,height,shaft){
     const A=new THREE.Vector3(a.x,a.y,a.z),B=new THREE.Vector3(b.x,b.y,b.z),d=B.clone().sub(A),o=this.stickTmp;
     o.position.copy(A).add(B).multiplyScalar(.5);
-    o.quaternion.setFromUnitVectors(new THREE.Vector3(1,0,0),d.clone().normalize());
+    if(shaft){
+      const X=d.clone().normalize(),U=new THREE.Vector3(shaft.x-a.x,shaft.y-a.y,shaft.z-a.z).normalize();
+      const Z=X.clone().cross(U).normalize(),Y=Z.clone().cross(X).normalize();
+      o.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(X,Y,Z));
+    }else o.quaternion.setFromUnitVectors(new THREE.Vector3(1,0,0),d.clone().normalize());
     o.scale.set(d.length(),height,width);o.updateMatrix();mesh.setMatrixAt(i,o.matrix);
   }
   resize(w, h) { this.r.setSize(w, h, false); this.aspect = w / h; }
@@ -125,15 +132,27 @@ export class Renderer {
     const lx = pk.x + pk.vx * 0.25, lz = pk.z + pk.vz * 0.1;
     const k = 1 - Math.exp(-dt * 5);
     this.view.fx += (lx - this.view.fx) * k; this.view.fz += (lz - this.view.fz) * k;
-    const hw = this.view.w / 2, hh = hw / this.aspect;           // hw across (z), hh up the screen
+    const hw = (this.labView?.width || this.view.w) / 2, hh = hw / this.aspect;           // hw across (z), hh up the screen
     const visX = hh / Math.sin(PITCH);
     const fx = Math.max(-RINK.hx - 1 + visX * 0.9, Math.min(RINK.hx + 1 - visX * 0.9, this.view.fx));
     const fz = Math.max(-RINK.hz - 1 + hw, Math.min(RINK.hz + 1 - hw, this.view.fz));
     Object.assign(this.cam, { left: -hw, right: hw, top: hh, bottom: -hh }); this.cam.updateProjectionMatrix();
     // look along +x so the rink runs up the screen and +z is to the right
     this.cam.position.set(fx - Math.cos(PITCH) * 80, Math.sin(PITCH) * 80, fz); this.cam.up.set(0, 1, 0); this.cam.lookAt(fx, 0, fz); this.cam.updateMatrixWorld();
+    if(this.labView){
+      const l=this.labView,pitch=l.pitch*Math.PI/180,orbit=l.orbit*Math.PI/180;
+      const x=l.x,z=l.z,y=l.y||.8;
+      this.cam.position.set(x-Math.cos(pitch)*Math.cos(orbit)*80,y+Math.sin(pitch)*80,z-Math.cos(pitch)*Math.sin(orbit)*80);
+      this.cam.lookAt(x,y,z);this.cam.updateMatrixWorld();
+    }
     this.sr.update(skaters.map((p) => ({ x: p.x, z: p.z, yaw: p.yaw, frame: this.frameOf(p), team: p.team, skin: p.skin, number: p.number })));
-    skaters.forEach((p,i)=>{const st=stickWorld(p);this.stickSegment(this.shafts,i,st.T,st.H,.034,.034);this.stickSegment(this.blades,i,st.H,st.E,.018,.07);});
+    skaters.forEach((p,i)=>{const st=stickWorld(p);this.stickSegment(this.shafts,i,st.T,st.H,.034,.034);this.stickSegment(this.blades,i,st.H,st.E,.012,.07,st.T);});
+    for(const m of this.labMarkers)m.visible=false;
+    if(this.labView?.markers&&skaters.length){
+      const p=skaters.find(p=>p.id===this.labView.playerId)||skaters[0],s=stickWorld(p);
+      const points=[s.T,s.H,s.E,s.C,...Object.values(s.grips||{}),...Object.values(s.actualGrips||{})];
+      points.slice(0,8).forEach((v,i)=>{const m=this.labMarkers[i];m.position.set(v.x,v.y,v.z);m.visible=true;});
+    }
     this.shafts.count=this.blades.count=skaters.length;this.shafts.instanceMatrix.needsUpdate=this.blades.instanceMatrix.needsUpdate=true;
     skaters.forEach((p, i) => { this.tmp.makeTranslation(p.x, 0.01, p.z); this.shadows.setMatrixAt(i, this.tmp); });
     this.shadows.count = skaters.length; this.shadows.instanceMatrix.needsUpdate = true;

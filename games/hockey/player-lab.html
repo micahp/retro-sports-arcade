@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rink '95 · Player Lab</title>
+<style>
+:root{color-scheme:dark;font:14px system-ui,sans-serif;background:#121b28;color:#edf4fa}*{box-sizing:border-box}body{margin:0;padding:16px;max-width:1200px;margin:auto}h1{font-size:24px;margin:0 0 6px}p{margin:5px 0 12px;color:#b5c5d5}a{color:#9bceff}main{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:12px}canvas{display:block;width:100%;height:min(66vh,640px);background:#eaf3fc;border-radius:8px}section{border:1px solid #3c4a5b;padding:12px;border-radius:8px}label{display:block;margin:9px 0}select,input[type=range]{width:100%}button,select{background:#26384c;border:1px solid #5a6e87;color:white;padding:8px;border-radius:5px}button{cursor:pointer;margin:3px}pre{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5;font-size:12px}.key{font-size:12px;color:#b5c5d5}@media(max-width:720px){main{grid-template-columns:1fr}canvas{height:52vh}}
+</style>
+<h1>RINK '95 / PLAYER LAB</h1><p>Live engine and sampled poses · experimental motion branch · <a href="index.html">Full game</a></p>
+<main><div><canvas id="ice"></canvas><p id="status">Baking skater frames…</p><p class="key">Markers: white butt · amber heel · cyan toe · magenta puck contact · green target grips · red actual grips. Markers are depth-independent inspection aids.</p></div>
+<section>
+<label>Mode <select id="mode"><option value="live">Live scripted engine</option><option value="pose">Pose inspection</option></select></label>
+<label>Scenario <select id="scenario"><option value="forward">Accelerate / coast</option><option value="stop">Reverse / stop</option><option value="turn">90° turn</option><option value="back">Backward skating</option><option value="carry">Carry and turn</option><option value="wrist">Wrist shot</option><option value="slap">Slap shot</option><option value="pass">Pass</option></select></label>
+<label>Action <select id="action"></select></label>
+<div><button id="reset">Restart</button><button id="play">Pause</button><button id="step">Step 1/60 s</button></div>
+<label>Phase <input id="phase" type="range" min="0" max="1" step=".001" value="0"></label>
+<label>Orbit <input id="orbit" type="range" min="-180" max="180" value="35"></label>
+<label>Camera pitch <input id="pitch" type="range" min="15" max="85" value="58"></label>
+<label>View width <input id="width" type="range" min="2" max="14" step=".1" value="4.5"></label>
+<label><input id="markers" type="checkbox" checked> Grip and blade markers</label>
+<pre id="numbers"></pre>
+</section></main>
+<script type="module">
+import {Renderer} from './src/render.js';
+import {createGame,addSkater,step,stickWorld,animOf,DT} from './src/sim.js';
+import {HOCKEY} from './src/poses.js';
+const $=id=>document.getElementById(id);
+let R,S,p,q,paused=false,acc=0,last=performance.now(),previous=null;
+for(const name of Object.keys(HOCKEY))$('action').add(new Option(name,name));
+$('action').value='hReady';
+function init(){
+ S=createGame('lab','player-lab',{auto:false,penalties:false,engine:{motion:'edges',skating:'rated',roster:'neutral'}});
+ const goalie=$('mode').value==='pose'&&$('action').value.startsWith('g');
+ p=addSkater(S,0,goalie?'G':'C',{x:0,z:0,yaw:0,act:goalie?'gStance':'hReady',ph:0});
+ S.user=p;S.puck.x=40;S.puck.z=0;S.puck.lock=100;S.puck.owner=null;
+ const kind=$('scenario').value;
+ if(['carry','wrist','slap','pass'].includes(kind)&&$('mode').value==='live'){
+  const c=stickWorld(p).C;Object.assign(S.puck,{owner:p,x:c.x,z:c.z,y:0,lock:0});
+ }
+ if(kind==='pass'&&$('mode').value==='live'){q=addSkater(S,0,'RW',{x:6,z:2,yaw:0});q.script=()=>({mx:0,mz:0});}
+ else q=null;
+ previous=null;acc=0;$('phase').value=0;
+}
+function posePreview(){
+ const n=$('action').value,a=HOCKEY[n],f=Number($('phase').value);
+ p.one=a.loop?null:{name:n,t:a.dur*f,fired:false};p.act=a.loop?n:(p.isG?'gStance':'hReady');p.ph=f;
+ const c=stickWorld(p).C;Object.assign(S.puck,{x:c.x,z:c.z,y:0,vx:0,vz:0});
+}
+function runStep(){
+ if($('mode').value==='pose'){$('phase').value=(Number($('phase').value)+DT/HOCKEY[$('action').value].dur)%1;posePreview();return;}
+ const t=S.t,k=$('scenario').value;let inp={active:true,x:0,z:0};
+ if(k==='forward')inp.x=t<2?1:0;
+ if(k==='stop')inp.x=t<1.7?1:t<3.1?-1:0;
+ if(k==='turn'||k==='carry'){inp.x=t<1.4?1:0;inp.z=t>=1.4&&t<3?1:0;}
+ if(k==='back'){inp.x=t<2?-1:0;inp.backward=true;S.puck.x=p.x+5;S.puck.z=p.z;S.puck.vx=S.puck.vz=0;}
+ if(k==='wrist'||k==='slap'){inp.shootUp=t<.5&&t+DT>=.5;inp.held=k==='slap'?.5:0;}
+ if(k==='pass')inp.pass=t<.5&&t+DT>=.5;
+ step(S,inp);
+ if(S.t>5.5)init();
+}
+function draw(){
+ const mode=$('mode').value;if(mode==='pose')posePreview();
+ R.labView={x:p.x,z:p.z,y:.8,width:Number($('width').value),pitch:Number($('pitch').value),orbit:Number($('orbit').value),markers:$('markers').checked,playerId:p.id};
+ R.draw(S,DT,false);
+ const a=animOf(p),st=stickWorld(p),speed=Math.hypot(p.vx,p.vz),err=st.error;
+ const distance=Math.hypot(S.puck.x-st.C.x,S.puck.z-st.C.z);
+ const rel=S.log.filter(e=>e.type==='bladeRelease'||e.type==='releaseCancelled').slice(-1)[0];
+ $('numbers').textContent=['mode: '+mode,'action: '+a.name,'state: '+(p.motionState||'pose'),'time: '+S.t.toFixed(2)+' s','speed: '+speed.toFixed(2)+' m/s','facing: '+(p.yaw*180/Math.PI).toFixed(1)+'°','grip error: '+(err*100).toFixed(2)+' cm','grip mode: '+st.mode,'fallback: '+st.fallback,'puck / contact gap: '+distance.toFixed(3)+' m','release: '+(rel?JSON.stringify(rel):'none')].join('\n');
+}
+function loop(now){let dt=Math.min(.1,(now-last)/1000);last=now;if(!paused){acc+=dt;while(acc>=DT){runStep();acc-=DT;}}draw();requestAnimationFrame(loop);}
+$('reset').onclick=init;$('mode').onchange=init;$('scenario').onchange=init;$('action').onchange=()=>{if($('mode').value==='pose')init();};
+$('play').onclick=()=>{paused=!paused;$('play').textContent=paused?'Play':'Pause';acc=0;};
+$('step').onclick=()=>{paused=true;$('play').textContent='Play';runStep();draw();};
+$('phase').oninput=()=>{if($('mode').value==='pose'){paused=true;$('play').textContent='Play';draw();}};
+try{R=new Renderer($('ice'));const fit=()=>{const b=$('ice').getBoundingClientRect();R.resize(Math.max(1,b.width),Math.max(1,b.height));};addEventListener('resize',fit);fit();init();$('status').textContent='Actual Rink engine · fixed-step 60 Hz';requestAnimationFrame(loop);}catch(e){$('status').textContent='Lab failed: '+e.message;console.error(e);}
+</script></html>

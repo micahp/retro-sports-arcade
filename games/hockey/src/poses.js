@@ -84,7 +84,7 @@ const keysWithStick = (list, blades, extra = {}) => (t) => {
   let i = 0; while (i < blades.length - 2 && t > blades[i + 1].t) i++;
   const a = blades[i], b = blades[i + 1], u = Math.max(0, Math.min(1, (t - a.t) / ((b.t - a.t) || 1)));
   const s = u * u * (3 - 2 * u);
-  const y = (v) => (v === 'ice' ? 0.03 : v);
+  const y = (v) => (v === 'ice' ? 0.035 : v);
   if(extra.fall && t>=.6)return withStick(pose,{blade:'drop'});
   return withStick(pose, { ...extra, blade: [a.b[0] + (b.b[0] - a.b[0]) * s, y(a.b[1]) + (y(b.b[1]) - y(a.b[1])) * s, a.b[2] + (b.b[2] - a.b[2]) * s] });
 };

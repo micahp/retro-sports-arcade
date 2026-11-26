@@ -9,4 +9,5 @@ for(const [name,a] of Object.entries(HOCKEY))for(let i=0;i<a.frames;i++){
  const err=Math.max(0,...Object.values(gripErrors(pose,s)));if(err>.03)throw Error(name+' disconnected grip '+err);
  max=Math.max(max,err);n++;if(s.fallback)fb++;if(s.mode==='released')fall++;
 }
+if(fb)throw Error('unexpected grounded fallbacks: '+fb);
 console.log('PASS '+n+' frames, max grip '+max.toFixed(4)+' m; fallback '+fb+'; released '+fall);
